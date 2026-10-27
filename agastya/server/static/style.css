@@ -1779,8 +1779,14 @@ body.live-expanded {
   }
   .header-controls {
     width: 100%;
-    justify-content: space-between;
+    flex-wrap: wrap;
+    justify-content: flex-start;
     gap: 8px;
+    min-width: 0;
+  }
+  .header-controls > * {
+    min-width: 0;
+    flex: 0 1 auto;
   }
   .header-controls select {
     max-width: 150px;
