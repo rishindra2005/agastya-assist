@@ -1,0 +1,526 @@
+"""Tests for Agastya Assist MCP tools."""
+
+from __future__ import annotations
+
+import asyncio
+import base64
+from dataclasses import dataclass
+import json
+from pathlib import Path
+from typing import Any
+
+import pytest
+
+from agastya.agent.events import EventBus
+from agastya.agent.tools import (
+    TOOL_NAMES,
+    BlockedActionError,
+    ToolContext,
+    build_handlers,
+    build_mcp_server,
+    format_snapshot,
+)
+from agastya.browser.driver import FieldInfo, PageSnapshot
+from agastya.browser.guard import GuardDecision
+from agastya.portals.loader import Playbook
+from agastya.profile.store import ProfileStore
+
+
+# Canned test models for browser snapshot testing
+class FakeBrowser:
+    """Fake BrowserDriver for tools unit testing."""
+
+    def __init__(self) -> None:
+        self.calls: list[tuple[str, Any]] = []
+        self.canned_png = b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDRfakeimage"
+        self.current_url = "https://example.gov.in/form"
+        self.current_title = "Government Portal Form"
+        self.fields = [
+            FieldInfo(
+                ref="f1",
+                tag="input",
+                type="text",
+                label="First Name",
+                name="fname",
+                id="fname",
+                required=True,
+                value="",
+                options=[],
+            ),
+            FieldInfo(
+                ref="f2",
+                tag="select",
+                type="select",
+                label="State",
+                name="state",
+                id="state",
+                required=False,
+                value="DL",
+                options=["DL", "MH", "KA"],
+            ),
+            FieldInfo(
+                ref="f3",
+                tag="input",
+                type="text",
+                label="Last Name",
+                name="lname",
+                id="lname",
+                required=True,
+                value="Smith",
+                options=[],
+            ),
+        ]
+        self.actions = [
+            {"ref": "a1", "tag": "button", "text": "Save Draft"},
+            {"ref": "a2", "tag": "button", "text": "Next"},
+            {"ref": "a_submit", "tag": "button", "text": "Final Submit"},
+        ]
+
+    def _snapshot(self) -> PageSnapshot:
+        return PageSnapshot(
+            url=self.current_url,
+            title=self.current_title,
+            text="Welcome to the National Portal. Please fill in your application details accurately.",
+            fields=self.fields,
+            actions=self.actions,
+        )
+
+    async def goto(self, url: str) -> PageSnapshot:
+        self.calls.append(("goto", url))
+        self.current_url = url
+        return self._snapshot()
+
+    async def snapshot(self) -> PageSnapshot:
+        self.calls.append(("snapshot", None))
+        return self._snapshot()
+
+    async def fill(self, ref: str, value: str) -> None:
+        self.calls.append(("fill", (ref, value)))
+        for f in self.fields:
+            if f.ref == ref:
+                f.value = value
+
+    async def select(self, ref: str, option: str) -> None:
+        self.calls.append(("select", (ref, option)))
+        for f in self.fields:
+            if f.ref == ref:
+                f.value = option
+
+    async def click(self, ref: str) -> PageSnapshot:
+        self.calls.append(("click", ref))
+        if ref == "a_submit":
+            decision = GuardDecision(allowed=False, reason="final submit")
+            raise BlockedActionError(decision)
+        return self._snapshot()
+
+    async def screenshot(self) -> bytes:
+        self.calls.append(("screenshot", None))
+        return self.canned_png
+
+
+@pytest.fixture
+def test_ctx(tmp_path: Path):
+    db_file = tmp_path / "test_profile.db"
+    profile = ProfileStore(user_id="user_test", db_path=db_file)
+    browser = FakeBrowser()
+    bus = EventBus()
+
+    async def fake_ask_user(question: str, field: str | None = None) -> str:
+        if "bad" in question:
+            return "bad_pan"
+        if field == "full_name":
+            return "Rishi Sharma"
+        if field == "pan":
+            return "ABCDE1234F"
+        return "I confirm"
+
+    playbooks = {
+        "pan_49a": Playbook(
+            id="pan_49a",
+            portal="tin_nsdl",
+            title_en="PAN Card Application (Form 49A)",
+            title_hi="पैन कार्ड आवेदन (फॉर्म 49A)",
+            live_url="https://onlineservices.tin.egov-nsdl.com/etaxnew/pan",
+            fixture=None,
+            requires_login=False,
+            required_fields=["full_name", "date_of_birth", "mobile", "email"],
+            optional_fields=["father_name"],
+            field_hints={"full_name": ["name", "applicant_name"]},
+            steps=["Navigate to portal", "Fill details", "Stop before payment"],
+            stop_before=["Proceed to Pay", "Submit"],
+            keywords=["pan", "form 49a", "पैन"],
+        )
+    }
+
+    ctx = ToolContext(
+        profile=profile,
+        browser=browser,
+        bus=bus,
+        ask_user=fake_ask_user,
+        playbooks=playbooks,
+    )
+    yield ctx
+    profile.close()
+
+
+def test_tool_names():
+    assert len(TOOL_NAMES) == 13
+    for name in TOOL_NAMES:
+        assert name.startswith("mcp__agastya__")
+    assert "mcp__agastya__get_profile" in TOOL_NAMES
+    assert "mcp__agastya__browser_click" in TOOL_NAMES
+    assert "mcp__agastya__handoff_to_user" in TOOL_NAMES
+
+
+def test_build_mcp_server(test_ctx: ToolContext):
+    server = build_mcp_server(test_ctx)
+    assert isinstance(server, dict)
+    assert server["type"] == "sdk"
+    assert server["name"] == "agastya"
+    # The SDK serialises everything except "instance" to JSON for the CLI.
+    assert "handlers" not in server
+    json.dumps({k: v for k, v in server.items() if k != "instance"})
+    assert hasattr(server, "handlers")
+    assert len(server.handlers) == 13
+    assert "get_profile" in server.handlers
+    assert "browser_click" in server.handlers
+
+
+def test_format_snapshot():
+    fields = [
+        FieldInfo(
+            ref="f1",
+            tag="input",
+            type="text",
+            label="First Name",
+            name="fname",
+            id="fname",
+            required=True,
+            value="",
+            options=[],
+        ),
+        FieldInfo(
+            ref="f2",
+            tag="input",
+            type="text",
+            label="Last Name",
+            name="lname",
+            id="lname",
+            required=False,
+            value="Patel",
+            options=[],
+        ),
+    ]
+    actions = [
+        {"ref": "a1", "tag": "button", "text": "Save Draft"},
+        {"ref": "a2", "tag": "button", "text": "Next"},
+    ]
+    snap = PageSnapshot(
+        url="https://example.gov.in/test",
+        title="Sample Portal",
+        text="Sample heading text " + ("word " * 400),
+        fields=fields,
+        actions=actions,
+    )
+    formatted = format_snapshot(snap)
+
+    assert "URL: https://example.gov.in/test" in formatted
+    assert "Title: Sample Portal" in formatted
+    assert "f1 | text | First Name* | value=''" in formatted
+    assert "f2 | text | Last Name | value='Patel'" in formatted
+    assert "a1 | button | Save Draft" in formatted
+    assert "a2 | button | Next" in formatted
+    # Check text truncation to <= 1500 chars
+    text_section = formatted.split("Fields:")[0]
+    assert len(text_section) <= 1700
+
+
+@pytest.mark.asyncio
+async def test_get_profile_and_masking(test_ctx: ToolContext):
+    handlers = build_handlers(test_ctx)
+
+    # Pre-populate sensitive and normal fields
+    test_ctx.profile.set("full_name", "Rishi Kumar")
+    test_ctx.profile.set("pan", "ABCDE1234F")
+    test_ctx.profile.set("aadhaar", "123456789012")
+    test_ctx.profile.set("bank_account_number", "1234567890")
+
+    result = await handlers["get_profile"]()
+    assert not result.get("is_error")
+    data = json.loads(result["content"][0]["text"])
+
+    # Sensitive fields masked
+    assert data["profile"]["pan"] == "XXXXX1234X"
+    assert data["profile"]["aadhaar"] == "XXXXXXXX9012"
+    assert data["profile"]["bank_account_number"] == "XXXXXX7890"
+    assert data["profile"]["full_name"] == "Rishi Kumar"
+
+    # Also check direct access
+    assert data["pan"] == "XXXXX1234X"
+
+    # Missing catalog fields listed
+    assert "missing_fields" in data
+    assert "date_of_birth" in data["missing_fields"]
+    assert "mobile" in data["missing_fields"]
+    assert "pan" not in data["missing_fields"]
+
+
+@pytest.mark.asyncio
+async def test_get_profile_value(test_ctx: ToolContext):
+    handlers = build_handlers(test_ctx)
+    test_ctx.profile.set("pan", "ABCDE1234F")
+
+    # Real unmasked value returned for valid field
+    result = await handlers["get_profile_value"]({"field": "pan"})
+    assert not result.get("is_error")
+    assert result["content"][0]["text"] == "ABCDE1234F"
+
+    # Non-existent field returns is_error
+    missing_result = await handlers["get_profile_value"]({"field": "nonexistent_field"})
+    assert missing_result.get("is_error") is True
+    assert "not set" in missing_result["content"][0]["text"]
+
+
+@pytest.mark.asyncio
+async def test_save_profile_field_valid_and_invalid(test_ctx: ToolContext):
+    handlers = build_handlers(test_ctx)
+    q = test_ctx.bus.subscribe()
+
+    # Valid field save
+    result = await handlers["save_profile_field"]({"field": "full_name", "value": "Aarav Sharma"})
+    assert not result.get("is_error")
+    assert test_ctx.profile.get("full_name") == "Aarav Sharma"
+
+    # Verify profile_updated event emitted
+    ev = await asyncio.wait_for(q.get(), timeout=1.0)
+    assert ev.type == "profile_updated"
+    assert ev.data["field"] == "full_name"
+    assert ev.data["value"] == "Aarav Sharma"
+
+    # Invalid field save (invalid PAN pattern)
+    bad_result = await handlers["save_profile_field"]({"field": "pan", "value": "bad_pan_123"})
+    assert bad_result.get("is_error") is True
+    assert "Invalid value for field 'pan'" in bad_result["content"][0]["text"]
+
+
+@pytest.mark.asyncio
+async def test_ask_user_saving_field(test_ctx: ToolContext):
+    handlers = build_handlers(test_ctx)
+    q = test_ctx.bus.subscribe()
+
+    # ask_user with field="full_name" -> fake_ask_user returns "Rishi Sharma"
+    res = await handlers["ask_user"]({"question": "What is your name?", "field": "full_name"})
+    assert not res.get("is_error")
+    assert res["content"][0]["text"] == "Rishi Sharma"
+
+    # Should be saved in profile
+    assert test_ctx.profile.get("full_name") == "Rishi Sharma"
+
+    # profile_updated event emitted
+    ev = await asyncio.wait_for(q.get(), timeout=1.0)
+    assert ev.type == "profile_updated"
+    assert ev.data["field"] == "full_name"
+    assert ev.data["value"] == "Rishi Sharma"
+
+    # ask_user with field=None -> not saved
+    res_no_field = await handlers["ask_user"]({"question": "Proceed?"})
+    assert res_no_field["content"][0]["text"] == "I confirm"
+
+    # ask_user with field="pan" but invalid answer -> fake_ask_user returns "bad_pan" which fails validation
+    res_bad = await handlers["ask_user"]({"question": "bad pan?", "field": "pan"})
+    assert res_bad["content"][0]["text"] == "bad_pan"
+    # Not saved in profile
+    assert test_ctx.profile.get("pan") is None
+
+
+@pytest.mark.asyncio
+async def test_playbooks_handlers(test_ctx: ToolContext):
+    handlers = build_handlers(test_ctx)
+
+    list_res = await handlers["list_playbooks"]()
+    assert not list_res.get("is_error")
+    playbooks = json.loads(list_res["content"][0]["text"])
+    assert len(playbooks) == 1
+    assert playbooks[0]["id"] == "pan_49a"
+
+    get_res = await handlers["get_playbook"]({"id": "pan_49a"})
+    assert not get_res.get("is_error")
+    pb_data = json.loads(get_res["content"][0]["text"])
+    assert pb_data["portal"] == "tin_nsdl"
+    assert "full_name" in pb_data["required_fields"]
+
+    bad_pb = await handlers["get_playbook"]({"id": "nonexistent"})
+    assert bad_pb.get("is_error") is True
+    assert "not found" in bad_pb["content"][0]["text"]
+
+
+@pytest.mark.asyncio
+async def test_browser_goto_emits_screenshot(test_ctx: ToolContext):
+    handlers = build_handlers(test_ctx)
+    q = test_ctx.bus.subscribe()
+
+    target_url = "https://services.india.gov.in"
+    res = await handlers["browser_goto"]({"url": target_url})
+    assert not res.get("is_error")
+    assert "URL: https://services.india.gov.in" in res["content"][0]["text"]
+
+    # Verify screenshot event emitted automatically
+    ev = await asyncio.wait_for(q.get(), timeout=1.0)
+    assert ev.type == "screenshot"
+    assert "png_b64" in ev.data
+    assert ev.data["url"] == target_url
+    assert base64.b64decode(ev.data["png_b64"]) == test_ctx.browser.canned_png
+
+
+@pytest.mark.asyncio
+async def test_browser_snapshot(test_ctx: ToolContext):
+    handlers = build_handlers(test_ctx)
+    res = await handlers["browser_snapshot"]()
+    assert not res.get("is_error")
+    text = res["content"][0]["text"]
+    assert "URL: https://example.gov.in/form" in text
+    assert "f1 | text | First Name* | value=''" in text
+    assert "a1 | button | Save Draft" in text
+
+
+@pytest.mark.asyncio
+async def test_browser_fill_and_select(test_ctx: ToolContext):
+    handlers = build_handlers(test_ctx)
+
+    fill_res = await handlers["browser_fill"]({"ref": "f1", "value": "Aarav"})
+    assert not fill_res.get("is_error")
+    assert ("fill", ("f1", "Aarav")) in test_ctx.browser.calls
+
+    select_res = await handlers["browser_select"]({"ref": "f2", "option": "MH"})
+    assert not select_res.get("is_error")
+    assert ("select", ("f2", "MH")) in test_ctx.browser.calls
+
+
+@pytest.mark.asyncio
+async def test_browser_click_allowed_emits_screenshot(test_ctx: ToolContext):
+    handlers = build_handlers(test_ctx)
+    q = test_ctx.bus.subscribe()
+
+    res = await handlers["browser_click"]({"ref": "a2"})
+    assert not res.get("is_error")
+
+    # Screenshot event emitted on allowed click
+    ev = await asyncio.wait_for(q.get(), timeout=1.0)
+    assert ev.type == "screenshot"
+    assert "png_b64" in ev.data
+
+
+@pytest.mark.asyncio
+async def test_browser_click_blocked_emits_blocked_event(test_ctx: ToolContext):
+    handlers = build_handlers(test_ctx)
+    q = test_ctx.bus.subscribe()
+
+    res = await handlers["browser_click"]({"ref": "a_submit"})
+
+    # Must NOT be is_error
+    assert res.get("is_error") is False
+    assert (
+        res["content"][0]["text"]
+        == "BLOCKED: final submit. This is a final action. Tell the user what is filled and call handoff_to_user."
+    )
+
+    # Blocked event emitted
+    ev = await asyncio.wait_for(q.get(), timeout=1.0)
+    assert ev.type == "blocked"
+    assert ev.data["reason"] == "final submit"
+    assert ev.data["ref"] == "a_submit"
+
+
+@pytest.mark.asyncio
+async def test_browser_screenshot_tool(test_ctx: ToolContext):
+    handlers = build_handlers(test_ctx)
+    q = test_ctx.bus.subscribe()
+
+    res = await handlers["browser_screenshot"]()
+    assert not res.get("is_error")
+    assert "Screenshot captured" in res["content"][0]["text"]
+
+    ev = await asyncio.wait_for(q.get(), timeout=1.0)
+    assert ev.type == "screenshot"
+    assert base64.b64decode(ev.data["png_b64"]) == test_ctx.browser.canned_png
+
+
+@pytest.mark.asyncio
+async def test_handoff_to_user(test_ctx: ToolContext):
+    handlers = build_handlers(test_ctx)
+    q = test_ctx.bus.subscribe()
+
+    res = await handlers["handoff_to_user"]({"reason": "Aadhaar OTP required"})
+    assert not res.get("is_error")
+    assert "Aadhaar OTP required" in res["content"][0]["text"]
+
+    ev = await asyncio.wait_for(q.get(), timeout=1.0)
+    assert ev.type == "status"
+    assert ev.data["handoff"] is True
+    assert ev.data["reason"] == "Aadhaar OTP required"
+
+
+@pytest.mark.asyncio
+async def test_error_handling_in_handlers(test_ctx: ToolContext):
+    handlers = build_handlers(test_ctx)
+
+    # Browser error during fill
+    async def failing_fill(ref: str, value: str):
+        raise RuntimeError("Element not found")
+
+    test_ctx.browser.fill = failing_fill
+    res_fill = await handlers["browser_fill"]({"ref": "f99", "value": "val"})
+    assert res_fill.get("is_error") is True
+    assert "Element not found" in res_fill["content"][0]["text"]
+
+    # Browser error during select
+    async def failing_select(ref: str, option: str):
+        raise RuntimeError("Dropdown disabled")
+
+    test_ctx.browser.select = failing_select
+    res_sel = await handlers["browser_select"]({"ref": "f99", "option": "opt"})
+    assert res_sel.get("is_error") is True
+    assert "Dropdown disabled" in res_sel["content"][0]["text"]
+
+    # Browser error during snapshot
+    async def failing_snapshot():
+        raise RuntimeError("Target crashed")
+
+    test_ctx.browser.snapshot = failing_snapshot
+    res_snap = await handlers["browser_snapshot"]()
+    assert res_snap.get("is_error") is True
+    assert "Target crashed" in res_snap["content"][0]["text"]
+
+    # Navigation error during goto
+    async def failing_goto(url: str):
+        raise RuntimeError("DNS resolution failed")
+
+    test_ctx.browser.goto = failing_goto
+    res_goto = await handlers["browser_goto"]({"url": "https://invalid.url"})
+    assert res_goto.get("is_error") is True
+    assert "DNS resolution failed" in res_goto["content"][0]["text"]
+
+    # Blocked goto
+    async def blocked_goto(url: str):
+        decision = GuardDecision(allowed=False, reason="payment gateway")
+        raise BlockedActionError(decision)
+
+    test_ctx.browser.goto = blocked_goto
+    q = test_ctx.bus.subscribe()
+    res_bgoto = await handlers["browser_goto"]({"url": "https://paygov.gov.in"})
+    assert res_bgoto.get("is_error") is False
+    assert "BLOCKED: payment gateway" in res_bgoto["content"][0]["text"]
+    ev = await asyncio.wait_for(q.get(), timeout=1.0)
+    assert ev.type == "blocked"
+    assert ev.data["reason"] == "payment gateway"
+
+    # Ask user failure
+    async def failing_ask(question: str, field: str | None = None):
+        raise RuntimeError("Channel closed")
+
+    test_ctx.ask_user = failing_ask
+    handlers_fail = build_handlers(test_ctx)
+    res_ask = await handlers_fail["ask_user"]({"question": "hello"})
+    assert res_ask.get("is_error") is True
+    assert "Channel closed" in res_ask["content"][0]["text"]
+

@@ -1,0 +1,59 @@
+id: "pan_aadhaar_link"
+portal: "Income Tax e-Filing"
+title_en: "Link PAN with Aadhaar"
+title_hi: "पैन को आधार से लिंक करें"
+live_url: "https://eportal.incometax.gov.in/iec/foservices/#/pre-login/bl-link-aadhaar"
+fixture: null
+requires_login: false
+required_fields:
+  - "pan"
+  - "aadhaar"
+optional_fields:
+  - "full_name"
+  - "mobile"
+field_hints:
+  pan:
+    - "pan"
+    - "panNumber"
+    - "txtPan"
+  aadhaar:
+    - "aadhaar"
+    - "aadhaarNumber"
+    - "txtAadhaar"
+  full_name:
+    - "nameAsPerAadhaar"
+    - "name"
+  mobile:
+    - "mobile"
+    - "mobileNumber"
+steps:
+  - "Navigate to the Income Tax e-filing portal Link Aadhaar page."
+  - "Enter your 10-character PAN number in the designated field."
+  - "Enter your 12-digit Aadhaar number."
+  - "Provide your name exactly as recorded on the Aadhaar card."
+  - "Enter your active mobile number for verification."
+  - "Check the consent boxes for Aadhaar details validation."
+  - "Review the entered PAN and Aadhaar details."
+  - "Stop before clicking Validate or Continue to Pay so the user handles OTP and challan payment."
+stop_before:
+  - "Validate"
+  - "Continue to Pay Through e-Pay Tax"
+  - "Proceed to Pay"
+  - "Pay Now"
+  - "Submit"
+  - "Get OTP"
+  - "Verify OTP"
+  - "वैलिडेट"
+  - "भुगतान"
+keywords:
+  - "link pan aadhaar"
+  - "pan aadhaar link"
+  - "link aadhaar to pan"
+  - "pan card aadhaar se link"
+  - "aadhaar pan link karna"
+  - "pan aadhaar jodna"
+  - "link aadhaar online"
+  - "पैन आधार लिंक"
+  - "आधार से पैन जोड़ें"
+  - "पैन को आधार से जोड़ना"
+  - "पैन आधार लिंकिंग"

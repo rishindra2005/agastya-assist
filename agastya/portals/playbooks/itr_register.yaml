@@ -1,0 +1,100 @@
+id: "itr_register"
+portal: "Income Tax e-Filing"
+title_en: "Income Tax e-Filing New User Registration"
+title_hi: "आयकर ई-फाइलिंग नया उपयोगकर्ता पंजीकरण"
+live_url: "https://eportal.incometax.gov.in/iec/foservices/#/pre-login/register"
+fixture: null
+requires_login: false
+required_fields:
+  - "pan"
+  - "full_name"
+  - "date_of_birth"
+  - "gender"
+  - "mobile"
+  - "email"
+  - "address_line1"
+  - "city"
+  - "state"
+  - "pincode"
+optional_fields:
+  - "address_line2"
+  - "district"
+field_hints:
+  pan:
+    - "pan"
+    - "panNumber"
+    - "txtPan"
+    - "PAN"
+  full_name:
+    - "first_name"
+    - "last_name"
+    - "middle_name"
+    - "name"
+    - "fullName"
+  date_of_birth:
+    - "dob"
+    - "dateOfBirth"
+    - "birthDate"
+  gender:
+    - "gender"
+    - "radGender"
+  mobile:
+    - "mobile"
+    - "mobileNumber"
+    - "primaryMobile"
+  email:
+    - "email"
+    - "emailId"
+    - "primaryEmail"
+  address_line1:
+    - "flat"
+    - "premises"
+    - "road"
+    - "street"
+    - "addressLine1"
+  address_line2:
+    - "area"
+    - "locality"
+    - "addressLine2"
+  city:
+    - "city"
+    - "town"
+  district:
+    - "district"
+  state:
+    - "state"
+  pincode:
+    - "pincode"
+    - "pinCode"
+    - "zip"
+steps:
+  - "Navigate to the Income Tax e-filing portal registration page."
+  - "Select Taxpayer category as Individual and enter your 10-digit PAN."
+  - "Validate PAN details and proceed to the basic details screen."
+  - "Fill in personal details including first name, last name, date of birth, and gender."
+  - "Provide contact details including primary mobile number and email address."
+  - "Enter your residential address including premises, locality, town, state, and PIN code."
+  - "Review all entered information on the summary screen carefully."
+  - "Stop before clicking Get OTP or Submit so the user can verify their mobile and email."
+stop_before:
+  - "Get OTP"
+  - "Verify OTP"
+  - "Continue"
+  - "Submit"
+  - "Register"
+  - "ओटीपी"
+  - "रजिस्टर"
+keywords:
+  - "income tax register"
+  - "itr registration"
+  - "incometax new user"
+  - "create income tax account"
+  - "register on incometax portal"
+  - "itr account banana"
+  - "income tax register karna"
+  - "naya itr account"
+  - "incometax registration"
+  - "आयकर पंजीकरण"
+  - "ई-फाइलिंग रजिस्ट्रेशन"
+  - "नया आयकर खाता"
+  - "आईटीआर रजिस्टर"

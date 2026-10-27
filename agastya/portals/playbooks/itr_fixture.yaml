@@ -1,0 +1,82 @@
+id: "itr_fixture"
+portal: "ITR (test fixture)"
+title_en: "Income Tax e-Filing Login and ITR Form (Fixture)"
+title_hi: "आयकर ई-फाइलिंग लॉगिन एवं आईटीआर फॉर्म (परीक्षण फिक्सर)"
+live_url: "https://eportal.incometax.gov.in/iec/foservices/#/login"
+fixture: "tests/fixtures/forms/itr_login_and_form.html"
+requires_login: true
+required_fields:
+  - "pan"
+  - "full_name"
+  - "date_of_birth"
+  - "mobile"
+  - "email"
+  - "address_line1"
+  - "city"
+  - "state"
+  - "pincode"
+  - "bank_account_number"
+  - "bank_ifsc"
+optional_fields:
+  - "aadhaar"
+  - "address_line2"
+  - "occupation"
+  - "annual_income"
+field_hints:
+  pan:
+    - "pan"
+    - "user_id"
+  full_name:
+    - "name"
+  date_of_birth:
+    - "dob"
+  mobile:
+    - "mobile"
+  email:
+    - "email"
+  address_line1:
+    - "flat_door_no"
+  address_line2:
+    - "area"
+  city:
+    - "city"
+  state:
+    - "state"
+  pincode:
+    - "pincode"
+  bank_account_number:
+    - "bank_account_number"
+  bank_ifsc:
+    - "ifsc_code"
+  aadhaar:
+    - "aadhaar"
+  occupation:
+    - "nature_of_employment"
+  annual_income:
+    - "annual_income"
+    - "income"
+steps:
+  - "Open the test fixture login and form page."
+  - "Guide the user to log in using their PAN as User ID and enter password."
+  - "Review the personal information section with pre-filled PAN, full name, and date of birth."
+  - "Fill in contact details including mobile number and email address."
+  - "Enter residential address including flat number, area, city, state, and PIN code."
+  - "Provide bank details including account number and IFSC code for refund processing."
+  - "Review tax computation and deduction summaries on the page."
+  - "Stop before clicking Login, Proceed to Verification, or e-Verify to ensure user safety."
+stop_before:
+  - "Login"
+  - "Proceed to Verification"
+  - "e-Verify"
+  - "Submit"
+  - "Save Draft"
+  - "लॉगिन"
+  - "ई-वेरीफाई"
+keywords:
+  - "itr fixture"
+  - "test itr form"
+  - "itr test fixture"
+  - "itr login and form"
+  - "income tax fixture"
+  - "आईटीआर फिक्सर"
+  - "परीक्षण आईटीआर"

@@ -1,0 +1,60 @@
+id: "mca_spice_name"
+portal: "MCA (Ministry of Corporate Affairs)"
+title_en: "SPICe+ Part A Company Name Reservation"
+title_hi: "SPICe+ भाग A कंपनी नाम आरक्षण"
+live_url: "https://www.mca.gov.in/mcafoportal/showSpicePlusA.do"
+fixture: "tests/fixtures/forms/mca_din.html"
+requires_login: false
+required_fields:
+  - "company_name"
+optional_fields:
+  - "din"
+  - "full_name"
+  - "email"
+  - "mobile"
+field_hints:
+  company_name:
+    - "proposed_name_1"
+    - "proposed_name_2"
+    - "company_name"
+  din:
+    - "din"
+  full_name:
+    - "director_name"
+  email:
+    - "email"
+  mobile:
+    - "mobile"
+steps:
+  - "Navigate to the MCA portal SPICe+ Part A web form for name reservation."
+  - "Select Company Type, Class, and Category from the provided dropdowns."
+  - "Enter Main Division and Industrial Activity code of the proposed company."
+  - "Provide primary proposed company name in Proposed Name 1."
+  - "Enter alternative proposed name in Proposed Name 2 if desired."
+  - "Fill director or applicant identification details including DIN or full name."
+  - "Provide contact information with active email address and mobile number."
+  - "Stop before clicking Check Name, Submit, or Pay to allow the user to review and reserve."
+stop_before:
+  - "Check Name"
+  - "Auto Check"
+  - "Submit"
+  - "Pay Now"
+  - "Proceed to Payment"
+  - "Login"
+  - "कंपनी नाम जांचें"
+  - "जमा करें"
+  - "भुगतान"
+keywords:
+  - "company name reserve"
+  - "reserve company name"
+  - "spice plus part a"
+  - "spice+ name reservation"
+  - "mca company name"
+  - "register company name"
+  - "company name reservation"
+  - "company ka naam reserve karna"
+  - "new company name"
+  - "कंपनी नाम आरक्षण"
+  - "कंपनी का नाम"
+  - "कंपनी पंजीकरण नाम"
+  - "स्पाइस प्लस"

@@ -1,0 +1,52 @@
+id: "voter_epic_download"
+portal: "ECI Voters Service Portal"
+title_en: "Download Digital Voter ID (e-EPIC)"
+title_hi: "डिजिटल वोटर आईडी (ई-ईपिक) डाउनलोड करें"
+live_url: "https://voters.eci.gov.in/download-epic"
+fixture: null
+requires_login: true
+required_fields:
+  - "epic_number"
+  - "state"
+optional_fields:
+  - "mobile"
+field_hints:
+  epic_number:
+    - "epic_no"
+    - "epicNumber"
+    - "formNumber"
+  state:
+    - "state"
+    - "stateList"
+  mobile:
+    - "mobile"
+    - "mobileNumber"
+steps:
+  - "Open the ECI Voters Service Portal e-EPIC download section."
+  - "Guide the user to log in with their registered mobile number or EPIC credentials."
+  - "Select download mode by EPIC Number."
+  - "Enter your 10-character EPIC number and choose your State."
+  - "Verify that voter details match the applicant identity."
+  - "Stop before clicking Send OTP or Download e-EPIC so the user completes authentication."
+stop_before:
+  - "Login"
+  - "Sign In"
+  - "Send OTP"
+  - "Verify OTP"
+  - "Download e-EPIC"
+  - "Submit"
+  - "लॉगिन"
+  - "ओटीपी"
+  - "डाउनलोड करें"
+keywords:
+  - "download voter id"
+  - "e-epic download"
+  - "digital voter card"
+  - "download epic"
+  - "voter id download"
+  - "voter card download karna"
+  - "e-epic kaise download kare"
+  - "voter card pdf"
+  - "ई-ईपिक डाउनलोड"
+  - "वोटर आईडी डाउनलोड"
+  - "डिजिटल वोटर कार्ड"

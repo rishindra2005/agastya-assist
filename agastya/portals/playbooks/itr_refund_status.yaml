@@ -1,0 +1,53 @@
+id: "itr_refund_status"
+portal: "Income Tax e-Filing"
+title_en: "Check Income Tax Return & Refund Status"
+title_hi: "आयकर रिटर्न और रिफंड स्थिति की जाँच करें"
+live_url: "https://eportal.incometax.gov.in/iec/foservices/#/pre-login/itrStatus"
+fixture: null
+requires_login: false
+required_fields:
+  - "pan"
+  - "mobile"
+optional_fields:
+  - "date_of_birth"
+field_hints:
+  pan:
+    - "pan"
+    - "panNumber"
+    - "txtPan"
+  mobile:
+    - "mobile"
+    - "mobileNumber"
+    - "primaryMobile"
+  date_of_birth:
+    - "dob"
+    - "dateOfBirth"
+steps:
+  - "Navigate to the Income Tax e-filing portal quick links."
+  - "Select Know Your ITR Status or Refund Status link."
+  - "Enter your 10-character PAN number."
+  - "Enter your registered 10-digit mobile number."
+  - "Review the entered details before requesting verification."
+  - "Stop before clicking Continue or Generate OTP so the user can receive the OTP."
+stop_before:
+  - "Continue"
+  - "Get OTP"
+  - "Generate OTP"
+  - "Verify OTP"
+  - "Submit"
+  - "ओटीपी"
+  - "जारी रखें"
+keywords:
+  - "refund status"
+  - "itr refund status"
+  - "income tax refund"
+  - "check refund status"
+  - "know your itr status"
+  - "track tax refund"
+  - "refund kab aayega"
+  - "itr status check karna"
+  - "tax refund status"
+  - "रिफंड स्टेटस"
+  - "आयकर रिफंड"
+  - "रिफंड की स्थिति"
+  - "आईटीआर स्टेटस"

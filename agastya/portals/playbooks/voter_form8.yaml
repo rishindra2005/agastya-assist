@@ -1,0 +1,91 @@
+id: "voter_form8"
+portal: "ECI Voters Service Portal"
+title_en: "Voter ID Correction and Shifting (Form 8)"
+title_hi: "मतदाता पहचान पत्र सुधार और स्थानांतरण (फॉर्म 8)"
+live_url: "https://voters.eci.gov.in/form8"
+fixture: null
+requires_login: false
+required_fields:
+  - "epic_number"
+  - "state"
+  - "district"
+  - "mobile"
+optional_fields:
+  - "full_name"
+  - "address_line1"
+  - "address_line2"
+  - "city"
+  - "pincode"
+  - "date_of_birth"
+  - "gender"
+  - "aadhaar"
+  - "email"
+  - "assembly_constituency"
+field_hints:
+  epic_number:
+    - "epic_number"
+    - "epicNo"
+    - "voterId"
+  state:
+    - "state"
+  district:
+    - "district"
+  mobile:
+    - "mobile"
+    - "mobileNumber"
+  full_name:
+    - "first_name"
+    - "name"
+    - "applicantName"
+  address_line1:
+    - "house_no"
+    - "street_area"
+  address_line2:
+    - "post_office"
+    - "tehsil"
+  city:
+    - "town_village"
+    - "city"
+  pincode:
+    - "pincode"
+  date_of_birth:
+    - "dob"
+  gender:
+    - "gender"
+  aadhaar:
+    - "aadhaar_number"
+    - "aadhaar"
+  email:
+    - "email"
+  assembly_constituency:
+    - "assembly_constituency"
+steps:
+  - "Open the ECI Voters Service Portal Form 8 page."
+  - "Select the application purpose: shifting of residence or correction of entries."
+  - "Enter your 10-character EPIC voter ID number to fetch current electoral details."
+  - "Select the specific entries needing correction such as name, address, or date of birth."
+  - "Enter the updated information carefully in the respective fields."
+  - "Provide your active mobile number and email for verification."
+  - "Review the preview of updated voter details."
+  - "Stop before clicking Send OTP, Preview, or Submit to let the user finalize submission."
+stop_before:
+  - "Send OTP"
+  - "Verify OTP"
+  - "Preview and Submit"
+  - "Submit"
+  - "Preview"
+  - "ओटीपी"
+  - "जमा करें"
+keywords:
+  - "voter form 8"
+  - "voter id correction"
+  - "shift voter address"
+  - "change voter id address"
+  - "voter card correction"
+  - "voter id sudhar"
+  - "voter card me address change"
+  - "voter id update"
+  - "वोटर आईडी सुधार"
+  - "वोटर कार्ड संशोधन"
+  - "पता बदलना वोटर कार्ड"
+  - "फॉर्म 8"

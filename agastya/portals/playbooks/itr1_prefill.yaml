@@ -1,0 +1,89 @@
+id: "itr1_prefill"
+portal: "Income Tax e-Filing"
+title_en: "File ITR-1 (Sahaj) Income Tax Return"
+title_hi: "आईटीआर-1 (सहज) आयकर रिटर्न दाखिल करें"
+live_url: "https://eportal.incometax.gov.in/iec/foservices/#/dashboard/itr-filing"
+fixture: null
+requires_login: true
+required_fields:
+  - "pan"
+  - "date_of_birth"
+  - "bank_account_number"
+  - "bank_ifsc"
+optional_fields:
+  - "full_name"
+  - "mobile"
+  - "email"
+  - "annual_income"
+  - "occupation"
+  - "aadhaar"
+field_hints:
+  pan:
+    - "pan"
+    - "panNumber"
+  date_of_birth:
+    - "dob"
+    - "dateOfBirth"
+  bank_account_number:
+    - "bank_account_number"
+    - "accountNumber"
+    - "bankAccount"
+  bank_ifsc:
+    - "ifsc"
+    - "ifsc_code"
+    - "bankIfsc"
+  full_name:
+    - "name"
+    - "taxpayerName"
+  mobile:
+    - "mobile"
+    - "mobileNumber"
+  email:
+    - "email"
+    - "emailId"
+  annual_income:
+    - "income"
+    - "grossIncome"
+    - "salaryIncome"
+  occupation:
+    - "nature_of_employment"
+    - "employerCategory"
+  aadhaar:
+    - "aadhaar"
+    - "aadhaarNumber"
+steps:
+  - "Guide the user to log in securely with their PAN and password on the portal."
+  - "Navigate to e-File menu and select Income Tax Returns then File Income Tax Return."
+  - "Choose the relevant Assessment Year and select filing mode as Online."
+  - "Select taxpayer status as Individual and choose ITR-1 Sahaj form."
+  - "Review the pre-filled personal information, salary details, and deductions."
+  - "Confirm bank account details for refund processing."
+  - "Verify total tax computation and ensure no pending liabilities."
+  - "Stop before clicking Proceed to Verification or e-Verify to let the user review and file."
+stop_before:
+  - "Login"
+  - "Sign In"
+  - "Proceed to Verification"
+  - "e-Verify"
+  - "File Return"
+  - "Submit"
+  - "Confirm and Submit"
+  - "Pay Now"
+  - "ई-वेरीफाई"
+  - "लॉगिन"
+  - "दाखिल करें"
+keywords:
+  - "file itr"
+  - "file itr 1"
+  - "itr 1 sahaj"
+  - "income tax return filing"
+  - "file income tax return"
+  - "itr file karna"
+  - "tax return bharna"
+  - "itr 1 bharna"
+  - "sahaj return"
+  - "tax bharna"
+  - "आयकर रिटर्न"
+  - "आईटीआर 1"
+  - "सहज रिटर्न दाखिल"
+  - "टैक्स रिटर्न भरना"

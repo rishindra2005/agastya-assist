@@ -1,0 +1,74 @@
+id: "mca_din_dir3"
+portal: "MCA (Ministry of Corporate Affairs)"
+title_en: "Director Identification Number (DIN) / DIR-3 KYC"
+title_hi: "निदेशक पहचान संख्या (DIN) / DIR-3 केवाईसी"
+live_url: "https://www.mca.gov.in/mcafoportal/showDir3Kyc.do"
+fixture: null
+requires_login: true
+required_fields:
+  - "din"
+  - "pan"
+  - "mobile"
+  - "email"
+optional_fields:
+  - "full_name"
+  - "date_of_birth"
+  - "father_name"
+  - "aadhaar"
+field_hints:
+  din:
+    - "din"
+    - "directorDin"
+  pan:
+    - "pan"
+    - "panNumber"
+  mobile:
+    - "mobile"
+    - "mobileNumber"
+  email:
+    - "email"
+    - "emailAddress"
+  full_name:
+    - "director_name"
+    - "name"
+  date_of_birth:
+    - "dob"
+    - "dateOfBirth"
+  father_name:
+    - "father_name"
+    - "fatherName"
+  aadhaar:
+    - "aadhaar"
+    - "aadhaarNumber"
+steps:
+  - "Access the MCA V3 portal and guide the director to log in with MCA credentials."
+  - "Navigate to MCA Services then DIN Services and select Form DIR-3 KYC."
+  - "Enter the 8-digit Director Identification Number (DIN)."
+  - "Verify pre-filled personal information including PAN and director name."
+  - "Confirm registered personal mobile number and personal email address."
+  - "Review the uploaded KYC declaration and identity documents."
+  - "Stop before clicking Send OTP, Sign, Submit, or Pay to let the director complete DSC and OTP."
+stop_before:
+  - "Login"
+  - "Send OTP"
+  - "Verify OTP"
+  - "Sign & Submit"
+  - "Submit"
+  - "Pay Now"
+  - "Proceed to Payment"
+  - "लॉगिन"
+  - "ओटीपी"
+  - "हस्ताक्षर एवं जमा"
+keywords:
+  - "din application"
+  - "dir 3 kyc"
+  - "director kyc"
+  - "mca din kyc"
+  - "director identification number"
+  - "dir-3 web kyc"
+  - "din kyc karna"
+  - "director kyc update"
+  - "डीआईएन आवेदन"
+  - "डिन केवाईसी"
+  - "निदेशक केवाईसी"
+  - "डीआईआर-3"

@@ -1,0 +1,44 @@
+id: "mca_company_master"
+portal: "MCA (Ministry of Corporate Affairs)"
+title_en: "View Company / LLP Master Data"
+title_hi: "कंपनी / एलएलपी मास्टर डेटा देखें"
+live_url: "https://www.mca.gov.in/content/mca/global/en/mca/master-data/MDS.html"
+fixture: null
+requires_login: false
+required_fields:
+  - "cin"
+optional_fields:
+  - "company_name"
+field_hints:
+  cin:
+    - "companyCin"
+    - "cin"
+    - "companyID"
+  company_name:
+    - "companyName"
+    - "company_name"
+steps:
+  - "Navigate to the MCA Master Data service page."
+  - "Select View Company or LLP Master Data."
+  - "Enter the 21-character Corporate Identification Number (CIN)."
+  - "If CIN is unknown, enter company name to look up registration details."
+  - "Review the query parameters."
+  - "Stop before clicking Submit or Search so the user can solve the captcha."
+stop_before:
+  - "Submit"
+  - "Search"
+  - "Get Master Data"
+  - "खोजें"
+  - "जमा करें"
+keywords:
+  - "company master data"
+  - "view company data"
+  - "mca master data"
+  - "check company registration"
+  - "cin search"
+  - "company cin details"
+  - "company check karna"
+  - "company details mca"
+  - "कंपनी मास्टर डेटा"
+  - "कंपनी विवरण"
+  - "सीआईएन खोज"

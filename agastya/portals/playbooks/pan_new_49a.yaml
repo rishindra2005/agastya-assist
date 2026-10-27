@@ -1,0 +1,117 @@
+id: "pan_new_49a"
+portal: "Protean PAN (NSDL)"
+title_en: "New PAN Card Application (Form 49A)"
+title_hi: "नया पैन कार्ड आवेदन (फॉर्म 49A)"
+live_url: "https://www.onlineservices.nsdl.com/paam/endUserRegisterContact.html"
+fixture: "tests/fixtures/forms/pan_49a.html"
+requires_login: false
+required_fields:
+  - "full_name"
+  - "date_of_birth"
+  - "gender"
+  - "father_name"
+  - "mobile"
+  - "email"
+  - "aadhaar"
+  - "address_line1"
+  - "city"
+  - "state"
+  - "pincode"
+optional_fields:
+  - "mother_name"
+  - "address_line2"
+  - "district"
+  - "occupation"
+  - "annual_income"
+field_hints:
+  full_name:
+    - "first_name"
+    - "last_name"
+    - "middle_name"
+    - "name"
+    - "applicant_name"
+  date_of_birth:
+    - "dob"
+    - "date_of_birth"
+    - "birth_date"
+  gender:
+    - "gender"
+  father_name:
+    - "father_first_name"
+    - "father_last_name"
+    - "father_middle_name"
+    - "relative_name"
+  mother_name:
+    - "mother_first_name"
+    - "mother_last_name"
+    - "mother_middle_name"
+  mobile:
+    - "mobile"
+    - "mobile_no"
+    - "phone"
+  email:
+    - "email"
+    - "email_id"
+  aadhaar:
+    - "aadhaar"
+    - "aadhaar_number"
+    - "uid"
+  address_line1:
+    - "flat_no"
+    - "premises"
+    - "road"
+    - "house_no"
+  address_line2:
+    - "area"
+    - "locality"
+    - "street_area"
+  city:
+    - "city"
+    - "town"
+  district:
+    - "district"
+  state:
+    - "state"
+  pincode:
+    - "pincode"
+    - "pin_code"
+  occupation:
+    - "source_of_income"
+    - "occupation"
+  annual_income:
+    - "income"
+steps:
+  - "Open the Protean NSDL online PAN application page."
+  - "Select application type as New PAN - Indian Citizen (Form 49A) and category as Individual."
+  - "Fill applicant details including full name, title, date of birth, email, and mobile number."
+  - "Enter parents' details specifying father's name for printing on the PAN card."
+  - "Provide residential address details including flat number, street, city, state, and PIN code."
+  - "Fill in Aadhaar number and source of income information."
+  - "Select identity, address, and date-of-birth proof documents."
+  - "Stop before clicking Submit or Pay Now so the user can review payment and upload documents."
+stop_before:
+  - "Submit"
+  - "Pay Now"
+  - "Proceed to Payment"
+  - "Send OTP"
+  - "Verify"
+  - "जमा करें"
+  - "भुगतान करें"
+keywords:
+  - "mujhe naya pan card chahiye"
+  - "naya pan card"
+  - "pan card banana"
+  - "naya pan"
+  - "new pan card"
+  - "apply pan card"
+  - "form 49a"
+  - "pan card application"
+  - "protean pan"
+  - "nsdl pan"
+  - "pan apply online"
+  - "pan card banwana"
+  - "नया पैन कार्ड"
+  - "पैन कार्ड बनवाना"
+  - "पैन कार्ड आवेदन"
+  - "फॉर्म 49A"
+  - "पैन कार्ड चाहिए"

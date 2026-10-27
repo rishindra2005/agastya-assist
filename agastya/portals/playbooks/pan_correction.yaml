@@ -1,0 +1,93 @@
+id: "pan_correction"
+portal: "Protean PAN (NSDL)"
+title_en: "Changes or Correction in PAN Data"
+title_hi: "पैन कार्ड डेटा में परिवर्तन या सुधार"
+live_url: "https://www.onlineservices.nsdl.com/paam/endUserRegisterContact.html"
+fixture: null
+requires_login: false
+required_fields:
+  - "pan"
+  - "full_name"
+  - "date_of_birth"
+  - "mobile"
+  - "email"
+  - "aadhaar"
+optional_fields:
+  - "father_name"
+  - "gender"
+  - "address_line1"
+  - "address_line2"
+  - "city"
+  - "state"
+  - "pincode"
+field_hints:
+  pan:
+    - "pan"
+    - "existingPan"
+    - "panNumber"
+  full_name:
+    - "first_name"
+    - "last_name"
+    - "name"
+    - "applicantName"
+  date_of_birth:
+    - "dob"
+    - "dateOfBirth"
+  mobile:
+    - "mobile"
+    - "mobileNumber"
+  email:
+    - "email"
+    - "emailId"
+  aadhaar:
+    - "aadhaar"
+    - "aadhaarNumber"
+  father_name:
+    - "father_name"
+    - "fatherName"
+  gender:
+    - "gender"
+  address_line1:
+    - "flat_no"
+    - "premises"
+    - "road"
+  address_line2:
+    - "area"
+    - "locality"
+  city:
+    - "city"
+  state:
+    - "state"
+  pincode:
+    - "pincode"
+steps:
+  - "Open the Protean NSDL online PAN portal."
+  - "Select application type as Changes or Correction in existing PAN data."
+  - "Enter your existing 10-character PAN number and applicant category."
+  - "Fill corrected personal details such as name, date of birth, or contact details."
+  - "Select the specific fields where correction or update is required."
+  - "Enter your Aadhaar number and contact information."
+  - "Provide updated address details if address correction is needed."
+  - "Stop before clicking Submit or Proceed to Payment to let the user review changes."
+stop_before:
+  - "Submit"
+  - "Pay Now"
+  - "Proceed to Payment"
+  - "Send OTP"
+  - "Verify"
+  - "जमा करें"
+  - "भुगतान"
+keywords:
+  - "pan correction"
+  - "change pan card"
+  - "update pan card"
+  - "pan name correction"
+  - "pan dob correction"
+  - "pan card sudhar"
+  - "pan card me change"
+  - "pan update online"
+  - "reprint pan card"
+  - "पैन सुधार"
+  - "पैन कार्ड में बदलाव"
+  - "पैन कार्ड संशोधन"
+  - "पैन अपडेट"

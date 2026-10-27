@@ -1,0 +1,73 @@
+id: "voter_search"
+portal: "ECI Electoral Search"
+title_en: "Search Name in Electoral Roll"
+title_hi: "मतदाता सूची में नाम खोजें"
+live_url: "https://electoralsearch.eci.gov.in/"
+fixture: null
+requires_login: false
+required_fields:
+  - "epic_number"
+  - "state"
+optional_fields:
+  - "full_name"
+  - "father_name"
+  - "date_of_birth"
+  - "gender"
+  - "district"
+  - "assembly_constituency"
+  - "mobile"
+field_hints:
+  epic_number:
+    - "epic_no"
+    - "epicNumber"
+    - "txtEpicNo"
+  state:
+    - "state"
+    - "ddlState"
+  district:
+    - "district"
+    - "ddlDistrict"
+  full_name:
+    - "name"
+    - "txtName"
+  father_name:
+    - "rln_name"
+    - "relativeName"
+  date_of_birth:
+    - "dob"
+    - "age"
+  gender:
+    - "gender"
+  assembly_constituency:
+    - "ac_name"
+    - "assemblyConstituency"
+  mobile:
+    - "mobile"
+    - "mobileNumber"
+steps:
+  - "Navigate to the ECI Electoral Search portal."
+  - "Choose search tab: Search by EPIC, Search by Details, or Search by Mobile."
+  - "Enter your EPIC voter number or applicant full name and relative name."
+  - "Select your State and District from the dropdown options."
+  - "Review the entered parameters for electoral roll query."
+  - "Stop before clicking Search or Send OTP so the user can solve captcha and view polling booth."
+stop_before:
+  - "Search"
+  - "Send OTP"
+  - "Search by EPIC"
+  - "Search by Details"
+  - "खोजें"
+  - "सर्च करें"
+keywords:
+  - "search voter list"
+  - "electoral roll search"
+  - "find voter id"
+  - "voter list me naam"
+  - "check voter registration"
+  - "polling booth search"
+  - "voter card check karna"
+  - "voter list search"
+  - "मतदाता सूची में नाम"
+  - "वोटर लिस्ट में नाम खोजें"
+  - "मतदाता खोज"
+  - "इलेक्टोरल रोल"

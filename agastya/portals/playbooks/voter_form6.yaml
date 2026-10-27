@@ -1,0 +1,99 @@
+id: "voter_form6"
+portal: "ECI Voters Service Portal"
+title_en: "New Voter Registration (Form 6)"
+title_hi: "नए मतदाता का पंजीकरण (फॉर्म 6)"
+live_url: "https://voters.eci.gov.in/form6"
+fixture: "tests/fixtures/forms/voter_form6.html"
+requires_login: false
+required_fields:
+  - "full_name"
+  - "father_name"
+  - "date_of_birth"
+  - "gender"
+  - "mobile"
+  - "state"
+  - "district"
+  - "assembly_constituency"
+  - "address_line1"
+  - "pincode"
+optional_fields:
+  - "email"
+  - "aadhaar"
+  - "mother_name"
+  - "address_line2"
+  - "city"
+field_hints:
+  state:
+    - "state"
+  district:
+    - "district"
+    - "address_district"
+  assembly_constituency:
+    - "assembly_constituency"
+  full_name:
+    - "first_name"
+    - "surname"
+    - "name"
+  father_name:
+    - "relative_name"
+    - "relative_type"
+  mother_name:
+    - "relative_name"
+    - "mother_name"
+  gender:
+    - "gender"
+  date_of_birth:
+    - "dob"
+  mobile:
+    - "mobile"
+  email:
+    - "email"
+  aadhaar:
+    - "aadhaar_number"
+    - "aadhaar"
+  address_line1:
+    - "house_no"
+    - "street_area"
+  address_line2:
+    - "tehsil_taluka"
+    - "post_office"
+  city:
+    - "town_village"
+    - "city"
+  pincode:
+    - "pincode"
+steps:
+  - "Navigate to the Election Commission Voters portal Form 6 page."
+  - "Select your State, District, and Parliamentary or Assembly Constituency."
+  - "Enter applicant personal details including first name, surname, and gender."
+  - "Fill in relative details selecting father or mother and entering their name."
+  - "Provide contact information with your active mobile number and email."
+  - "Enter your date of birth and select the corresponding proof of age document."
+  - "Fill in present residential address details including house number, street, and PIN code."
+  - "Review the self-declaration section and verify all filled entries."
+  - "Stop before clicking Send OTP, Preview, or Submit so the user can verify and submit."
+stop_before:
+  - "Send OTP"
+  - "Verify OTP"
+  - "Preview and Submit"
+  - "Preview"
+  - "Submit"
+  - "ओटीपी भेजें"
+  - "जमा करें"
+  - "पूर्वावलोकन"
+keywords:
+  - "वोटर आईडी बनवाना है"
+  - "वोटर आईडी बनवाना"
+  - "वोटर आईडी"
+  - "नया वोटर कार्ड"
+  - "voter form 6"
+  - "new voter registration"
+  - "apply voter id"
+  - "new voter card"
+  - "voters eci form 6"
+  - "voter id banana"
+  - "voter card apply"
+  - "naya voter card"
+  - "voter card banwana"
+  - "मतदाता पहचान पत्र"
+  - "फॉर्म 6"

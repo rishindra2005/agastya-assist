@@ -1,0 +1,63 @@
+id: "pan_instant_epan"
+portal: "Income Tax e-Filing"
+title_en: "Instant e-PAN via Aadhaar"
+title_hi: "आधार के माध्यम से तत्काल ई-पैन"
+live_url: "https://eportal.incometax.gov.in/iec/foservices/#/pre-login/instant-e-pan"
+fixture: null
+requires_login: false
+required_fields:
+  - "aadhaar"
+  - "mobile"
+optional_fields:
+  - "full_name"
+  - "date_of_birth"
+  - "email"
+field_hints:
+  aadhaar:
+    - "aadhaar"
+    - "aadhaarNumber"
+    - "uid"
+    - "txtAadhaar"
+  mobile:
+    - "mobile"
+    - "mobileNumber"
+  full_name:
+    - "name"
+    - "fullName"
+  date_of_birth:
+    - "dob"
+    - "dateOfBirth"
+  email:
+    - "email"
+    - "emailId"
+steps:
+  - "Open the Income Tax e-filing portal Instant e-PAN page."
+  - "Select Get New e-PAN under the instant PAN services."
+  - "Enter your 12-digit Aadhaar number."
+  - "Acknowledge the declaration terms that you do not hold an existing PAN."
+  - "Confirm that your mobile number is linked to Aadhaar."
+  - "Review the Aadhaar details displayed on the confirmation screen."
+  - "Stop before clicking Continue or Generate Aadhaar OTP to allow the user to receive the OTP."
+stop_before:
+  - "Continue"
+  - "Get OTP"
+  - "Generate Aadhaar OTP"
+  - "Validate OTP"
+  - "Submit"
+  - "Confirm"
+  - "ओटीपी"
+  - "जारी रखें"
+keywords:
+  - "instant epan"
+  - "instant pan card"
+  - "free pan card"
+  - "aadhaar epan"
+  - "get new epan"
+  - "turant pan card"
+  - "aadhaar se pan banana"
+  - "free pan online"
+  - "tatkal pan card"
+  - "तत्काल ई-पैन"
+  - "आधार से ई-पैन"
+  - "मुफ्त पैन कार्ड"
+  - "ई-पैन आवेदन"
