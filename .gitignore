@@ -9,3 +9,6 @@ screenshots/
 .agy/
 mcp/node_modules/
 .playwright-mcp/
+scripts/video/build/
+scripts/video/narration/
+__pycache__/

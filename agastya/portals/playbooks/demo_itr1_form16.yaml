@@ -79,7 +79,7 @@ field_hints:
 steps:
   - "Check uploaded documents using list_documents. If no Form 16 document is present, ask the citizen to upload their Form 16 PDF."
   - "Read the extracted Form 16 document using read_document to obtain all salary, deduction, and TDS details."
-  - "Navigate to the Income Tax e-Filing demo replica login page."
+  - "Open the replica login page directly with browser_goto {DEMO_BASE}/mock/itr/login.html (do not click the header Login link; login buttons are reserved for the citizen)."
   - "Fill the citizen's PAN in the User ID field and click Continue."
   - "Hand over control to the citizen so they can verify their secure access message, enter their password, and complete OTP verification."
   - "On the dashboard, click File Now, choose Assessment Year 2026-27, Online mode, Individual status, and select ITR-1 Sahaj."
