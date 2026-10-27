@@ -24,6 +24,8 @@ class Settings(BaseSettings):
     # Which brain runs the in-app agent: "claude" (Claude Agent SDK) or "agy" (Antigravity CLI)
     AGENT_BACKEND: str = "claude"
     AGY_MODEL: str = "gemini-3.8-flash-high"
+    # agy cannot disable its built-in shell/file tools; it only runs unconfined if this is true
+    AGY_ALLOW_UNSANDBOXED: bool = False
     LIVE_QUALITY: int = 60
     LIVE_MAX_WIDTH: int = 1280
     DEFAULT_LANGUAGE: str = "hi-IN"
