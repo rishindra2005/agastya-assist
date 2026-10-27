@@ -1,0 +1,32 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "agastya-assist"
+version = "0.1.0"
+description = "Voice-first AI assistant that helps Indian citizens use government websites"
+requires-python = ">=3.12"
+dependencies = [
+    "pydantic",
+    "pydantic-settings",
+    "httpx",
+    "python-dotenv",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-asyncio",
+    "respx",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["agastya"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+markers = [
+    "live: marks tests as live network tests (deselect with '-m \"not live\"')",
+]
+testpaths = ["tests"]
