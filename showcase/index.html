@@ -264,6 +264,28 @@ footer { padding-block: 32px 48px; border-top: 1px solid var(--rule); font-size:
 </div>
 
 <script>
+window.AGASTYA_SCENES = [
+  { title: 'New PAN · Form 49A', lang: 'hi', say: '“मुझे डेमो पोर्टल पर नया पैन कार्ड बनवाना है”',
+    what: 'Spoken in Hindi. Agastya opens the PAN replica, fills the registration from the saved profile and shows it live on the right.',
+    media: 'media/pan.png', alt: 'Agastya filling the PAN replica, shown in the live view',
+    stats: [['voice', 'hi-IN'], ['profile fields used', '13'], ['captcha', 'citizen']] },
+  { title: 'Your turn', lang: 'hi', say: '“आपकी बारी”',
+    what: 'At the captcha and consent step Agastya stops, says what is left, and the citizen finishes inside the live view.',
+    media: 'media/pan_handoff.png', alt: 'Handoff banner asking the citizen to solve the captcha',
+    stats: [['agent clicks Submit', 'never'], ['control', 'click the video']] },
+  { title: 'Income tax · ITR-1 with Form 16', lang: 'hi', say: '“मुझे अपना आयकर रिटर्न भरना है, मेरे पास फॉर्म 16 है”',
+    what: 'The citizen drops in Form 16. Agastya reads salary and TDS from it and uses them to fill the return schedules.',
+    media: 'media/itr.gif', alt: 'Recording of the ITR scene with Form 16 uploaded',
+    stats: [['Form 16 gross', '₹12,75,000'], ['TDS read', '₹82,810'], ['login', 'citizen']] },
+  { title: 'Form 16 understood', lang: 'en', say: 'Form 16 · AY 2026-27 · gross ₹1,275,000 · TDS ₹82,810',
+    what: 'Uploaded documents appear in the profile panel and in the chat; the agent reads them with its document tools.',
+    media: 'media/itr_form16.png', alt: 'Form 16 document chips in the conversation and the profile panel',
+    stats: [['document', 'specimen PDF'], ['fields extracted', 'salary, TDS, deductions']] },
+];
+window.AGASTYA_DESKTOP = 'media/pan.png';
+window.AGASTYA_PHONE = 'media/phone.png';
+</script>
+<script>
 (function () {
   // Portal vs Agastya toggle
   const tabs = { portal: document.getElementById('tab-portal'), agastya: document.getElementById('tab-agastya') };
