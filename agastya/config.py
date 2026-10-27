@@ -15,6 +15,14 @@ class Settings(BaseSettings):
     HEADLESS: bool = True
     # "" = Playwright's bundled Chromium; "chrome" = the installed Google Chrome
     BROWSER_CHANNEL: str = ""
+    # Chrome remote debugging (CDP) port shared by our driver, the Playwright MCP server and the live stream.
+    # 0 = pick a free port per session.
+    CDP_PORT: int = 0
+    PLAYWRIGHT_MCP: bool = True
+    # Agent reasoning effort: lower = faster replies
+    AGENT_EFFORT: str = "low"
+    LIVE_QUALITY: int = 60
+    LIVE_MAX_WIDTH: int = 1280
     DEFAULT_LANGUAGE: str = "hi-IN"
 
     model_config = SettingsConfigDict(

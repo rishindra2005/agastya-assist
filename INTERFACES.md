@@ -244,3 +244,68 @@ TTS of sentence N+1 may start while N is being emitted (prefetch 1), but emissio
 ### Warm start
 `AgentSession.start()` must emit `status {"status":"ready"}` when the client is connected and the browser started.
 Server: session started on WS connect (already) — client shows "तैयार हो रहा है… / Warming up…" until `ready`.
+
+## Batch E — agent browser over CDP, Playwright MCP, live stream + human control
+
+### Browser driver (agastya/browser/driver.py)
+- Launch adds `--remote-debugging-port=<port>` (settings.CDP_PORT, 0 => find a free port with socket bind).
+  Properties: `cdp_port: int`, `cdp_endpoint: str` ("http://127.0.0.1:<port>"), `context`, `page` (always the
+  ACTIVE tab: when a new page/popup opens in the context, it becomes `page` and `on_page_change` callbacks fire).
+  `def add_page_change_listener(cb: Callable[[Page], Awaitable[None] | None])`.
+- On context creation call `await install_page_guard(context)` (agastya/browser/page_guard.py).
+
+### In-page guard (agastya/browser/page_guard.py + page_guard.js) — second safety layer
+```python
+async def install_page_guard(context: BrowserContext) -> None   # add_init_script(page_guard.js) + apply to open pages
+async def set_agent_active(context: BrowserContext, active: bool) -> None  # sets window.__agastyaAgentActive on all pages/frames
+```
+page_guard.js: when `window.__agastyaAgentActive === true` it blocks (capture phase, preventDefault +
+stopImmediatePropagation) clicks on elements whose text/value/aria-label/id/name match the final-action rules
+(port the regexes from guard.py: submit, pay, e-verify, otp, login, captcha…, Hindi), blocks `submit` events and
+overrides HTMLFormElement.prototype.submit/requestSubmit to no-op while agent-active, and records blocked attempts
+in `window.__agastyaBlocked` (array of {text, ts}). When the flag is false (HUMAN in control) nothing is blocked.
+
+### Live stream (agastya/browser/live.py)
+```python
+class LiveView:
+    def __init__(self, driver: BrowserDriver, quality: int | None = None, max_width: int | None = None): ...
+    async def start(self, on_frame: Callable[[bytes, dict], Awaitable[None]]) -> None
+        # CDP Page.startScreencast(jpeg) on driver.page; ack every frame; on_frame(jpeg_bytes, meta)
+        # meta = {"width": css px, "height": css px, "url": str, "title": str}; restarts on page change
+    async def stop(self) -> None
+    async def mouse(self, kind: Literal["move","down","up","click","wheel"], x: float, y: float,
+                    button: str = "left", delta_y: float = 0, click_count: int = 1) -> None   # CSS px in viewport
+    async def key(self, kind: Literal["down","up","press"], key: str, code: str = "", text: str = "") -> None
+    async def insert_text(self, text: str) -> None
+    async def nav(self, action: Literal["back","forward","reload"]) -> None
+```
+Input goes through CDP Input.dispatchMouseEvent / dispatchKeyEvent / insertText (human actions are NOT guarded).
+
+### Human control
+`AgentSession.user_in_control: bool` (default False). `async def take_control()` -> True, set_agent_active(False),
+emit status {"status":"user_control"}. `async def release_control(note: str = "")` -> False and sends the agent a
+message "[user finished on the page: <note>] Continue from the current page." (in user language).
+While the agent is running a turn: set_agent_active(True); after the turn: set_agent_active(False).
+ToolContext gains `is_user_in_control: Callable[[], bool] = lambda: False`; every browser_* tool returns
+"PAUSED: the citizen is controlling the browser. Wait." when it is True.
+
+### Playwright MCP (agent gets direct DOM tools on the SAME Chrome)
+session.py adds when settings.PLAYWRIGHT_MCP:
+`mcp_servers["playwright"] = {"type": "stdio", "command": "<repo>/mcp/node_modules/.bin/playwright-mcp",
+ "args": ["--cdp-endpoint", driver.cdp_endpoint]}`
+Allowed: mcp__playwright__browser_snapshot, browser_click, browser_type, browser_fill_form, browser_select_option,
+browser_hover, browser_press_key, browser_wait_for, browser_navigate, browser_navigate_back, browser_tabs,
+browser_take_screenshot. Disallowed (deny in hook too): browser_evaluate, browser_run_code, browser_file_upload,
+browser_install, browser_close, browser_resize, browser_console_messages, browser_network_requests, browser_drag.
+PreToolUse hook (agastya/agent/hooks.py): for mcp__playwright__browser_click/press_key/navigate run guard.check_click
+on {"text": input.element} / check_navigation(url); press_key "Enter" denied unless input.element is a search box;
+any denied call -> emit "blocked" and return deny with reason telling the agent to call handoff_to_user.
+
+### Server live socket
+`WS /ws/live?user_id=` — binary messages = JPEG frames; text JSON messages server->client:
+{"type":"meta", width, height, url, title}, {"type":"control", "user_in_control": bool}.
+client -> server JSON: {"type":"mouse", kind, x, y, button?, delta_y?, click_count?} (x,y in CSS px of the page),
+{"type":"key", kind, key, code?, text?}, {"type":"text", text}, {"type":"nav", action},
+{"type":"control", "take": bool, "note"?: str}. Input is ignored (error message) unless user_in_control is true.
+The server keeps `app.state.sessions: dict[user_id, (AgentSession, VoicePipeline)]` created by /ws; /ws/live attaches
+to it (4404 close if none). Frames dropped (not queued) if the socket is slow — keep only the latest.
