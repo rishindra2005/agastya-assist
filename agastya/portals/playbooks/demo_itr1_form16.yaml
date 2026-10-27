@@ -2,7 +2,7 @@ id: "demo_itr1_form16"
 portal: "Income Tax e-Filing (Demo Replica)"
 title_en: "File ITR-1 with Form 16 (Demo Replica)"
 title_hi: "फॉर्म 16 के साथ ITR-1 दाखिल करें (डेमो प्रतिकृति)"
-live_url: "http://127.0.0.1:8000/mock/itr/"
+live_url: "{DEMO_BASE}/mock/itr/"
 fixture: null
 requires_login: true
 required_fields:

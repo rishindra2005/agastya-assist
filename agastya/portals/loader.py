@@ -6,6 +6,7 @@ import re
 from typing import Any
 import yaml
 
+from agastya.config import get_settings
 from agastya.profile.fields import FIELDS
 
 REQUIRED_PLAYBOOK_KEYS = (
@@ -149,7 +150,9 @@ def load_playbooks(directory: Path | str | None = None) -> dict[str, Playbook]:
             portal=str(data["portal"]),
             title_en=str(data["title_en"]),
             title_hi=str(data["title_hi"]),
-            live_url=str(data["live_url"]),
+            live_url=str(data["live_url"]).replace(
+                "{DEMO_BASE}", getattr(get_settings(), "DEMO_BASE_URL", "http://127.0.0.1:8000").rstrip("/")
+            ),
             fixture=fixture_val,
             requires_login=bool(data["requires_login"]),
             required_fields=list(data["required_fields"]),

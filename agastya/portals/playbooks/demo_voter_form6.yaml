@@ -2,7 +2,7 @@ id: "demo_voter_form6"
 portal: "Voters' Service Portal (Demo Replica)"
 title_en: "New Voter Registration Form 6 (Demo Replica)"
 title_hi: "नए मतदाता का पंजीकरण फॉर्म 6 (डेमो प्रतिकृति)"
-live_url: "http://127.0.0.1:8000/mock/voter/login.html"
+live_url: "{DEMO_BASE}/mock/voter/login.html"
 fixture: "demo_portals/voter/form6.html"
 requires_login: true
 required_fields:

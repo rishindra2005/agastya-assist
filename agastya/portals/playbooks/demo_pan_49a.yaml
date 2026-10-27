@@ -2,7 +2,7 @@ id: "demo_pan_49a"
 portal: "Protean PAN (Demo Replica)"
 title_en: "New PAN Card Application Form 49A (Demo Replica)"
 title_hi: "नया पैन कार्ड आवेदन फॉर्म 49A (डेमो प्रतिकृति)"
-live_url: "http://127.0.0.1:8000/mock/pan/"
+live_url: "{DEMO_BASE}/mock/pan/"
 fixture: null
 requires_login: false
 required_fields:

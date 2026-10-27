@@ -42,6 +42,8 @@
       g.clearRect(0, 0, 140, 44); g.fillStyle = '#eef'; g.fillRect(0, 0, 140, 44);
       for (let i = 0; i < 6; i++) { g.strokeStyle = `hsl(${Math.random() * 360},50%,60%)`; g.beginPath(); g.moveTo(Math.random() * 140, Math.random() * 44); g.lineTo(Math.random() * 140, Math.random() * 44); g.stroke(); }
       g.font = 'bold 24px monospace'; g.fillStyle = '#223';
+      // Recorded demos only: the autopilot (playing the citizen) reads the answer when it set this flag.
+      try { if (localStorage.getItem('demo_autopilot') === '1') window.__demoCaptchaAnswer = answer; } catch (e) {}
       [...answer].forEach((ch, i) => { g.save(); g.translate(14 + i * 24, 30); g.rotate((Math.random() - .5) * .5); g.fillText(ch, 0, 0); g.restore(); });
     }
     btn.addEventListener('click', draw);

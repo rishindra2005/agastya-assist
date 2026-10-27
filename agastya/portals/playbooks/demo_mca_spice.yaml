@@ -2,7 +2,7 @@ id: "demo_mca_spice"
 portal: "Corporate Affairs Portal (Demo Replica)"
 title_en: "SPICe+ Part A - Company Name Reservation (Demo Replica)"
 title_hi: "SPICe+ भाग A - कंपनी नाम आरक्षण (डेमो प्रतिकृति)"
-live_url: "http://127.0.0.1:8000/mock/mca/spice.html"
+live_url: "{DEMO_BASE}/mock/mca/spice.html"
 fixture: "demo_portals/mca/spice.html"
 requires_login: false
 required_fields:
