@@ -2,7 +2,7 @@ id: "pan_correction"
 portal: "Protean PAN (NSDL)"
 title_en: "Changes or Correction in PAN Data"
 title_hi: "पैन कार्ड डेटा में परिवर्तन या सुधार"
-live_url: "https://www.onlineservices.nsdl.com/paam/endUserRegisterContact.html"
+live_url: "https://onlineservices.proteantech.in/paam/endUserRegisterContact.html"
 fixture: null
 requires_login: false
 required_fields:

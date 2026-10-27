@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="hi" dir="ltr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agastya Assist — अगस्त्य सहायक</title>
+  <meta name="description" content="Voice-first AI assistant helping Indian citizens navigate government portals securely." />
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <!-- Top decorative tricolour accent line -->
+  <div class="tricolour-banner" aria-hidden="true">
+    <div class="band saffron"></div>
+    <div class="band white"></div>
+    <div class="band green"></div>
+  </div>
+
+  <!-- Header -->
+  <header class="app-header">
+    <div class="brand">
+      <div class="brand-emblem" aria-hidden="true">🇮🇳</div>
+      <div class="brand-text">
+        <h1 class="brand-title">Agastya Assist <span class="brand-hi">— अगस्त्य सहायक</span></h1>
+        <p class="brand-subtitle">भारतीय नागरिक सेवा सहायक • Citizen Services AI Assistant</p>
+      </div>
+    </div>
+
+    <div class="header-controls">
+      <!-- Status line with connection dot -->
+      <div class="status-badge" id="status-badge" role="status" aria-live="polite">
+        <span class="conn-dot" id="conn-dot" title="स्थिति / Status: Disconnected"></span>
+        <span class="status-text" id="status-text">Connecting...</span>
+      </div>
+
+      <!-- Language selector -->
+      <div class="control-group">
+        <label for="lang-select" class="visually-hidden">भाषा / Language</label>
+        <select id="lang-select" class="lang-select" aria-label="भाषा चुनें / Select Language">
+          <option value="">भाषा: स्वतः (Auto)</option>
+        </select>
+      </div>
+
+      <!-- Speaker audio toggle -->
+      <button id="tts-toggle" class="btn-icon" aria-pressed="true" aria-label="ध्वनि चालू/बंद / Toggle Voice Output" title="ध्वनि चालू/बंद (Toggle Voice Output)">
+        <span id="tts-icon" class="btn-symbol">🔊</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Mobile Tab Navigation (visible only on small screens) -->
+  <nav class="mobile-tabs" aria-label="Panel Navigation">
+    <button type="button" class="tab-btn" data-target="profile-panel" id="tab-profile">
+      <span class="tab-icon">👤</span>
+      <span class="tab-label">प्रोफ़ाइल (Profile)</span>
+    </button>
+    <button type="button" class="tab-btn active" data-target="chat-panel" id="tab-chat">
+      <span class="tab-icon">💬</span>
+      <span class="tab-label">बातचीत (Chat)</span>
+    </button>
+    <button type="button" class="tab-btn" data-target="browser-panel" id="tab-browser">
+      <span class="tab-icon">🌐</span>
+      <span class="tab-label">ब्राउज़र (Browser)</span>
+    </button>
+  </nav>
+
+  <!-- Amber Turn Banner (Blocked / Handoff notifications) -->
+  <div id="amber-banner" class="amber-banner hidden" role="alert" aria-live="assertive">
+    <div class="amber-banner-content">
+      <span class="amber-icon" aria-hidden="true">⚠️</span>
+      <div class="amber-message" id="amber-banner-text">
+        <strong>आपकी बारी — Your turn:</strong> <span id="amber-banner-reason"></span>
+      </div>
+    </div>
+    <button type="button" id="amber-banner-close" class="banner-close-btn" aria-label="Dismiss banner">✕</button>
+  </div>
+
+  <!-- Toast notification area for errors -->
+  <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+  <!-- Main 3-Column Layout -->
+  <main class="app-layout">
+    <!-- 1. LEFT: Profile Panel -->
+    <section id="profile-panel" class="panel panel-profile" aria-labelledby="profile-heading">
+      <div class="panel-header">
+        <div class="header-title-wrap">
+          <h2 id="profile-heading" class="panel-title">नागरिक प्रोफ़ाइल / Profile</h2>
+          <span class="badge-secure">सुरक्षित / Secure</span>
+        </div>
+        <button type="button" id="profile-refresh-btn" class="btn-icon-small" title="प्रोफ़ाइल रीफ्रेश करें / Refresh Profile" aria-label="Refresh Profile">
+          🔄
+        </button>
+      </div>
+      <p class="panel-intro">
+        संवेदनशील जानकारी केवल फॉर्म भरने के लिए उपयोग की जाती है और यहाँ मास्क रहती है।
+      </p>
+
+      <div id="profile-fields-list" class="profile-fields-list" role="region" aria-label="Profile Fields List">
+        <div class="loading-state">प्रोफ़ाइल लोड हो रही है... / Loading profile...</div>
+      </div>
+    </section>
+
+    <!-- 2. CENTRE: Conversation Panel -->
+    <section id="chat-panel" class="panel panel-chat active" aria-labelledby="chat-heading">
+      <h2 id="chat-heading" class="visually-hidden">बातचीत / Conversation</h2>
+
+      <!-- Chat Bubbles Log -->
+      <div id="chat-messages" class="chat-messages" role="log" aria-live="polite" aria-relevant="additions text">
+        <!-- Initial Agastya welcome message -->
+        <div class="chat-bubble bubble-assistant welcome-card">
+          <div class="bubble-avatar" aria-hidden="true">🏛️</div>
+          <div class="bubble-content">
+            <p><strong>नमस्ते! मैं अगस्त्य हूँ — आपका सरकारी सेवा सहायक।</strong></p>
+            <p>आप किसी भी भारतीय भाषा में बोल या लिख सकते हैं। मैं पैन कार्ड, वोटर आईडी (Form 6), ITR रिफंड, या MCA पोर्टल पर आपके लिए फॉर्म भर सकता हूँ।</p>
+            <p class="en-sub"><em>Hello! I am Agastya, your voice-first citizen assistant. Speak or type in any Indian language. I will guide you and stop before final submission or payment.</em></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Start Chips -->
+      <div class="quick-chips-wrapper" aria-label="त्वरित सुझाव / Quick Actions">
+        <div class="quick-chips-scroll">
+          <button type="button" class="chip" data-query="नया पैन कार्ड">नया पैन कार्ड</button>
+          <button type="button" class="chip" data-query="वोटर आईडी (Form 6)">वोटर आईडी (Form 6)</button>
+          <button type="button" class="chip" data-query="ITR रिफंड स्टेटस">ITR रिफंड स्टेटस</button>
+          <button type="button" class="chip" data-query="कंपनी नाम रिज़र्व">कंपनी नाम रिज़र्व</button>
+          <button type="button" class="chip" data-query="PAN-Aadhaar link">PAN-Aadhaar link</button>
+        </div>
+      </div>
+
+      <!-- Chat Input Area -->
+      <div class="chat-input-area">
+        <form id="chat-form" class="chat-form" autocomplete="off">
+          <!-- Big Round Mic Button -->
+          <button
+            type="button"
+            id="mic-btn"
+            class="mic-btn"
+            aria-label="माइक से बोलें / Hold or click to speak"
+            title="Desktop: Click to toggle recording | Touch: Hold to speak"
+          >
+            <span class="mic-icon" aria-hidden="true">🎙️</span>
+            <span class="mic-wave" aria-hidden="true"></span>
+          </button>
+
+          <!-- Input wrapper with status / timer -->
+          <div class="input-wrapper">
+            <input
+              type="text"
+              id="chat-input"
+              class="chat-input"
+              placeholder="अपनी भाषा में संदेश लिखें / Type a request..."
+              aria-label="संदेश इनपुट / Message input"
+            />
+            <div id="recording-status" class="recording-status hidden" aria-live="assertive">
+              <span class="rec-dot"></span>
+              <span class="rec-text">सुन रहे हैं... (Listening...)</span>
+              <span id="recording-timer" class="rec-timer">00:00</span>
+            </div>
+          </div>
+
+          <!-- Send Button -->
+          <button
+            type="submit"
+            id="send-btn"
+            class="send-btn"
+            aria-label="संदेश भेजें / Send message"
+            title="संदेश भेजें (Send)"
+          >
+            <span class="send-icon" aria-hidden="true">➤</span>
+          </button>
+        </form>
+      </div>
+    </section>
+
+    <!-- 3. RIGHT: Live Browser View & Tool Call Activity Log -->
+    <section id="browser-panel" class="panel panel-browser" aria-labelledby="browser-heading">
+      <div class="panel-header">
+        <h2 id="browser-heading" class="panel-title">लाइव ब्राउज़र दृश्य / Live Browser</h2>
+        <span class="badge-guard" title="Safety Guard Active: Submit/Pay/OTP protected">🛡️ Guard Active</span>
+      </div>
+
+      <!-- Live Screenshot Box -->
+      <div class="browser-preview-card">
+        <div class="browser-url-bar">
+          <span class="url-badge">URL</span>
+          <a id="browser-url-link" class="browser-url-link" href="#" target="_blank" rel="noopener noreferrer">
+            <span id="browser-url-text">about:blank</span>
+          </a>
+        </div>
+        <div class="browser-viewport" id="browser-viewport">
+          <div id="browser-placeholder" class="browser-placeholder">
+            <span class="browser-icon" aria-hidden="true">🌐</span>
+            <p><strong>पोर्टल अभी खुला नहीं है</strong></p>
+            <p class="en-sub">Live browser view will appear when Agastya navigates.</p>
+          </div>
+          <img
+            id="browser-screenshot"
+            class="browser-screenshot hidden"
+            src=""
+            alt="Current portal screenshot"
+          />
+        </div>
+      </div>
+
+      <!-- Collapsible Activity Log -->
+      <details id="activity-log-details" class="activity-log-details" open>
+        <summary class="activity-log-summary">
+          <span class="summary-title">कार्य गतिविधि / Activity Log</span>
+          <span id="activity-count" class="activity-badge">0</span>
+        </summary>
+        <div id="activity-log" class="activity-log" role="log" aria-live="polite">
+          <div class="empty-log">अभी कोई क्रिया नहीं हुई है / No actions recorded yet.</div>
+        </div>
+      </details>
+    </section>
+  </main>
+
+  <script type="module" src="/static/app.js"></script>
+</body>
+</html>

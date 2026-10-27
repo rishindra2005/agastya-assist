@@ -16,6 +16,8 @@ EventType = Literal[
     "profile_updated",
     "error",
     "done",
+    "transcript",
+    "tts",
 ]
 
 

@@ -34,5 +34,6 @@ packages = ["agastya"]
 asyncio_mode = "auto"
 markers = [
     "live: marks tests as live network tests (deselect with '-m \"not live\"')",
+    "e2e: marks tests as end-to-end agent tests",
 ]
 testpaths = ["tests"]

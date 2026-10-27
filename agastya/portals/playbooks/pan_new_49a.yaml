@@ -2,7 +2,7 @@ id: "pan_new_49a"
 portal: "Protean PAN (NSDL)"
 title_en: "New PAN Card Application (Form 49A)"
 title_hi: "नया पैन कार्ड आवेदन (फॉर्म 49A)"
-live_url: "https://www.onlineservices.nsdl.com/paam/endUserRegisterContact.html"
+live_url: "https://onlineservices.proteantech.in/paam/endUserRegisterContact.html"
 fixture: "tests/fixtures/forms/pan_49a.html"
 requires_login: false
 required_fields:
