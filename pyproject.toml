@@ -12,6 +12,11 @@ dependencies = [
     "pydantic-settings",
     "httpx",
     "python-dotenv",
+    "playwright",
+    "claude-agent-sdk",
+    "pyyaml",
+    "fastapi",
+    "uvicorn[standard]",
 ]
 
 [project.optional-dependencies]

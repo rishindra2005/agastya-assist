@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Application for Allotment of New PAN (Form 49A) - NSDL / Protean</title>
+  <style>
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f4f6f9;
+      margin: 0;
+      padding: 20px;
+      color: #333;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: #fff;
+      border: 1px solid #ccc;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .header {
+      background: #003366;
+      color: white;
+      padding: 15px 20px;
+      border-bottom: 3px solid #ff9933;
+    }
+    .header h2 {
+      margin: 0 0 5px 0;
+      font-size: 1.3rem;
+    }
+    .header p {
+      margin: 0;
+      font-size: 0.85rem;
+      color: #e2e8f0;
+    }
+    .section {
+      padding: 20px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .section-title {
+      font-weight: bold;
+      color: #003366;
+      border-bottom: 2px solid #003366;
+      padding-bottom: 5px;
+      margin-bottom: 15px;
+      font-size: 1.05rem;
+    }
+    .form-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-bottom: 12px;
+    }
+    .form-group {
+      flex: 1;
+      min-width: 220px;
+      display: flex;
+      flex-direction: column;
+    }
+    label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+      color: #2d3748;
+    }
+    input[type="text"], input[type="email"], input[type="tel"], input[type="date"], select {
+      padding: 8px 10px;
+      border: 1px solid #cbd5e0;
+      border-radius: 4px;
+      font-size: 0.9rem;
+    }
+    .radio-group, .checkbox-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-top: 5px;
+    }
+    .radio-group label, .checkbox-group label {
+      font-weight: normal;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+    }
+    .btn-bar {
+      padding: 20px;
+      background: #edf2f7;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+    button, input[type="submit"] {
+      padding: 9px 18px;
+      border-radius: 4px;
+      font-size: 0.95rem;
+      font-weight: bold;
+      cursor: pointer;
+      border: 1px solid transparent;
+    }
+    .btn-secondary { background: #718096; color: white; }
+    .btn-primary { background: #2b6cb0; color: white; }
+    .btn-success { background: #2f855a; color: white; }
+    .btn-warning { background: #d69e2e; color: white; }
+    .step-2 { display: none; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <h2>Online PAN Application (Form 49A)</h2>
+    <p>Application for Allotment of Permanent Account Number under section 139A of Income Tax Act, 1961</p>
+  </div>
+
+  <form id="panForm" action="form_success.html" method="POST">
+    <!-- STEP 1: Applicant Details & Address -->
+    <div id="step1" class="step-1">
+      <div class="section">
+        <div class="section-title">1. Application Information</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="application_type">Application Type *</label>
+            <select id="application_type" name="application_type" required>
+              <option value="">-- Select Application Type --</option>
+              <option value="49A_IND">New PAN - Indian Citizen (Form 49A)</option>
+              <option value="49AA_NRI">New PAN - Foreign Citizen (Form 49AA)</option>
+              <option value="CR_PAN">Changes / Correction in PAN Data</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="category">Category *</label>
+            <select id="category" name="category" required>
+              <option value="">-- Select Category --</option>
+              <option value="INDIVIDUAL">INDIVIDUAL</option>
+              <option value="HUF">HINDU UNDIVIDED FAMILY</option>
+              <option value="COMPANY">COMPANY</option>
+              <option value="FIRM">FIRM</option>
+              <option value="AOP">ASSOCIATION OF PERSONS</option>
+              <option value="BOI">BODY OF INDIVIDUALS</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">2. Applicant Personal Details</div>
+        <div class="form-row">
+          <div class="form-group" style="flex: 0 0 100%;">
+            <label>Title *</label>
+            <div class="radio-group">
+              <label><input type="radio" name="title" value="Shri" required> Shri</label>
+              <label><input type="radio" name="title" value="Smt"> Smt</label>
+              <label><input type="radio" name="title" value="Kumari"> Kumari</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="last_name">Last Name / Surname *</label>
+            <input type="text" id="last_name" name="last_name" placeholder="Last Name" required>
+          </div>
+          <div class="form-group">
+            <label for="first_name">First Name *</label>
+            <input type="text" id="first_name" name="first_name" placeholder="First Name" required>
+          </div>
+          <div class="form-group">
+            <!-- Field without <label for=> (only aria-label and placeholder for robustness testing) -->
+            <input type="text" id="middle_name" name="middle_name" placeholder="Middle Name" aria-label="Middle Name">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="dob">Date of Birth / Incorporation *</label>
+            <input type="date" id="dob" name="dob" required>
+          </div>
+          <div class="form-group">
+            <label for="gender">Gender *</label>
+            <select id="gender" name="gender" required>
+              <option value="">-- Select Gender --</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Transgender">Transgender</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="father_last_name">Father's Last Name *</label>
+            <input type="text" id="father_last_name" name="father_last_name" placeholder="Father's Last Name" required>
+          </div>
+          <div class="form-group">
+            <label for="father_first_name">Father's First Name *</label>
+            <input type="text" id="father_first_name" name="father_first_name" placeholder="Father's First Name" required>
+          </div>
+          <div class="form-group">
+            <!-- Field without <label for=> (robustness testing) -->
+            <input type="text" id="father_middle_name" name="father_middle_name" placeholder="Father's Middle Name" aria-label="Father's Middle Name">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="mother_last_name">Mother's Last Name</label>
+            <input type="text" id="mother_last_name" name="mother_last_name" placeholder="Mother's Last Name">
+          </div>
+          <div class="form-group">
+            <label for="mother_first_name">Mother's First Name</label>
+            <input type="text" id="mother_first_name" name="mother_first_name" placeholder="Mother's First Name">
+          </div>
+          <div class="form-group">
+            <!-- Field without <label for=> (robustness testing) -->
+            <input type="text" id="mother_middle_name" name="mother_middle_name" placeholder="Mother's Middle Name" aria-label="Mother's Middle Name">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="mobile">Mobile Number *</label>
+            <input type="tel" id="mobile" name="mobile" placeholder="10-digit Mobile" pattern="[0-9]{10}" required>
+          </div>
+          <div class="form-group">
+            <label for="email">Email ID *</label>
+            <input type="email" id="email" name="email" placeholder="example@email.com" required>
+          </div>
+          <div class="form-group">
+            <!-- Field without <label for=> (robustness testing) -->
+            <input type="text" id="aadhaar" name="aadhaar" placeholder="12-digit Aadhaar Number" aria-label="Aadhaar Number" pattern="[0-9]{12}" required>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">3. Residence Address</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="flat_no">Flat / Room / Door / Block No. *</label>
+            <input type="text" id="flat_no" name="flat_no" required>
+          </div>
+          <div class="form-group">
+            <label for="premises">Name of Premises / Building / Village</label>
+            <input type="text" id="premises" name="premises">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="road">Road / Street / Lane / Post Office</label>
+            <input type="text" id="road" name="road">
+          </div>
+          <div class="form-group">
+            <label for="area">Area / Locality / Taluka / Sub-Division *</label>
+            <input type="text" id="area" name="area" required>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="city">Town / City / District *</label>
+            <input type="text" id="city" name="city" required>
+          </div>
+          <div class="form-group">
+            <label for="state">State / Union Territory *</label>
+            <select id="state" name="state" required>
+              <option value="">-- Select State / Union Territory --</option>
+              <option value="Andaman and Nicobar Islands">Andaman and Nicobar Islands</option>
+              <option value="Andhra Pradesh">Andhra Pradesh</option>
+              <option value="Arunachal Pradesh">Arunachal Pradesh</option>
+              <option value="Assam">Assam</option>
+              <option value="Bihar">Bihar</option>
+              <option value="Chandigarh">Chandigarh</option>
+              <option value="Chhattisgarh">Chhattisgarh</option>
+              <option value="Dadra and Nagar Haveli and Daman and Diu">Dadra and Nagar Haveli and Daman and Diu</option>
+              <option value="Delhi">Delhi</option>
+              <option value="Goa">Goa</option>
+              <option value="Gujarat">Gujarat</option>
+              <option value="Haryana">Haryana</option>
+              <option value="Himachal Pradesh">Himachal Pradesh</option>
+              <option value="Jammu and Kashmir">Jammu and Kashmir</option>
+              <option value="Jharkhand">Jharkhand</option>
+              <option value="Karnataka">Karnataka</option>
+              <option value="Kerala">Kerala</option>
+              <option value="Ladakh">Ladakh</option>
+              <option value="Lakshadweep">Lakshadweep</option>
+              <option value="Madhya Pradesh">Madhya Pradesh</option>
+              <option value="Maharashtra">Maharashtra</option>
+              <option value="Manipur">Manipur</option>
+              <option value="Meghalaya">Meghalaya</option>
+              <option value="Mizoram">Mizoram</option>
+              <option value="Nagaland">Nagaland</option>
+              <option value="Odisha">Odisha</option>
+              <option value="Puducherry">Puducherry</option>
+              <option value="Punjab">Punjab</option>
+              <option value="Rajasthan">Rajasthan</option>
+              <option value="Sikkim">Sikkim</option>
+              <option value="Tamil Nadu">Tamil Nadu</option>
+              <option value="Telangana">Telangana</option>
+              <option value="Tripura">Tripura</option>
+              <option value="Uttar Pradesh">Uttar Pradesh</option>
+              <option value="Uttarakhand">Uttarakhand</option>
+              <option value="West Bengal">West Bengal</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="pincode">Pincode / Zip Code *</label>
+            <input type="text" id="pincode" name="pincode" pattern="[0-9]{6}" required>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">4. Source of Income</div>
+        <div class="checkbox-group">
+          <label><input type="checkbox" name="source_of_income" value="salary"> Salary</label>
+          <label><input type="checkbox" name="source_of_income" value="business"> Income from Business / Profession</label>
+          <label><input type="checkbox" name="source_of_income" value="house_property"> Income from House Property</label>
+          <label><input type="checkbox" name="source_of_income" value="capital_gains"> Capital Gains</label>
+          <label><input type="checkbox" name="source_of_income" value="other_sources"> Income from Other Sources</label>
+          <label><input type="checkbox" name="source_of_income" value="no_income"> No Income</label>
+        </div>
+      </div>
+
+      <div class="btn-bar">
+        <button type="button" id="save_draft_btn" class="btn-secondary">Save Draft</button>
+        <button type="button" id="next_btn" class="btn-primary" onclick="showStep(2)">Next</button>
+      </div>
+    </div>
+
+    <!-- STEP 2: Document Proofs & Payment / Submit -->
+    <div id="step2" class="step-2">
+      <div class="section">
+        <div class="section-title">5. Document Proofs Submitted</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="proof_of_identity">Proof of Identity (POI) *</label>
+            <select id="proof_of_identity" name="proof_of_identity" required>
+              <option value="">-- Select Identity Proof --</option>
+              <option value="aadhaar">Aadhaar Card issued by UIDAI</option>
+              <option value="passport">Passport</option>
+              <option value="voter_id">Elector's Photo Identity Card</option>
+              <option value="driving_license">Driving License</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="proof_of_address">Proof of Address (POA) *</label>
+            <select id="proof_of_address" name="proof_of_address" required>
+              <option value="">-- Select Address Proof --</option>
+              <option value="aadhaar">Aadhaar Card issued by UIDAI</option>
+              <option value="passport">Passport</option>
+              <option value="electricity_bill">Electricity Bill (not older than 3 months)</option>
+              <option value="bank_statement">Bank Account Statement</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="proof_of_dob">Proof of Date of Birth (DOB) *</label>
+            <select id="proof_of_dob" name="proof_of_dob" required>
+              <option value="">-- Select Date of Birth Proof --</option>
+              <option value="aadhaar">Aadhaar Card issued by UIDAI</option>
+              <option value="birth_certificate">Birth Certificate</option>
+              <option value="passport">Passport</option>
+              <option value="matriculation">Matriculation Certificate</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="btn-bar">
+        <button type="button" id="back_btn" class="btn-secondary" onclick="showStep(1)">Back</button>
+        <button type="button" id="pay_now_btn" class="btn-warning" formaction="form_success.html">Pay Now</button>
+        <button type="submit" id="submit_btn" class="btn-success">Submit</button>
+      </div>
+    </div>
+  </form>
+</div>
+
+<script>
+  function showStep(step) {
+    if (step === 2) {
+      document.getElementById('step1').style.display = 'none';
+      document.getElementById('step2').style.display = 'block';
+    } else {
+      document.getElementById('step1').style.display = 'block';
+      document.getElementById('step2').style.display = 'none';
+    }
+  }
+</script>
+
+</body>
+</html>

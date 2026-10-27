@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Income Tax Department - e-Filing Portal (ITR-1)</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #eaeff5;
+      color: #333333;
+      margin: 0;
+      padding: 20px;
+    }
+    .main-wrapper {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .header-bar {
+      background: #0d47a1;
+      color: white;
+      padding: 16px 20px;
+      border-radius: 4px 4px 0 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .header-bar h1 {
+      margin: 0;
+      font-size: 1.25rem;
+    }
+    .login-panel {
+      background: #ffffff;
+      border: 1px solid #c7d2fe;
+      border-top: none;
+      padding: 20px;
+      margin-bottom: 25px;
+      border-radius: 0 0 4px 4px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    .login-heading {
+      font-size: 1.05rem;
+      font-weight: bold;
+      color: #0d47a1;
+      margin-bottom: 12px;
+    }
+    .login-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      gap: 15px;
+    }
+    .itr-container {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    .itr-header {
+      background: #1e3a5f;
+      color: white;
+      padding: 14px 20px;
+      font-size: 1.15rem;
+      font-weight: bold;
+      border-radius: 3px 3px 0 0;
+    }
+    .form-part {
+      padding: 20px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .part-title {
+      font-size: 1rem;
+      font-weight: bold;
+      color: #1e3a5f;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 6px;
+      margin-bottom: 15px;
+    }
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 15px;
+      margin-bottom: 12px;
+    }
+    .form-field {
+      display: flex;
+      flex-direction: column;
+    }
+    label {
+      font-size: 0.82rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+      color: #374151;
+    }
+    input[type="text"], input[type="password"], input[type="email"], input[type="tel"], input[type="date"], select {
+      padding: 8px 10px;
+      border: 1px solid #94a3b8;
+      border-radius: 4px;
+      font-size: 0.88rem;
+    }
+    input[readonly] {
+      background-color: #f1f5f9;
+      color: #64748b;
+      cursor: not-allowed;
+      border-color: #cbd5e1;
+    }
+    .action-row {
+      padding: 16px 20px;
+      background: #f8fafc;
+      display: flex;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+      gap: 10px;
+      border-radius: 0 0 4px 4px;
+    }
+    button, input[type="submit"] {
+      padding: 9px 18px;
+      border-radius: 4px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid transparent;
+    }
+    .btn-login { background: #0d47a1; color: white; }
+    .btn-continue { background: #0284c7; color: white; }
+    .btn-draft { background: #64748b; color: white; }
+    .btn-proceed { background: #059669; color: white; }
+    .btn-everify { background: #dc2626; color: white; }
+  </style>
+</head>
+<body>
+
+<div class="main-wrapper">
+  <!-- Top Portal Header -->
+  <div class="header-bar">
+    <h1>e-Filing Anywhere, Anytime — Income Tax Department</h1>
+    <span>AY 2024-25</span>
+  </div>
+
+  <!-- Login Box Section -->
+  <div class="login-panel">
+    <div class="login-heading">Registered User Login</div>
+    <form id="loginForm" action="form_success.html" method="POST">
+      <div class="login-row">
+        <div class="form-field" style="min-width: 250px;">
+          <label for="user_id">Enter your User ID (PAN / Aadhaar) *</label>
+          <input type="text" id="user_id" name="user_id" placeholder="e.g. ABCDE1234F" required>
+        </div>
+        <div class="form-field" style="min-width: 220px;">
+          <!-- Field with placeholder and aria-label only (robustness testing) -->
+          <input type="password" id="password" name="password" placeholder="Password" aria-label="Password" required>
+        </div>
+        <div>
+          <button type="submit" id="login_btn" class="btn-login">Login</button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- ITR-1 Sahaj Form: Personal Information Section -->
+  <div class="itr-container">
+    <div class="itr-header">
+      ITR-1 (SAHAJ) — Personal Information Section
+    </div>
+
+    <form id="itr1Form" action="form_success.html" method="POST">
+      <!-- Personal Details -->
+      <div class="form-part">
+        <div class="part-title">Personal Details</div>
+        <div class="form-grid">
+          <div class="form-field">
+            <label for="pan">Permanent Account Number (PAN) *</label>
+            <input type="text" id="pan" name="pan" value="ABCDE1234F" readonly required>
+          </div>
+          <div class="form-field">
+            <label for="name">Name as per PAN *</label>
+            <input type="text" id="name" name="name" value="Rishi Kumar Sharma" required>
+          </div>
+          <div class="form-field">
+            <label for="dob">Date of Birth *</label>
+            <input type="date" id="dob" name="dob" value="1990-05-15" required>
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-field">
+            <!-- Field without <label for=> (robustness testing) -->
+            <input type="text" id="aadhaar" name="aadhaar" placeholder="12-digit Aadhaar Number" aria-label="Aadhaar Number" value="123456789012" pattern="[0-9]{12}" required>
+          </div>
+          <div class="form-field">
+            <label for="mobile">Mobile Number *</label>
+            <input type="tel" id="mobile" name="mobile" placeholder="Mobile Number" value="9876543210" pattern="[0-9]{10}" required>
+          </div>
+          <div class="form-field">
+            <!-- Field without <label for=> (robustness testing) -->
+            <input type="email" id="email" name="email" placeholder="Email Address" aria-label="Primary Email Address" value="rishi@example.com" required>
+          </div>
+        </div>
+      </div>
+
+      <!-- Address Details -->
+      <div class="form-part">
+        <div class="part-title">Contact Address</div>
+        <div class="form-grid">
+          <div class="form-field">
+            <label for="flat_door_no">Flat / Door / Block No. *</label>
+            <input type="text" id="flat_door_no" name="flat_door_no" value="A-402" required>
+          </div>
+          <div class="form-field">
+            <label for="premises">Name of Premises / Building</label>
+            <input type="text" id="premises" name="premises" value="Greenwood Heights">
+          </div>
+          <div class="form-field">
+            <label for="street">Road / Street / Lane</label>
+            <input type="text" id="street" name="street" value="MG Road">
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="form-field">
+            <label for="area">Area / Locality *</label>
+            <input type="text" id="area" name="area" value="Indiranagar" required>
+          </div>
+          <div class="form-field">
+            <label for="city">Town / City / District *</label>
+            <input type="text" id="city" name="city" value="Bengaluru" required>
+          </div>
+          <div class="form-field">
+            <label for="state">State *</label>
+            <select id="state" name="state" required>
+              <option value="">-- Select State --</option>
+              <option value="Karnataka" selected>Karnataka</option>
+              <option value="Delhi">Delhi</option>
+              <option value="Maharashtra">Maharashtra</option>
+              <option value="Tamil Nadu">Tamil Nadu</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label for="pincode">Pincode *</label>
+            <input type="text" id="pincode" name="pincode" value="560038" pattern="[0-9]{6}" required>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filing Status & Nature of Employment -->
+      <div class="form-part">
+        <div class="part-title">Nature of Employment & Filing Status</div>
+        <div class="form-grid">
+          <div class="form-field">
+            <label for="nature_of_employment">Nature of Employment *</label>
+            <select id="nature_of_employment" name="nature_of_employment" required>
+              <option value="">-- Select Employment Type --</option>
+              <option value="CENTRAL_GOVT">Central Government</option>
+              <option value="STATE_GOVT">State Government</option>
+              <option value="PSU">Public Sector Undertaking</option>
+              <option value="PENSIONERS">Pensioners</option>
+              <option value="OTHERS" selected>Others</option>
+              <option value="NOT_APPLICABLE">Not Applicable</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bank Details -->
+      <div class="form-part">
+        <div class="part-title">Bank Account Details (For refund / validation)</div>
+        <div class="form-grid">
+          <div class="form-field">
+            <label for="bank_account_number">Bank Account Number *</label>
+            <input type="text" id="bank_account_number" name="bank_account_number" placeholder="Enter bank account number" value="123456789012" required>
+          </div>
+          <div class="form-field">
+            <!-- Field without <label for=> (robustness testing) -->
+            <input type="text" id="ifsc_code" name="ifsc_code" placeholder="IFSC Code" aria-label="Bank IFSC Code" value="SBIN0001234" pattern="^[A-Z]{4}0[A-Z0-9]{6}$" required>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="action-row">
+        <button type="button" id="save_draft_btn" class="btn-draft">Save Draft</button>
+        <button type="button" id="continue_btn" class="btn-continue">Continue</button>
+        <button type="button" id="proceed_verification_btn" class="btn-proceed">Proceed to Verification</button>
+        <button type="submit" id="everify_btn" class="btn-everify">e-Verify</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+</body>
+</html>

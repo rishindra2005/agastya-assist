@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ministry of Corporate Affairs - SPICe+ Part A & DIR-3</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: #f1f5f9;
+      color: #334155;
+      margin: 0;
+      padding: 20px;
+    }
+    .wrapper {
+      max-width: 860px;
+      margin: 0 auto;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+    .header {
+      background: #1e293b;
+      color: #ffffff;
+      padding: 18px 24px;
+      border-bottom: 4px solid #b45309;
+      border-top-left-radius: 5px;
+      border-top-right-radius: 5px;
+    }
+    .header h1 {
+      margin: 0;
+      font-size: 1.3rem;
+      letter-spacing: 0.5px;
+    }
+    .header p {
+      margin: 6px 0 0 0;
+      font-size: 0.85rem;
+      color: #94a3b8;
+    }
+    .form-section {
+      padding: 20px 24px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .section-title {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: #0f172a;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .grid-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 16px;
+    }
+    .field {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 12px;
+    }
+    label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 5px;
+      color: #475569;
+    }
+    input[type="text"], input[type="email"], input[type="tel"], select {
+      padding: 8px 12px;
+      border: 1px solid #94a3b8;
+      border-radius: 4px;
+      font-size: 0.9rem;
+    }
+    .footer-actions {
+      padding: 16px 24px;
+      background: #f8fafc;
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      border-bottom-left-radius: 5px;
+      border-bottom-right-radius: 5px;
+    }
+    button, input[type="submit"] {
+      padding: 9px 20px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      border-radius: 4px;
+      cursor: pointer;
+      border: none;
+    }
+    .btn-save {
+      background: #64748b;
+      color: white;
+    }
+    .btn-check {
+      background: #0284c7;
+      color: white;
+    }
+    .btn-submit {
+      background: #16a34a;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+
+<div class="wrapper">
+  <div class="header">
+    <h1>Ministry of Corporate Affairs (MCA21)</h1>
+    <p>SPICe+ (Part A) — Application for Reservation of Name & DIR-3 Director Allotment</p>
+  </div>
+
+  <form id="mcaForm" action="form_success.html" method="POST">
+    <!-- Company Classification & Type -->
+    <div class="form-section">
+      <div class="section-title">1. Type, Class & Category of Company</div>
+      <div class="grid-3">
+        <div class="field">
+          <label for="company_type">Type of Company *</label>
+          <select id="company_type" name="company_type" required>
+            <option value="">-- Select Company Type --</option>
+            <option value="NEW_COMPANY">New Company (Others)</option>
+            <option value="PRODUCER_COMPANY">Producer Company</option>
+            <option value="SECTION_8">Section 8 Company</option>
+            <option value="PART_I_SECTION_8">Part I Section 8</option>
+            <option value="PART_I_LLP">Part I LLP</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="company_class">Class of Company *</label>
+          <select id="company_class" name="company_class" required>
+            <option value="">-- Select Class --</option>
+            <option value="PRIVATE">Private</option>
+            <option value="PUBLIC">Public</option>
+            <option value="ONE_PERSON_COMPANY">One Person Company</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="company_category">Category of Company *</label>
+          <select id="company_category" name="company_category" required>
+            <option value="">-- Select Category --</option>
+            <option value="LIMITED_BY_SHARES">Company limited by shares</option>
+            <option value="LIMITED_BY_GUARANTEE">Company limited by guarantee</option>
+            <option value="UNLIMITED">Unlimited company</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Industrial Activity & Proposed Names -->
+    <div class="form-section">
+      <div class="section-title">2. Industrial Activity & Proposed Name(s)</div>
+      <div class="field">
+        <label for="industrial_activity">Main Division of Industrial Activity (NIC Code) *</label>
+        <select id="industrial_activity" name="industrial_activity" required>
+          <option value="">-- Select Main Division of Industrial Activity --</option>
+          <option value="01">01 - Crop and animal production, hunting and related service activities</option>
+          <option value="10">10 - Manufacture of food products</option>
+          <option value="26">26 - Manufacture of computer, electronic and optical products</option>
+          <option value="62">62 - Computer programming, consultancy and related activities</option>
+          <option value="64">64 - Financial service activities, except insurance and pension funding</option>
+          <option value="70">70 - Activities of head offices; management consultancy activities</option>
+          <option value="72">72 - Scientific research and development</option>
+        </select>
+      </div>
+
+      <div class="grid-2">
+        <div class="field">
+          <label for="proposed_name_1">Proposed Name 1 *</label>
+          <input type="text" id="proposed_name_1" name="proposed_name_1" placeholder="First preference name" required>
+        </div>
+        <div class="field">
+          <!-- Field without <label for=> (placeholder & aria-label only for robustness testing) -->
+          <input type="text" id="proposed_name_2" name="proposed_name_2" placeholder="Proposed Name 2 (Alternative preference)" aria-label="Proposed Name 2">
+        </div>
+      </div>
+    </div>
+
+    <!-- Director Details (DIR-3) -->
+    <div class="form-section">
+      <div class="section-title">3. Director Details (DIR-3 / Authorized Signatory)</div>
+      <div class="grid-2">
+        <div class="field">
+          <!-- Field without <label for=> (robustness testing) -->
+          <input type="text" id="din" name="din" placeholder="Director Identification Number (DIN / DPIN)" aria-label="DIN" pattern="[0-9]{8}">
+        </div>
+        <div class="field">
+          <label for="director_name">Director Full Name *</label>
+          <input type="text" id="director_name" name="director_name" placeholder="Full name as per PAN / Aadhaar" required>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="field">
+          <label for="email">Director Email Address *</label>
+          <input type="email" id="email" name="email" placeholder="director@example.com" required>
+        </div>
+        <div class="field">
+          <label for="mobile">Director Mobile Number *</label>
+          <input type="tel" id="mobile" name="mobile" placeholder="10-digit mobile number" pattern="[0-9]{10}" required>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="footer-actions">
+      <button type="button" id="save_btn" class="btn-save">Save</button>
+      <button type="button" id="check_name_btn" class="btn-check">Check Name</button>
+      <button type="submit" id="submit_btn" class="btn-submit">Submit</button>
+    </div>
+  </form>
+</div>
+
+</body>
+</html>
