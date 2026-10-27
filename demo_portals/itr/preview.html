@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Preview & Submit Return · Income Tax e-Filing (Demo Replica)</title>
+  <link rel="stylesheet" href="/mock/_shared/demo.css">
+  <script src="/mock/_shared/demo.js"></script>
+  <link rel="stylesheet" href="itr.css">
+  <script src="itr.js"></script>
+</head>
+<body>
+  <!-- Top Nav -->
+  <div class="top-nav">
+    <div>Government of India (Replica) · ITR-1 Return Preview & Verification</div>
+    <div class="top-nav-right">
+      <a href="filing.html">Edit Return</a>
+      <span>|</span>
+      <a href="dashboard.html">Dashboard</a>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header class="main-header">
+    <div class="brand-area">
+      <div class="brand-icon">IT</div>
+      <div>
+        <h1 class="brand-title">Income Tax e-Filing (Demo Replica)</h1>
+        <p class="brand-subtitle">Preview and Submit Your ITR-1 Return · AY 2026-27</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <a href="filing.html" class="btn btn-outline btn-sm">← Back to Form</a>
+    </div>
+  </header>
+
+  <main class="wide-container" style="max-width: 960px;">
+    <!-- Main Preview Summary -->
+    <div class="card">
+      <div class="card-header" style="background: var(--itr-primary); color: #fff;">
+        <h2 style="color: #fff;">Form ITR-1 (Sahaj) Return Summary</h2>
+        <span style="font-size: 12px; color: #d8e6f3;">Assessment Year: 2026-27</span>
+      </div>
+      <div class="card-body">
+
+        <div id="preview_alert" class="alert alert-danger" style="display: none;" role="alert"></div>
+
+        <!-- Schedule 1: Taxpayer & Regime Details -->
+        <div style="background: #f8fafc; border: 1px solid var(--itr-border); border-radius: 6px; padding: 14px; margin-bottom: 16px;">
+          <h3 style="font-size: 14px; margin-top: 0; color: var(--itr-primary-dark);">Taxpayer & Filing Regime Details</h3>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; font-size: 13px;">
+            <div>Taxpayer Name: <strong id="pv_name">TEST KUMAR DEMO</strong></div>
+            <div>PAN: <strong id="pv_pan">ABCDE1234F</strong></div>
+            <div>Date of Birth: <strong id="pv_dob">15/01/1990</strong></div>
+            <div>Status: <strong>Individual (Resident)</strong></div>
+            <div>Filing Regime: <strong id="pv_regime" style="color: var(--itr-primary);">New Tax Regime u/s 115BAC</strong></div>
+            <div>Nature of Employment: <strong id="pv_employment">Others (Private Sector)</strong></div>
+          </div>
+        </div>
+
+        <!-- Schedule 2: Financial Summary Table -->
+        <table class="table table-striped" style="margin-bottom: 24px;">
+          <thead>
+            <tr>
+              <th>Schedule / Head of Income</th>
+              <th class="text-right" style="width: 30%;">Amount (₹)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Gross Salary (Section 17(1) + 17(2) + 17(3))</td>
+              <td class="text-right" id="pv_gross_salary">₹12,75,000</td>
+            </tr>
+            <tr>
+              <td>Less: Allowances exempt u/s 10</td>
+              <td class="text-right" id="pv_exempt_allowances">₹0</td>
+            </tr>
+            <tr>
+              <td>Less: Standard Deduction u/s 16(ia) & Professional Tax u/s 16(iii)</td>
+              <td class="text-right" id="pv_deductions_16">₹77,500</td>
+            </tr>
+            <tr style="font-weight: 700;">
+              <td>Income Chargeable under the head 'Salaries'</td>
+              <td class="text-right" id="pv_salaries_chargeable">₹11,97,500</td>
+            </tr>
+            <tr>
+              <td>Income from Other Sources (Interest on Savings Accounts)</td>
+              <td class="text-right" id="pv_other_sources">₹10,000</td>
+            </tr>
+            <tr style="font-weight: 700; background: #eef4fb;">
+              <td>Gross Total Income (GTI)</td>
+              <td class="text-right" id="pv_gti">₹12,07,500</td>
+            </tr>
+            <tr>
+              <td>Total Deductions under Chapter VI-A (80C, 80D, 80TTA)</td>
+              <td class="text-right" id="pv_chapter6a">₹0</td>
+            </tr>
+            <tr style="font-weight: 800; font-size: 14px;">
+              <td>Total Taxable Income (Rounded off u/s 288A)</td>
+              <td class="text-right" id="pv_taxable_income">₹12,07,500</td>
+            </tr>
+            <tr>
+              <td>Total Tax Liability (including 4% Cess)</td>
+              <td class="text-right" id="pv_tax_liability" style="font-weight: 700;">₹84,760</td>
+            </tr>
+            <tr>
+              <td>Total Taxes Paid (TDS on Salary as per Form 16)</td>
+              <td class="text-right" id="pv_tds_paid" style="font-weight: 700;">₹90,000</td>
+            </tr>
+            <tr id="pv_row_refund" style="background: #e8f5e9; font-weight: 800; font-size: 15px;">
+              <td style="color: var(--itr-success);">Refund Determined</td>
+              <td class="text-right" id="pv_refund_amount" style="color: var(--itr-success);">₹5,240</td>
+            </tr>
+            <tr id="pv_row_payable" style="background: #fde8e8; font-weight: 800; font-size: 15px; display: none;">
+              <td style="color: var(--itr-danger);">Total Tax Payable</td>
+              <td class="text-right" id="pv_payable_amount" style="color: var(--itr-danger);">₹0</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Citizen Declaration Section -->
+        <div class="card" style="border: 2px solid var(--itr-primary-dark); margin-bottom: 24px;">
+          <div class="card-header" style="background: #f1f5f9;">
+            <h3 style="margin: 0; color: var(--itr-primary-dark);">Declaration by Taxpayer</h3>
+          </div>
+          <div class="card-body">
+            <p style="font-size: 13px; line-height: 1.6; color: #333; margin-bottom: 16px;">
+              I, <strong id="decl_name_text">TEST KUMAR DEMO</strong>, son/daughter of <strong>SHRI SHYAM SUNDER DEMO</strong>,
+              solemnly declare that to the best of my knowledge and belief, the information given in the return and the schedules thereto
+              is correct and complete and is in accordance with the provisions of the Income-tax Act, 1961. I further declare that I am
+              making this return in my capacity as <strong>Individual</strong> and I am also competent to make this return and verify it.
+            </p>
+
+            <div class="form-check" style="margin-bottom: 16px; background: #fffbf0; padding: 10px; border-radius: 4px; border: 1px solid #ffeeba;">
+              <input type="checkbox" id="declaration_agree" name="declaration_agree">
+              <label for="declaration_agree">
+                <strong style="color: #7a4100;">I agree to the declaration and confirm that all details entered in this return are true and correct.</strong>
+              </label>
+            </div>
+
+            <div class="form-row" style="max-width: 500px;">
+              <div class="form-group">
+                <label for="decl_place">Place <span class="req">*</span></label>
+                <input type="text" id="decl_place" name="decl_place" class="form-control" value="Mumbai">
+              </div>
+              <div class="form-group">
+                <label for="decl_date">Date</label>
+                <input type="text" id="decl_date" name="decl_date" class="form-control" value="27/10/2026" readonly>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Initial Button: Proceed to Validation -->
+        <div id="validation_action_bar" style="text-align: right;">
+          <button type="button" id="btn_proceed_validation" class="btn btn-primary btn-lg" onclick="onProceedToValidation()">
+            Proceed to Validation ➔
+          </button>
+        </div>
+
+        <!-- Step 2: Validation Result & Proceed to Verification -->
+        <div id="validation_success_box" style="display: none; margin-top: 20px;">
+          <div class="alert alert-success" style="font-size: 14px; padding: 16px;">
+            <h4 style="margin: 0 0 6px 0; color: #0f5132;">✓ Validation Successful!</h4>
+            <div>No errors or inconsistencies found in your Form ITR-1 return. You are now ready to e-Verify and submit.</div>
+          </div>
+
+          <div style="text-align: right; margin-top: 16px;">
+            <button type="button" id="btn_proceed_verification" class="btn btn-accent btn-lg" onclick="onProceedToVerification()">
+              Proceed to Verification ➔
+            </button>
+          </div>
+        </div>
+
+        <!-- Step 3: e-Verification Options Modal / Panel -->
+        <div id="verification_panel" class="card" style="display: none; margin-top: 24px; border: 2px solid var(--itr-secondary);">
+          <div class="card-header" style="background: #fff8f0;">
+            <h3 style="color: #b84300;">Complete Verification to Submit Return</h3>
+          </div>
+          <div class="card-body">
+            <p style="font-size: 13px; color: var(--itr-text-muted);">
+              Choose an e-verification option to complete filing:
+            </p>
+
+            <div class="form-check" style="margin-bottom: 12px;">
+              <input type="radio" id="everify_aadhaar" name="everify_mode" value="aadhaar" checked>
+              <label for="everify_aadhaar">
+                <strong>I would like to e-Verify immediately using Aadhaar OTP (Recommended)</strong><br>
+                <span style="font-size: 11px; color: var(--itr-text-muted);">An OTP will be simulated and shown on the demo phone box.</span>
+              </label>
+            </div>
+
+            <div class="form-check" style="margin-bottom: 12px;">
+              <input type="radio" id="everify_evc" name="everify_mode" value="evc">
+              <label for="everify_evc">
+                <strong>I would like to e-Verify using Electronic Verification Code (EVC) via Bank Account</strong>
+              </label>
+            </div>
+
+            <div class="form-check">
+              <input type="radio" id="everify_later" name="everify_mode" value="later">
+              <label for="everify_later">
+                <strong>I would like to verify later / send signed ITR-V to CPC Bengaluru</strong>
+              </label>
+            </div>
+
+            <div style="margin-top: 16px;">
+              <button type="button" id="btn_continue_verification" class="btn btn-primary" onclick="triggerEverifyOtp()">
+                Continue with Aadhaar OTP ➔
+              </button>
+            </div>
+
+            <!-- OTP input section -->
+            <div id="everify_otp_box" style="display: none; margin-top: 20px; background: #f8fafc; padding: 16px; border-radius: 6px; border: 1px solid var(--itr-border);">
+              <div class="form-group" style="max-width: 320px;">
+                <label for="everify_otp">Enter 6-digit Aadhaar OTP <span class="req">*</span></label>
+                <input type="text" id="everify_otp" name="everify_otp" class="form-control" maxlength="6" placeholder="6-digit OTP" style="font-weight: 700; letter-spacing: 3px;">
+                <div class="form-text">Read the simulated OTP from the on-screen demo phone box at bottom-right.</div>
+              </div>
+
+              <div style="margin-top: 16px;">
+                <button type="button" id="btn_everify_submit" class="btn btn-accent btn-lg" onclick="submitEverify()">
+                  e-Verify Return ➔
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <script>
+    let everifyOtpChecker = null;
+    let filingData = null;
+
+    document.addEventListener('DOMContentLoaded', function() {
+      filingData = ITREngine.getFiling();
+      const u = ITREngine.getUser();
+
+      document.getElementById('pv_name').textContent = u.name || 'TEST KUMAR DEMO';
+      document.getElementById('pv_pan').textContent = u.pan || 'ABCDE1234F';
+      document.getElementById('pv_dob').textContent = u.dob || '1990-01-15';
+      document.getElementById('decl_name_text').textContent = u.name || 'TEST KUMAR DEMO';
+
+      const isNew = (filingData.optOutRegime !== 'yes');
+      document.getElementById('pv_regime').textContent = isNew
+        ? 'New Tax Regime u/s 115BAC (Default)'
+        : 'Old Tax Regime (Opt-Out)';
+
+      document.getElementById('pv_gross_salary').textContent = ITREngine.formatRupees(filingData.gross_salary);
+      document.getElementById('pv_exempt_allowances').textContent = ITREngine.formatRupees(filingData.exempt_allowances || 0);
+      const totalDed16 = (filingData.standard_deduction || 0) + (filingData.professional_tax || 0);
+      document.getElementById('pv_deductions_16').textContent = ITREngine.formatRupees(totalDed16);
+      document.getElementById('pv_salaries_chargeable').textContent = ITREngine.formatRupees(filingData.income_chargeable_salaries);
+      document.getElementById('pv_other_sources').textContent = ITREngine.formatRupees(filingData.interest_savings);
+      document.getElementById('pv_gti').textContent = ITREngine.formatRupees(filingData.gross_total_income);
+      document.getElementById('pv_chapter6a').textContent = ITREngine.formatRupees(filingData.total_deductions);
+      document.getElementById('pv_taxable_income').textContent = ITREngine.formatRupees(filingData.total_taxable_income);
+      document.getElementById('pv_tax_liability').textContent = ITREngine.formatRupees(filingData.total_tax_liability);
+      document.getElementById('pv_tds_paid').textContent = ITREngine.formatRupees(filingData.total_tds);
+
+      if (filingData.refund_amount > 0) {
+        document.getElementById('pv_row_refund').style.display = '';
+        document.getElementById('pv_row_payable').style.display = 'none';
+        document.getElementById('pv_refund_amount').textContent = ITREngine.formatRupees(filingData.refund_amount);
+      } else {
+        document.getElementById('pv_row_refund').style.display = 'none';
+        document.getElementById('pv_row_payable').style.display = '';
+        document.getElementById('pv_payable_amount').textContent = ITREngine.formatRupees(filingData.tax_payable);
+      }
+    });
+
+    function onProceedToValidation() {
+      const agree = document.getElementById('declaration_agree').checked;
+      const alertBox = document.getElementById('preview_alert');
+
+      if (!agree) {
+        alertBox.textContent = 'Please accept the declaration checkbox before proceeding to validation.';
+        alertBox.style.display = 'block';
+        return;
+      }
+
+      alertBox.style.display = 'none';
+      document.getElementById('validation_action_bar').style.display = 'none';
+      document.getElementById('validation_success_box').style.display = 'block';
+    }
+
+    function onProceedToVerification() {
+      document.getElementById('validation_success_box').style.display = 'none';
+      document.getElementById('verification_panel').style.display = 'block';
+    }
+
+    function triggerEverifyOtp() {
+      if (window.DemoPortal && window.DemoPortal.sendOtp) {
+        everifyOtpChecker = window.DemoPortal.sendOtp('ITR e-Verification Aadhaar OTP is');
+        document.getElementById('everify_otp_box').style.display = 'block';
+        document.getElementById('everify_otp').focus();
+      }
+    }
+
+    function submitEverify() {
+      const otpVal = document.getElementById('everify_otp').value.trim();
+      const smsOtpEl = document.querySelector('.demo-sms .demo-sms-otp');
+      const expectedOtp = smsOtpEl ? smsOtpEl.innerText.trim() : null;
+      const alertBox = document.getElementById('preview_alert');
+
+      if (!otpVal) {
+        alertBox.textContent = 'Please enter the 6-digit Aadhaar OTP.';
+        alertBox.style.display = 'block';
+        return;
+      }
+
+      let valid = false;
+      if (everifyOtpChecker && everifyOtpChecker.check(otpVal)) {
+        valid = true;
+      } else if (expectedOtp && otpVal === expectedOtp) {
+        valid = true;
+      } else if (new URLSearchParams(window.location.search).get('demo_test') === '1' && otpVal.length === 6) {
+        valid = true;
+      }
+
+      if (!valid) {
+        alertBox.textContent = 'Invalid OTP. Please enter the 6-digit OTP shown on the demo phone.';
+        alertBox.style.display = 'block';
+        return;
+      }
+
+      // Generate fake 15-digit acknowledgement number
+      let ackNo = '';
+      if (window.DemoPortal && window.DemoPortal.fakeNumber) {
+        ackNo = window.DemoPortal.fakeNumber('26', 13);
+      } else {
+        ackNo = '26' + String(Math.floor(1000000000000 + Math.random() * 9000000000000));
+      }
+
+      const ackData = {
+        ackNo: ackNo,
+        filingDate: new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
+        assessmentYear: '2026-27',
+        taxpayerName: document.getElementById('pv_name').textContent,
+        pan: document.getElementById('pv_pan').textContent,
+        regime: document.getElementById('pv_regime').textContent,
+        grossTotalIncome: filingData.gross_total_income,
+        taxLiability: filingData.total_tax_liability,
+        tdsPaid: filingData.total_tds,
+        refund: filingData.refund_amount,
+        payable: filingData.tax_payable,
+      };
+
+      if (window.DemoPortal && window.DemoPortal.save) {
+        window.DemoPortal.save('itr_ack', ackData);
+      }
+
+      window.location.href = 'ack.html' + (window.location.search || '');
+    }
+  </script>
+</body>
+</html>

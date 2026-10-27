@@ -174,7 +174,7 @@ def test_ctx(tmp_path: Path):
 
 
 def test_tool_names():
-    assert len(TOOL_NAMES) == 14
+    assert len(TOOL_NAMES) == 16
     for name in TOOL_NAMES:
         assert name.startswith("mcp__agastya__")
     assert "mcp__agastya__get_profile" in TOOL_NAMES
@@ -192,7 +192,7 @@ def test_build_mcp_server(test_ctx: ToolContext):
     assert "handlers" not in server
     json.dumps({k: v for k, v in server.items() if k != "instance"})
     assert hasattr(server, "handlers")
-    assert len(server.handlers) == 14
+    assert len(server.handlers) == 16
     assert "get_profile" in server.handlers
     assert "browser_fill_many" in server.handlers
     assert "browser_click" in server.handlers
@@ -742,3 +742,97 @@ async def test_screenshot_throttling(test_ctx: ToolContext):
     await handlers["browser_click"]({"ref": "a1"})
     ev2 = await asyncio.wait_for(q.get(), timeout=1.0)
     assert ev2.type == "screenshot"
+
+
+
+@pytest.mark.asyncio
+async def test_list_documents_tool(test_ctx: ToolContext):
+    """Test list_documents tool handler."""
+    handlers = build_handlers(test_ctx)
+
+    # Empty store returns empty list
+    res = await handlers["list_documents"]()
+    assert res.get("is_error") is not True
+    items = json.loads(res["content"][0]["text"])
+    assert items == []
+
+    # Add a document to the user's document store
+    from scripts.make_sample_form16 import build_form16_pdf
+
+    store = getattr(test_ctx, "documents", None)
+    if store is None:
+        from agastya.documents.store import DocumentStore
+
+        test_ctx.documents = DocumentStore(
+            user_id=test_ctx.profile.user_id,
+            data_dir=test_ctx.profile.db_path.parent,
+        )
+        store = test_ctx.documents
+
+    doc = store.add("sample_form16.pdf", build_form16_pdf())
+
+    # Now list_documents returns the document with required fields
+    res2 = await handlers["list_documents"]()
+    assert res2.get("is_error") is not True
+    items2 = json.loads(res2["content"][0]["text"])
+    assert len(items2) == 1
+    assert items2[0]["id"] == doc.id
+    assert items2[0]["filename"] == "sample_form16.pdf"
+    assert items2[0]["kind"] == "form16"
+    assert "uploaded_at" in items2[0]
+
+
+@pytest.mark.asyncio
+async def test_read_document_tool(test_ctx: ToolContext):
+    """Test read_document tool handler with PAN masking and error handling."""
+    handlers = build_handlers(test_ctx)
+
+    # Missing doc_id argument returns error
+    res_err1 = await handlers["read_document"]({})
+    assert res_err1.get("is_error") is True
+    assert "Missing required argument" in res_err1["content"][0]["text"]
+
+    # Non-existent doc_id returns error
+    res_err2 = await handlers["read_document"]({"doc_id": "non_existent_123"})
+    assert res_err2.get("is_error") is True
+    assert "Document not found" in res_err2["content"][0]["text"]
+
+    # Add specimen Form 16 document
+    from scripts.make_sample_form16 import build_form16_pdf
+
+    if getattr(test_ctx, "documents", None) is None:
+        from agastya.documents.store import DocumentStore
+
+        test_ctx.documents = DocumentStore(
+            user_id=test_ctx.profile.user_id,
+            data_dir=test_ctx.profile.db_path.parent,
+        )
+    store = test_ctx.documents
+    doc = store.add("test_form16.pdf", build_form16_pdf())
+
+    # Read existing document
+    res_ok = await handlers["read_document"]({"doc_id": doc.id})
+    assert res_ok.get("is_error") is not True
+    extracted = json.loads(res_ok["content"][0]["text"])
+
+    assert extracted["kind"] == "form16"
+    # Verify employee PAN is masked via agastya.profile.fields.masked (ABCDE1234F -> XXXXX1234X)
+    assert extracted["employee_pan"] == "XXXXX1234X"
+    # Unmasked numerical values are intact
+    assert extracted["salary_17_1"] == 1250000
+    assert extracted["gross_salary"] == 1275000
+    assert extracted["total_taxable_income"] == 1197500
+    assert extracted["tds_total"] == 82810
+
+
+@pytest.mark.asyncio
+async def test_document_tools_lazy_store_initialization(test_ctx: ToolContext):
+    """Test lazy DocumentStore initialization when test_ctx.documents is None."""
+    test_ctx.documents = None
+    handlers = build_handlers(test_ctx)
+
+    # Calling list_documents lazily creates DocumentStore
+    res = await handlers["list_documents"]()
+    assert res.get("is_error") is not True
+    assert test_ctx.documents is not None
+    assert test_ctx.documents.user_id == test_ctx.profile.user_id

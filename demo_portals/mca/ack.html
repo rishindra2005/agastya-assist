@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Corporate Affairs Portal (Demo Replica) - Name Reservation Acknowledgement</title>
+  <link rel="stylesheet" href="/mock/_shared/demo.css">
+  <link rel="stylesheet" href="mca.css">
+  <script src="/mock/_shared/demo.js"></script>
+  <script src="mca.js"></script>
+  <style>
+    .ack-card {
+      background: #fff;
+      border: 1px solid var(--mca-border);
+      border-radius: 8px;
+      padding: 32px;
+      text-align: center;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+      max-width: 680px;
+      margin: 32px auto;
+    }
+    .success-icon {
+      font-size: 48px;
+      color: var(--mca-green);
+      margin-bottom: 8px;
+    }
+    .ack-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 24px 0;
+      text-align: left;
+      font-size: 14px;
+    }
+    .ack-table th, .ack-table td {
+      border: 1px solid var(--mca-border);
+      padding: 10px 14px;
+    }
+    .ack-table th {
+      background: #f0f4f8;
+      width: 40%;
+      color: var(--mca-blue);
+    }
+  </style>
+</head>
+<body>
+  <header class="mca-header">
+    <div class="header-top">
+      <div class="mca-brand">
+        <div class="brand-logo-mock">🏛️</div>
+        <div class="mca-title">
+          <h1>Corporate Affairs Portal (Demo Replica)</h1>
+          <small>Service Request Acknowledgement · SPICe+ Part A</small>
+        </div>
+      </div>
+      <nav class="nav-container">
+        <a href="index.html" class="nav-link" style="color: #fff;">Home</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="mca-main">
+    <div class="ack-card">
+      <div class="success-icon">✓</div>
+      <h2 style="color: var(--mca-blue); margin-top: 0;">Company Name Reservation Submitted!</h2>
+      <p style="color: #555; font-size: 14px; margin-bottom: 16px;">
+        Your application for company name reservation under SPICe+ Part A has been successfully recorded. Please retain the Service Request Number (SRN) for tracking.
+      </p>
+
+      <div style="font-size: 13px; font-weight: 600; color: #666; text-transform: uppercase; letter-spacing: 0.5px;">
+        Service Request Number (SRN)
+      </div>
+      <div id="ack-srn-badge" class="srn-badge">SRN-000000000</div>
+
+      <table class="ack-table">
+        <tbody>
+          <tr>
+            <th>Service Type</th>
+            <td>SPICe+ Part A (Name Reservation)</td>
+          </tr>
+          <tr>
+            <th>Primary Proposed Name</th>
+            <td id="ack-name-1">AGASTYA TECHNOLOGIES PRIVATE LIMITED</td>
+          </tr>
+          <tr>
+            <th>Alternative Proposed Name</th>
+            <td id="ack-name-2">AGASTYA SOLUTIONS PRIVATE LIMITED</td>
+          </tr>
+          <tr>
+            <th>Industrial Activity (NIC)</th>
+            <td id="ack-nic">62 - Computer programming, consultancy</td>
+          </tr>
+          <tr>
+            <th>Applicant Name</th>
+            <td id="ack-applicant">Ramesh Kumar Sharma</td>
+          </tr>
+          <tr>
+            <th>Statutory Filing Fee</th>
+            <td><strong style="color: var(--mca-green);">₹1000 (demo)</strong></td>
+          </tr>
+          <tr>
+            <th>Filing Date &amp; Time</th>
+            <td id="ack-date">Today</td>
+          </tr>
+          <tr>
+            <th>Reservation Validity</th>
+            <td><strong>20 days</strong> from the date of final approval</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+        <button type="button" class="btn-mca-primary" onclick="alert('Demo receipt downloaded');">📥 Download Receipt (Demo PDF)</button>
+        <a href="index.html" class="btn-mca-secondary" style="text-decoration: none; display: inline-flex; align-items: center;">Return to MCA Home</a>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const srnParam = urlParams.get('srn');
+      const savedData = window.DemoPortal ? window.DemoPortal.load('mca_last_reservation') : null;
+
+      const srnEl = document.getElementById('ack-srn-badge');
+      const name1El = document.getElementById('ack-name-1');
+      const name2El = document.getElementById('ack-name-2');
+      const nicEl = document.getElementById('ack-nic');
+      const appEl = document.getElementById('ack-applicant');
+      const dateEl = document.getElementById('ack-date');
+
+      if (srnParam) {
+        srnEl.textContent = srnParam;
+      } else if (savedData && savedData.srn) {
+        srnEl.textContent = savedData.srn;
+      }
+
+      if (savedData) {
+        if (savedData.proposed_name_1) name1El.textContent = savedData.proposed_name_1;
+        if (savedData.proposed_name_2) {
+          name2El.textContent = savedData.proposed_name_2;
+        } else {
+          name2El.textContent = 'None';
+        }
+        if (savedData.nic_code) nicEl.textContent = `${savedData.nic_code} - ${savedData.nic_title || ''}`;
+        if (savedData.applicant_name) appEl.textContent = `${savedData.applicant_name} (${savedData.applicant_id || ''})`;
+        if (savedData.submitted_at) dateEl.textContent = savedData.submitted_at;
+      } else {
+        dateEl.textContent = new Date().toLocaleString();
+      }
+    });
+  </script>
+</body>
+</html>

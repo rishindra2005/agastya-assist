@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Voters' Service Portal (Demo Replica) - Citizen Login</title>
+  <link rel="stylesheet" href="/mock/_shared/demo.css">
+  <link rel="stylesheet" href="voter.css">
+  <script src="/mock/_shared/demo.js"></script>
+  <script src="voter.js"></script>
+  <style>
+    .login-container {
+      max-width: 440px;
+      margin: 40px auto;
+      background: #fff;
+      border: 1px solid var(--eci-border);
+      border-radius: 8px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+      overflow: hidden;
+    }
+    .login-header {
+      background: #f0f4f8;
+      border-bottom: 1px solid var(--eci-border);
+      padding: 16px 20px;
+      text-align: center;
+    }
+    .login-header h2 {
+      margin: 0 0 4px 0;
+      font-size: 18px;
+      color: var(--eci-navy);
+    }
+    .login-body {
+      padding: 24px;
+    }
+    .otp-section {
+      display: none;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px dashed var(--eci-border);
+    }
+    .otp-section.active {
+      display: block;
+    }
+    .error-msg {
+      color: #b00020;
+      font-size: 13px;
+      margin-top: 8px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <header class="portal-header">
+    <div class="header-inner">
+      <div class="portal-brand">
+        <div class="brand-icon">🗳️</div>
+        <div class="brand-text">
+          <h1>Voters' Service Portal (Demo Replica)</h1>
+          <small>Citizen Login & Verification</small>
+        </div>
+      </div>
+      <nav class="header-nav">
+        <a href="index.html">Home</a>
+        <a href="form6.html">Form 6 Direct</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="main-container">
+    <div class="login-container">
+      <div class="login-header">
+        <h2>Citizen Login / नागरिक लॉगिन</h2>
+        <small style="color: #666;">Enter mobile number to receive OTP authentication</small>
+      </div>
+      <div class="login-body">
+        <form id="login-form" onsubmit="return false;">
+          <div class="form-group" style="margin-bottom: 16px;">
+            <label for="mobile_number">Registered Mobile Number / मोबाइल नंबर <span class="required">*</span></label>
+            <input type="tel" id="mobile_number" name="mobile_number" placeholder="Enter 10-digit mobile number" maxlength="10" required>
+            <span class="help-text">OTP will be sent to this mobile for demo verification.</span>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 16px;">
+            <label for="login_captcha">Captcha Verification / कैप्चा <span class="required">*</span></label>
+            <div id="login-captcha-box" class="captcha-wrapper" style="margin: 6px 0 10px 0;"></div>
+            <input type="text" id="login_captcha" name="login_captcha" placeholder="Enter characters shown above" required>
+          </div>
+
+          <button type="button" id="btn-request-otp" class="btn-primary" style="width: 100%;">Request OTP / ओटीपी भेजें</button>
+
+          <div id="otp-container" class="otp-section">
+            <div class="form-group" style="margin-bottom: 16px;">
+              <label for="login_otp">Enter 6-Digit OTP / ओटीपी दर्ज करें <span class="required">*</span></label>
+              <input type="text" id="login_otp" name="login_otp" placeholder="Enter 6-digit OTP from demo phone" maxlength="6">
+              <span class="help-text">Read OTP from the demo phone popup at bottom right.</span>
+            </div>
+            <button type="button" id="btn-verify-login" class="btn-submit" style="width: 100%;">Verify & Login / लॉगिन करें</button>
+          </div>
+
+          <div id="login-error" class="error-msg"></div>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    let captchaHelper = null;
+    let otpHelper = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const captchaBox = document.getElementById('login-captcha-box');
+      if (window.DemoPortal && window.DemoPortal.captcha) {
+        captchaHelper = window.DemoPortal.captcha(captchaBox);
+      }
+
+      const reqOtpBtn = document.getElementById('btn-request-otp');
+      const verifyBtn = document.getElementById('btn-verify-login');
+      const otpContainer = document.getElementById('otp-container');
+      const errorDiv = document.getElementById('login-error');
+
+      reqOtpBtn.addEventListener('click', () => {
+        errorDiv.style.display = 'none';
+        const mobile = (document.getElementById('mobile_number').value || '').trim();
+        const captchaVal = (document.getElementById('login_captcha').value || '').trim();
+
+        if (!/^\d{10}$/.test(mobile)) {
+          errorDiv.textContent = 'Please enter a valid 10-digit mobile number.';
+          errorDiv.style.display = 'block';
+          return;
+        }
+
+        if (!captchaHelper || !captchaHelper.check(captchaVal)) {
+          errorDiv.textContent = 'Incorrect Captcha. Please enter the characters correctly.';
+          errorDiv.style.display = 'block';
+          if (captchaHelper) captchaHelper.refresh();
+          return;
+        }
+
+        // Send OTP
+        otpHelper = window.DemoPortal.sendOtp('ECI Citizen Login OTP');
+        otpContainer.classList.add('active');
+        reqOtpBtn.textContent = 'Resend OTP';
+        reqOtpBtn.style.background = '#6c757d';
+      });
+
+      verifyBtn.addEventListener('click', () => {
+        errorDiv.style.display = 'none';
+        const otpVal = (document.getElementById('login_otp').value || '').trim();
+
+        if (!otpHelper || !otpHelper.check(otpVal)) {
+          errorDiv.textContent = 'Invalid or expired OTP. Please enter the OTP from the demo phone.';
+          errorDiv.style.display = 'block';
+          return;
+        }
+
+        // Store login session
+        const mobile = (document.getElementById('mobile_number').value || '').trim();
+        window.DemoPortal.save('voter_auth', {
+          logged_in: true,
+          mobile: mobile,
+          login_time: new Date().toISOString()
+        });
+
+        // Determine destination with test params preserved
+        const urlParams = new URLSearchParams(window.location.search);
+        let redirect = urlParams.get('redirect') || 'form6.html';
+        const isDemoTest = urlParams.get('demo_test') === '1';
+
+        const destUrl = new URL(redirect, window.location.href);
+        if (isDemoTest) {
+          destUrl.searchParams.set('demo_test', '1');
+        }
+
+        window.location.href = destUrl.toString();
+      });
+    });
+  </script>
+</body>
+</html>

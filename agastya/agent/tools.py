@@ -7,12 +7,14 @@ import dataclasses
 from dataclasses import asdict, dataclass, field, is_dataclass
 import json
 import logging
+from pathlib import Path
 import time
 from typing import TYPE_CHECKING, Any, Awaitable, Callable
 
 from claude_agent_sdk import create_sdk_mcp_server, tool
 
 from agastya.agent.events import EventBus
+from agastya.documents.store import DocumentStore
 from agastya.profile.extract import extract_values
 from agastya.profile.fields import FIELDS, masked
 from agastya.profile.store import ProfileStore
@@ -45,6 +47,7 @@ class ToolContext:
     ask_user: Callable[..., Awaitable[str]]  # (question, fields) -> answer text
     playbooks: dict[str, Playbook]
     is_user_in_control: Callable[[], bool] = field(default_factory=lambda: (lambda: False))
+    documents: DocumentStore | None = None
 
 
 TOOL_NAMES: list[str] = [
@@ -62,6 +65,8 @@ TOOL_NAMES: list[str] = [
     "mcp__agastya__browser_click",
     "mcp__agastya__browser_screenshot",
     "mcp__agastya__handoff_to_user",
+    "mcp__agastya__list_documents",
+    "mcp__agastya__read_document",
 ]
 
 
@@ -251,6 +256,34 @@ HANDOFF_TO_USER_SCHEMA: dict[str, Any] = {
     "required": ["reason"],
     "additionalProperties": False,
 }
+
+LIST_DOCUMENTS_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "properties": {},
+    "additionalProperties": False,
+}
+
+READ_DOCUMENT_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "properties": {
+        "doc_id": {
+            "type": "string",
+            "description": "Unique identifier of the document to read.",
+        }
+    },
+    "required": ["doc_id"],
+    "additionalProperties": False,
+}
+
+
+def _get_document_store(ctx: ToolContext) -> DocumentStore:
+    """Return DocumentStore on ctx, lazily creating it from profile.user_id if None."""
+    if getattr(ctx, "documents", None) is None:
+        user_id = getattr(ctx.profile, "user_id", "default")
+        profile_db = getattr(ctx.profile, "db_path", None)
+        data_dir = Path(profile_db).parent if profile_db is not None else None
+        ctx.documents = DocumentStore(user_id=user_id, data_dir=data_dir)
+    return ctx.documents
 
 
 def _is_blocked_action_error(exc: BaseException) -> bool:
@@ -790,6 +823,57 @@ def build_handlers(
             "content": [{"type": "text", "text": f"Handoff to user initiated: {reason}"}],
         }
 
+    async def list_documents(args: dict[str, Any] | None = None) -> dict[str, Any]:
+        try:
+            store = _get_document_store(ctx)
+            docs = store.list()
+            items = [
+                {
+                    "id": doc.id,
+                    "filename": doc.filename,
+                    "kind": doc.kind,
+                    "uploaded_at": doc.uploaded_at,
+                }
+                for doc in docs
+            ]
+            return {
+                "content": [{"type": "text", "text": json.dumps(items, indent=2)}],
+            }
+        except Exception as e:
+            return {
+                "content": [{"type": "text", "text": f"Error listing documents: {e}"}],
+                "is_error": True,
+            }
+
+    async def read_document(args: dict[str, Any] | None = None) -> dict[str, Any]:
+        args = args or {}
+        doc_id = args.get("doc_id")
+        if not doc_id:
+            return {
+                "content": [{"type": "text", "text": "Missing required argument: doc_id"}],
+                "is_error": True,
+            }
+        try:
+            store = _get_document_store(ctx)
+            doc = store.get(str(doc_id))
+            if doc is None:
+                return {
+                    "content": [{"type": "text", "text": f"Document not found: {doc_id}"}],
+                    "is_error": True,
+                }
+            import copy
+            extracted = copy.deepcopy(doc.extracted) if doc.extracted else {}
+            if "employee_pan" in extracted and extracted["employee_pan"]:
+                extracted["employee_pan"] = masked("pan", extracted["employee_pan"])
+            return {
+                "content": [{"type": "text", "text": json.dumps(extracted, indent=2)}],
+            }
+        except Exception as e:
+            return {
+                "content": [{"type": "text", "text": f"Error reading document: {e}"}],
+                "is_error": True,
+            }
+
     return {
         "get_profile": get_profile,
         "get_profile_value": get_profile_value,
@@ -805,6 +889,8 @@ def build_handlers(
         "browser_click": browser_click,
         "browser_screenshot": browser_screenshot,
         "handoff_to_user": handoff_to_user,
+        "list_documents": list_documents,
+        "read_document": read_document,
     }
 
 
@@ -883,6 +969,16 @@ def build_mcp_server(ctx: ToolContext) -> AgastyaMcpServerConfig:
             "Hand control back to the user when reaching a final/sensitive action or blocked action. Emits status event.",
             HANDOFF_TO_USER_SCHEMA,
         )(handlers["handoff_to_user"]),
+        tool(
+            "list_documents",
+            "List all uploaded user documents with id, filename, kind, and uploaded_at timestamp.",
+            LIST_DOCUMENTS_SCHEMA,
+        )(handlers["list_documents"]),
+        tool(
+            "read_document",
+            "Read extracted structured data from an uploaded document by doc_id (sensitive fields like employee_pan are masked).",
+            READ_DOCUMENT_SCHEMA,
+        )(handlers["read_document"]),
     ]
 
     server_config = create_sdk_mcp_server(name="agastya", tools=tools)

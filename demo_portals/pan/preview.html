@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Preview PAN Application Form 49A (Demo Replica)</title>
+  <link rel="stylesheet" href="/mock/_shared/demo.css">
+  <link rel="stylesheet" href="pan.css">
+</head>
+<body>
+  <!-- Header -->
+  <header class="pan-header">
+    <div class="pan-header-inner">
+      <div class="pan-brand">
+        <div class="pan-logo-badge">PROTEAN</div>
+        <div class="pan-brand-text">
+          <h1>PAN Application Portal (Demo Replica)</h1>
+          <p>Online Application for Allotment of PAN — Form 49A Summary Review</p>
+        </div>
+      </div>
+      <div style="font-size: 12px; text-align: right; opacity: 0.9;">
+        <div>Token Number: <strong id="preview-header-token" style="color: #fed7aa;">0000000000</strong></div>
+        <div>Status: Pending Payment & Verification</div>
+      </div>
+    </div>
+    <nav class="pan-nav">
+      <div class="pan-nav-inner">
+        <a href="index.html" class="pan-nav-link">Home / मुख्य पृष्ठ</a>
+        <a href="form49a.html" class="pan-nav-link">Form 49A / फॉर्म 49A</a>
+        <a href="preview.html" class="pan-nav-link active">Preview & Verify / पूर्वावलोकन</a>
+        <a href="/mock/" class="pan-nav-link">All Demo Portals / सभी पोर्टल</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="pan-container" style="max-width: 960px;">
+    <!-- Step Header -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+      <div>
+        <h2 style="font-size: 18px; font-weight: 700; color: var(--pan-navy);">
+          Application Summary & Verification / आवेदन सारांश
+        </h2>
+        <span style="font-size: 12px; color: var(--pan-muted);">Please review all entered details carefully before proceeding to payment.</span>
+      </div>
+      <span style="font-size: 12px; font-weight: 600; color: var(--pan-navy); background: var(--pan-blue-light); padding: 4px 10px; border-radius: 4px;">
+        Step 3 of 4: Preview
+      </span>
+    </div>
+
+    <div class="alert alert-warning">
+      <strong>Verification Note:</strong> Once payment is initiated, form fields cannot be modified. If any detail needs correction, click the corresponding <strong>Edit</strong> link to revise.
+    </div>
+
+    <!-- Review Card 1: Registration Details -->
+    <div class="review-card">
+      <div class="review-card-header">
+        <h3>Registration & Basic Info / पंजीकरण विवरण</h3>
+        <a href="register.html" class="btn btn-sm btn-outline">Edit / संपादित करें</a>
+      </div>
+      <div class="review-grid">
+        <div class="review-field">
+          <div class="review-field-label">Token Number</div>
+          <div class="review-field-val" id="rev-token">-</div>
+        </div>
+        <div class="review-field">
+          <div class="review-field-label">Application Type</div>
+          <div class="review-field-val" id="rev-app-type">Form 49A (Indian Citizen)</div>
+        </div>
+        <div class="review-field">
+          <div class="review-field-label">Category of Applicant</div>
+          <div class="review-field-val" id="rev-category">INDIVIDUAL</div>
+        </div>
+        <div class="review-field">
+          <div class="review-field-label">Applicant Name</div>
+          <div class="review-field-val" id="rev-applicant-name">-</div>
+        </div>
+        <div class="review-field">
+          <div class="review-field-label">Date of Birth</div>
+          <div class="review-field-val" id="rev-dob">-</div>
+        </div>
+        <div class="review-field">
+          <div class="review-field-label">Citizen of India</div>
+          <div class="review-field-val" id="rev-citizen">Yes</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Review Card 2: Personal Details -->
+    <div class="review-card">
+      <div class="review-card-header">
+        <h3>Personal Details / व्यक्तिगत विवरण</h3>
+        <a href="form49a.html?tab=personal" class="btn btn-sm btn-outline">Edit / संपादित करें</a>
+      </div>
+      <div class="review-grid">
+        <div class="review-field">
+          <div class="review-field-label">Name on PAN Card</div>
+          <div class="review-field-val" id="rev-name-on-card" style="font-weight: 700; color: var(--pan-navy);">-</div>
+        </div>
+        <div class="review-field">
+          <div class="review-field-label">Gender</div>
+          <div class="review-field-val" id="rev-gender">-</div>
+        </div>
+        <div class="review-field">
+          <div class="review-field-label">Aadhaar Number</div>
+          <div class="review-field-val" id="rev-aadhaar">Not Provided</div>
+        </div>
+        <div class="review-field">
+          <div class="review-field-label">Father's Name</div>
+          <div class="review-field-val" id="rev-father-name">-</div>
+        </div>
+        <div class="review-field">
+          <div class="review-field-label">Mother's Name</div>
+          <div class="review-field-val" id="rev-mother-name">-</div>
+        </div>
+        <div class="review-field">
+          <div class="review-field-label">Parent Name Printed on Card</div>
+          <div class="review-field-val" id="rev-card-parent">-</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Review Card 3: Contact & Address Details -->
+    <div class="review-card">
+      <div class="review-card-header">
+        <h3>Contact & Address Details / संपर्क एवं पता विवरण</h3>
+        <a href="form49a.html?tab=contact" class="btn btn-sm btn-outline">Edit / संपादित करें</a>
+      </div>
+      <div class="review-grid">
+        <div class="review-field">
+          <div class="review-field-label">Mobile Number</div>
+          <div class="review-field-val" id="rev-mobile">-</div>
+        </div>
+        <div class="review-field">
+          <div class="review-field-label">Email Address</div>
+          <div class="review-field-val" id="rev-email">-</div>
+        </div>
+        <div class="review-field">
+          <div class="review-field-label">Communication Address Preference</div>
+          <div class="review-field-val" id="rev-addr-type">Residence</div>
+        </div>
+        <div class="review-field" style="grid-column: 1 / -1;">
+          <div class="review-field-label">Residential Address</div>
+          <div class="review-field-val" id="rev-res-address">-</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Review Card 4: AO Code & Jurisdiction -->
+    <div class="review-card">
+      <div class="review-card-header">
+        <h3>Assessing Officer (AO) Code / निर्धारण अधिकारी कोड</h3>
+        <a href="form49a.html?tab=contact" class="btn btn-sm btn-outline">Edit / संपादित करें</a>
+      </div>
+      <div class="review-grid">
+        <div class="review-field">
+          <div class="review-field-label">Area Code</div>
+          <div class="review-field-val" id="rev-ao-area">-</div>
+        </div>
+        <div class="review-field">
+          <div class="review-field-label">AO Type</div>
+          <div class="review-field-val" id="rev-ao-type">-</div>
+        </div>
+        <div class="review-field">
+          <div class="review-field-label">Range Code</div>
+          <div class="review-field-val" id="rev-ao-range">-</div>
+        </div>
+        <div class="review-field">
+          <div class="review-field-label">AO Number</div>
+          <div class="review-field-val" id="rev-ao-no">-</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Review Card 5: Documents & Declaration -->
+    <div class="review-card">
+      <div class="review-card-header">
+        <h3>Document Proofs & Declaration / दस्तावेज़ एवं घोषणा</h3>
+        <a href="form49a.html?tab=documents" class="btn btn-sm btn-outline">Edit / संपादित करें</a>
+      </div>
+      <div class="review-grid">
+        <div class="review-field">
+          <div class="review-field-label">Proof of Identity (POI)</div>
+          <div class="review-field-val" id="rev-poi">-</div>
+        </div>
+        <div class="review-field">
+          <div class="review-field-label">Proof of Address (POA)</div>
+          <div class="review-field-val" id="rev-poa">-</div>
+        </div>
+        <div class="review-field">
+          <div class="review-field-label">Proof of Date of Birth (DOB)</div>
+          <div class="review-field-val" id="rev-pod">-</div>
+        </div>
+        <div class="review-field">
+          <div class="review-field-label">Declaration Capacity</div>
+          <div class="review-field-val" id="rev-capacity">Himself/Herself</div>
+        </div>
+        <div class="review-field">
+          <div class="review-field-label">Place of Declaration</div>
+          <div class="review-field-val" id="rev-place">-</div>
+        </div>
+        <div class="review-field">
+          <div class="review-field-label">Date of Declaration</div>
+          <div class="review-field-val" id="rev-date">-</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Actions -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 30px; border-top: 1px solid var(--pan-border); padding-top: 20px;">
+      <a href="form49a.html?tab=documents" class="btn btn-secondary">
+        ← Back to Form 49A
+      </a>
+      <a id="btn-proceed-pay" href="payment.html" class="btn btn-primary" style="padding: 12px 28px; font-size: 14px;">
+        Proceed to Payment / भुगतान के लिए आगे बढ़ें →
+      </a>
+    </div>
+  </main>
+
+  <script src="/mock/_shared/demo.js"></script>
+  <script src="pan.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const reg = window.PanStorage ? window.PanStorage.get('reg', {}) : {};
+      const data = window.PanStorage ? window.PanStorage.get('data', {}) : {};
+      const token = reg.tokenNumber || (window.PanStorage ? window.PanStorage.get('token', '0012345678') : '0012345678');
+
+      document.getElementById('preview-header-token').textContent = token;
+      document.getElementById('rev-token').textContent = token;
+      document.getElementById('rev-category').textContent = reg.category || 'INDIVIDUAL';
+      document.getElementById('rev-applicant-name').textContent = reg.fullName || (reg.title + ' ' + (reg.lastName || ''));
+      document.getElementById('rev-dob').textContent = reg.dateOfBirth || '-';
+      document.getElementById('rev-citizen').textContent = reg.isCitizen || 'Yes';
+
+      document.getElementById('rev-name-on-card').textContent = data.nameOnCard || reg.fullName || '-';
+      document.getElementById('rev-gender').textContent = data.gender || '-';
+      document.getElementById('rev-aadhaar').textContent = data.aadhaar ? ('XXXXXXXX' + data.aadhaar.slice(-4)) : 'Not Provided';
+      
+      const fatherFull = [data.fatherFirstName, data.fatherMiddleName, data.fatherLastName].filter(Boolean).join(' ');
+      document.getElementById('rev-father-name').textContent = fatherFull || data.fatherLastName || '-';
+
+      const motherFull = [data.motherFirstName, data.motherMiddleName, data.motherLastName].filter(Boolean).join(' ');
+      document.getElementById('rev-mother-name').textContent = motherFull || 'Not Provided';
+      document.getElementById('rev-card-parent').textContent = data.cardParentName || "Father's Name";
+
+      document.getElementById('rev-mobile').textContent = reg.mobile || data.telePhone || '-';
+      document.getElementById('rev-email').textContent = reg.email || '-';
+      document.getElementById('rev-addr-type').textContent = data.addressType || 'Residence';
+
+      const resAddrParts = [
+        data.residenceFlat,
+        data.residencePremises,
+        data.residenceRoad,
+        data.residenceArea,
+        data.residenceCity,
+        data.residenceState,
+        data.residencePincode,
+        'INDIA'
+      ].filter(Boolean);
+      document.getElementById('rev-res-address').textContent = resAddrParts.join(', ') || '-';
+
+      document.getElementById('rev-ao-area').textContent = data.aoAreaCode || '-';
+      document.getElementById('rev-ao-type').textContent = data.aoType || '-';
+      document.getElementById('rev-ao-range').textContent = data.aoRangeCode || '-';
+      document.getElementById('rev-ao-no').textContent = data.aoNumber || '-';
+
+      document.getElementById('rev-poi').textContent = data.proofIdentity || 'Aadhaar Card issued by UIDAI';
+      document.getElementById('rev-poa').textContent = data.proofAddress || 'Aadhaar Card issued by UIDAI';
+      document.getElementById('rev-pod').textContent = data.proofDob || 'Aadhaar Card issued by UIDAI';
+      document.getElementById('rev-capacity').textContent = data.declarationCapacity || 'Himself/Herself';
+      document.getElementById('rev-place').textContent = data.declarationPlace || '-';
+      document.getElementById('rev-date').textContent = data.declarationDate || new Date().toLocaleDateString('en-GB');
+
+      // Preserve ?demo_test=1 on proceed to payment link
+      const payLink = document.getElementById('btn-proceed-pay');
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('demo_test') === '1') {
+        payLink.href = 'payment.html?demo_test=1';
+      }
+    });
+  </script>
+</body>
+</html>

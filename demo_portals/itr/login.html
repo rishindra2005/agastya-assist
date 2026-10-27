@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login · Income Tax e-Filing (Demo Replica)</title>
+  <link rel="stylesheet" href="/mock/_shared/demo.css">
+  <script src="/mock/_shared/demo.js"></script>
+  <link rel="stylesheet" href="itr.css">
+  <script src="itr.js"></script>
+</head>
+<body>
+  <!-- Top Utility Bar -->
+  <div class="top-nav">
+    <div>Government of India (Replica) · <a href="index.html">Back to Home</a></div>
+    <div class="top-nav-right">
+      <span>English | हिन्दी</span>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header class="main-header">
+    <div class="brand-area">
+      <div class="brand-icon">IT</div>
+      <div>
+        <h1 class="brand-title">Income Tax e-Filing (Demo Replica)</h1>
+        <p class="brand-subtitle">e-Filing Portal Login</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <a href="index.html" class="btn btn-outline btn-sm">Home</a>
+    </div>
+  </header>
+
+  <!-- Login Main Container -->
+  <main class="container" style="max-width: 580px; margin-top: 36px;">
+    <div class="card">
+      <div class="card-header" style="background: var(--itr-primary); color: #fff;">
+        <h2 style="color: #fff;" id="login_step_title">Login to e-Filing Portal</h2>
+      </div>
+      <div class="card-body">
+        <div id="login_alert" class="alert alert-danger" style="display: none;" role="alert"></div>
+
+        <!-- Step 1: User ID + Captcha -->
+        <div id="login_step_1">
+          <p style="font-size: 13px; color: var(--itr-text-muted); margin-bottom: 18px;">
+            Enter your Permanent Account Number (PAN) or User ID to begin authentication.
+          </p>
+
+          <div class="form-group">
+            <label for="user_id">Enter your User ID (PAN) <span class="req">*</span></label>
+            <input type="text" id="user_id" name="user_id" class="form-control" placeholder="e.g. ABCDE1234F" maxlength="10" value="ABCDE1234F" autofocus>
+            <div class="form-text">User ID is your 10-character alphanumeric PAN issued by the Income Tax Department.</div>
+          </div>
+
+          <div class="form-group" style="margin-top: 18px;">
+            <label for="login_captcha">Captcha Verification <span class="req">*</span></label>
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+              <div id="login_captcha_box"></div>
+            </div>
+            <input type="text" id="login_captcha" name="login_captcha" class="form-control" placeholder="Enter characters shown in the image above" maxlength="6" style="text-transform: uppercase;">
+          </div>
+
+          <div style="margin-top: 24px; display: flex; justify-content: space-between; align-items: center;">
+            <a href="index.html" class="btn btn-secondary">Cancel</a>
+            <button type="button" id="btn_login_step1_continue" class="btn btn-primary">Continue</button>
+          </div>
+        </div>
+
+        <!-- Step 2: Secure Access Message & Password -->
+        <div id="login_step_2" style="display: none;">
+          <div style="background: #eef4fb; padding: 10px 14px; border-radius: 6px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <span style="font-size: 11px; color: var(--itr-text-muted); display: block;">USER ID</span>
+              <strong id="display_user_id" style="font-size: 14px; color: var(--itr-primary-dark);">ABCDE1234F</strong>
+            </div>
+            <button type="button" id="btn_change_user_id" class="btn btn-sm btn-outline" onclick="backToStep1()">Change</button>
+          </div>
+
+          <div class="card" style="border: 1px dashed var(--itr-primary); background: #fdfefe; margin-bottom: 16px;">
+            <div class="card-body" style="padding: 12px;">
+              <div style="font-size: 11px; color: var(--itr-text-muted); margin-bottom: 4px;">YOUR SECURE ACCESS MESSAGE:</div>
+              <div style="font-weight: 700; color: var(--itr-primary-dark); font-size: 13px;">
+                🔒 TAX-SECURE-2026: Always file on the official portal.
+              </div>
+            </div>
+          </div>
+
+          <div class="form-check" style="margin-bottom: 16px;">
+            <input type="checkbox" id="secure_message_confirm" name="secure_message_confirm">
+            <label for="secure_message_confirm">
+              <strong>Please confirm your secure access message</strong>
+            </label>
+          </div>
+
+          <div class="form-group">
+            <label for="password">Password <span class="req">*</span></label>
+            <input type="password" id="password" name="password" class="form-control" placeholder="Enter password (minimum 8 characters)">
+            <div class="form-text">
+              Demo accepts any password of 8+ characters. The assistant must NOT type passwords — the citizen does via live view.
+            </div>
+          </div>
+
+          <div style="margin-top: 24px; display: flex; justify-content: space-between; align-items: center;">
+            <button type="button" class="btn btn-secondary" onclick="backToStep1()">Back</button>
+            <button type="button" id="btn_login" class="btn btn-primary">Login</button>
+          </div>
+        </div>
+
+        <!-- Step 3: Two-Factor OTP Verification -->
+        <div id="login_step_3" style="display: none;">
+          <h3 style="font-size: 14px; margin-top: 0; color: var(--itr-primary-dark);">Two-Factor Authentication (2FA)</h3>
+          <p style="font-size: 12px; color: var(--itr-text-muted);">
+            To protect your tax account, an OTP is required to complete login. Choose verification method:
+          </p>
+
+          <div class="form-check">
+            <input type="radio" id="otp_aadhaar" name="otp_mode" value="aadhaar" checked>
+            <label for="otp_aadhaar">Aadhaar OTP (sent to mobile linked with Aadhaar)</label>
+          </div>
+          <div class="form-check">
+            <input type="radio" id="otp_efiling" name="otp_mode" value="efiling">
+            <label for="otp_efiling">e-Filing OTP (sent to registered email & mobile)</label>
+          </div>
+
+          <div style="margin: 16px 0;">
+            <button type="button" id="btn_send_login_otp" class="btn btn-secondary btn-sm" onclick="triggerSendOtp()">
+              📲 Generate / Send OTP
+            </button>
+          </div>
+
+          <div id="otp_input_section" class="form-group" style="display: none; margin-top: 14px;">
+            <label for="login_otp">Enter 6-digit OTP <span class="req">*</span></label>
+            <input type="text" id="login_otp" name="login_otp" class="form-control" placeholder="Enter 6-digit OTP" maxlength="6" style="letter-spacing: 3px; font-weight: 700;">
+            <div class="form-text">Read the simulated OTP from the on-screen demo phone box at bottom-right.</div>
+          </div>
+
+          <div style="margin-top: 24px; display: flex; justify-content: space-between; align-items: center;">
+            <button type="button" class="btn btn-secondary" onclick="backToStep2()">Back</button>
+            <button type="button" id="btn_submit_login_otp" class="btn btn-primary">Submit OTP & Continue</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    let captchaObj = null;
+    let otpChecker = null;
+
+    document.addEventListener('DOMContentLoaded', function() {
+      // Initialize captcha into container
+      const container = document.getElementById('login_captcha_box');
+      if (window.DemoPortal && window.DemoPortal.captcha) {
+        captchaObj = window.DemoPortal.captcha(container);
+      }
+
+      // Step 1 Continue Click
+      document.getElementById('btn_login_step1_continue').addEventListener('click', function() {
+        const userId = document.getElementById('user_id').value.trim().toUpperCase();
+        const captchaVal = document.getElementById('login_captcha').value.trim();
+        const alertBox = document.getElementById('login_alert');
+
+        if (!userId) {
+          showAlert('Please enter your User ID (PAN).');
+          return;
+        }
+
+        // If captcha check object exists, validate captcha
+        if (captchaObj && !captchaObj.check(captchaVal)) {
+          // If demo_test=1 and window.__demoCaptchaAnswer is defined, check with that as fallback
+          if (window.__demoCaptchaAnswer && captchaVal.toUpperCase() === window.__demoCaptchaAnswer.toUpperCase()) {
+            // passed
+          } else {
+            showAlert('Invalid Captcha. Please enter the characters shown in the image.');
+            return;
+          }
+        }
+
+        alertBox.style.display = 'none';
+        document.getElementById('display_user_id').textContent = userId;
+        ITREngine.saveUser({ pan: userId });
+
+        document.getElementById('login_step_1').style.display = 'none';
+        document.getElementById('login_step_2').style.display = 'block';
+        document.getElementById('login_step_title').textContent = 'Enter Password';
+      });
+
+      // Step 2 Login Click
+      document.getElementById('btn_login').addEventListener('click', function() {
+        const confirmed = document.getElementById('secure_message_confirm').checked;
+        const password = document.getElementById('password').value;
+
+        if (!confirmed) {
+          showAlert('Please confirm your secure access message checkbox to proceed.');
+          return;
+        }
+
+        if (!password || password.length < 8) {
+          showAlert('Password must be at least 8 characters long.');
+          return;
+        }
+
+        document.getElementById('login_alert').style.display = 'none';
+        document.getElementById('login_step_2').style.display = 'none';
+        document.getElementById('login_step_3').style.display = 'block';
+        document.getElementById('login_step_title').textContent = 'Two-Factor Authentication';
+
+        // Auto trigger send OTP
+        triggerSendOtp();
+      });
+
+      // Step 3 Submit OTP Click
+      document.getElementById('btn_submit_login_otp').addEventListener('click', function() {
+        const otpVal = document.getElementById('login_otp').value.trim();
+        const smsOtpEl = document.querySelector('.demo-sms .demo-sms-otp');
+        const expectedOtp = smsOtpEl ? smsOtpEl.innerText.trim() : null;
+
+        if (!otpVal) {
+          showAlert('Please enter the 6-digit OTP.');
+          return;
+        }
+
+        let valid = false;
+        if (otpChecker && otpChecker.check(otpVal)) {
+          valid = true;
+        } else if (expectedOtp && otpVal === expectedOtp) {
+          valid = true;
+        } else if (new URLSearchParams(window.location.search).get('demo_test') === '1' && otpVal.length === 6) {
+          valid = true;
+        }
+
+        if (!valid) {
+          showAlert('Invalid OTP. Please enter the 6-digit OTP shown on the demo phone.');
+          return;
+        }
+
+        // Navigate to dashboard
+        window.location.href = 'dashboard.html' + (window.location.search || '');
+      });
+    });
+
+    function showAlert(msg) {
+      const alertBox = document.getElementById('login_alert');
+      alertBox.textContent = msg;
+      alertBox.style.display = 'block';
+    }
+
+    function backToStep1() {
+      document.getElementById('login_alert').style.display = 'none';
+      document.getElementById('login_step_2').style.display = 'none';
+      document.getElementById('login_step_1').style.display = 'block';
+      document.getElementById('login_step_title').textContent = 'Login to e-Filing Portal';
+    }
+
+    function backToStep2() {
+      document.getElementById('login_alert').style.display = 'none';
+      document.getElementById('login_step_3').style.display = 'none';
+      document.getElementById('login_step_2').style.display = 'block';
+      document.getElementById('login_step_title').textContent = 'Enter Password';
+    }
+
+    function triggerSendOtp() {
+      if (window.DemoPortal && window.DemoPortal.sendOtp) {
+        otpChecker = window.DemoPortal.sendOtp('ITR Login verification OTP is');
+        document.getElementById('otp_input_section').style.display = 'block';
+        document.getElementById('login_otp').focus();
+      }
+    }
+  </script>
+</body>
+</html>

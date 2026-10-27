@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payment & e-Sign Authentication (Demo Replica)</title>
+  <link rel="stylesheet" href="/mock/_shared/demo.css">
+  <link rel="stylesheet" href="pan.css">
+</head>
+<body>
+  <!-- Header -->
+  <header class="pan-header">
+    <div class="pan-header-inner">
+      <div class="pan-brand">
+        <div class="pan-logo-badge">PROTEAN</div>
+        <div class="pan-brand-text">
+          <h1>PAN Application Portal (Demo Replica)</h1>
+          <p>Online Payment & Paperless Aadhaar e-Sign Authentication</p>
+        </div>
+      </div>
+      <div style="font-size: 12px; text-align: right; opacity: 0.9;">
+        <div>Token Number: <strong id="payment-header-token" style="color: #fed7aa;">0000000000</strong></div>
+        <div>Amount Due: ₹107.00 (Demo)</div>
+      </div>
+    </div>
+    <nav class="pan-nav">
+      <div class="pan-nav-inner">
+        <a href="index.html" class="pan-nav-link">Home / मुख्य पृष्ठ</a>
+        <a href="form49a.html" class="pan-nav-link">Form 49A / फॉर्म 49A</a>
+        <a href="preview.html" class="pan-nav-link">Preview / पूर्वावलोकन</a>
+        <a href="payment.html" class="pan-nav-link active">Payment & e-Sign / भुगतान</a>
+        <a href="/mock/" class="pan-nav-link">All Demo Portals / सभी पोर्टल</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="pan-container" style="max-width: 800px;">
+    <!-- Step Header -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+      <div>
+        <h2 style="font-size: 18px; font-weight: 700; color: var(--pan-navy);">
+          Fee Payment & Paperless e-Sign / शुल्क भुगतान एवं ई-हस्ताक्षर
+        </h2>
+        <span style="font-size: 12px; color: var(--pan-muted);">Final step to complete PAN allotment application (Form 49A)</span>
+      </div>
+      <span style="font-size: 12px; font-weight: 600; color: var(--pan-navy); background: var(--pan-blue-light); padding: 4px 10px; border-radius: 4px;">
+        Step 4 of 4: Payment & e-Sign
+      </span>
+    </div>
+
+    <!-- Prominent Demo Disclaimer -->
+    <div class="alert alert-warning" style="font-size: 14px; text-align: center;">
+      <strong>⚠️ Demo payment — no money moves / डेमो भुगतान — कोई वास्तविक राशि नहीं कटेगी</strong>
+      <div style="font-size: 12px; margin-top: 4px; opacity: 0.9;">
+        This mock gateway is for demonstration only. No credit card, bank account, or UPI credentials are required or processed.
+      </div>
+    </div>
+
+    <!-- Error Banner -->
+    <div id="payment-error-banner" class="alert alert-danger" style="display: none;" role="alert"></div>
+
+    <!-- SECTION 1: Mock Payment Box -->
+    <div class="form-card" id="payment-card">
+      <div class="form-card-header">
+        <h2>1. Application Fee Payment / आवेदन शुल्क भुगतान</h2>
+        <span id="payment-status-badge" style="font-size: 12px; background: #fef3c7; color: #92400e; padding: 2px 8px; border-radius: 4px; font-weight: 600;">
+          Payment Pending
+        </span>
+      </div>
+      <div class="form-card-body">
+        <div class="payment-summary">
+          <div style="text-align: center; margin-bottom: 16px;">
+            <div style="font-size: 13px; font-weight: 700; color: var(--pan-navy);">PROTEAN e-GOV BILLING (Demo Replica)</div>
+            <div style="font-size: 12px; color: var(--pan-muted);">Form 49A Application Processing & Physical Card Dispatch</div>
+          </div>
+          <div class="payment-row">
+            <span>Application Processing Fee</span>
+            <span>₹93.00</span>
+          </div>
+          <div class="payment-row">
+            <span>Goods & Services Tax (GST @ 18%)</span>
+            <span>₹14.00</span>
+          </div>
+          <div class="payment-row total">
+            <span>Total Payable Amount</span>
+            <span>₹107.00</span>
+          </div>
+        </div>
+
+        <div style="max-width: 550px; margin: 0 auto 20px;">
+          <label style="font-size: 13px; font-weight: 600; margin-bottom: 8px; display: block;">Select Payment Mode (Demo):</label>
+          <div class="form-check-group" style="flex-direction: column; gap: 8px;">
+            <label class="form-check" style="background: #f8fafc; padding: 10px 14px; border: 1px solid var(--pan-border); border-radius: 4px;">
+              <input type="radio" name="pay_mode" value="upi" checked>
+              <span><strong>UPI / QR Code (Mock)</strong> — Instant demo approval</span>
+            </label>
+            <label class="form-check" style="background: #f8fafc; padding: 10px 14px; border: 1px solid var(--pan-border); border-radius: 4px;">
+              <input type="radio" name="pay_mode" value="netbanking">
+              <span><strong>Net Banking (Mock)</strong> — State Bank of India / HDFC / ICICI (Demo)</span>
+            </label>
+            <label class="form-check" style="background: #f8fafc; padding: 10px 14px; border: 1px solid var(--pan-border); border-radius: 4px;">
+              <input type="radio" name="pay_mode" value="card">
+              <span><strong>Debit / Credit Card (Mock)</strong> — Visa / MasterCard / RuPay</span>
+            </label>
+          </div>
+        </div>
+
+        <div style="text-align: center;">
+          <button type="button" id="btn-mock-pay" class="btn btn-primary" style="padding: 12px 32px; font-size: 15px;" onclick="handleMockPayment()">
+            Pay ₹107.00 (Demo Payment)
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 2: Aadhaar e-Sign Mock Section (Displayed after Mock Pay) -->
+    <div class="form-card" id="esign-card" style="display: none; border-color: var(--pan-navy);">
+      <div class="form-card-header" style="background: var(--pan-navy);">
+        <h2>2. Aadhaar e-Sign Digital Authentication / आधार ई-हस्ताक्षर प्रमाणीकरण</h2>
+        <span style="font-size: 12px; background: #dcfce7; color: #166534; padding: 2px 8px; border-radius: 4px; font-weight: 600;">
+          Payment Received: ₹107.00
+        </span>
+      </div>
+      <div class="form-card-body">
+        <div class="alert alert-info">
+          <strong>Digital Signature Service (ESP - Protean):</strong> Under the Information Technology Act 2000,
+          Form 49A requires applicant signature. Use Aadhaar OTP e-Sign to sign digitally without paper documents.
+        </div>
+
+        <div style="background: #f8fafc; border: 1px solid var(--pan-border); border-radius: 6px; padding: 18px; margin-bottom: 20px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+            <div>
+              <span style="font-size: 12px; color: var(--pan-muted); font-weight: 600; text-transform: uppercase;">Aadhaar Card Reference</span>
+              <div id="esign-aadhaar-masked" style="font-size: 18px; font-weight: 700; color: var(--pan-navy); font-family: monospace;">
+                XXXXXXXX9012
+              </div>
+            </div>
+            <button type="button" id="btn-send-otp" class="btn btn-warning" onclick="handleSendOtp()">
+              📱 Send OTP / ओटीपी भेजें
+            </button>
+          </div>
+
+          <label class="form-check" style="margin-top: 10px;">
+            <input type="checkbox" id="esign-consent" checked>
+            <span style="font-size: 12px; color: #334155;">
+              I hereby authorize Protean e-Gov Technologies Ltd to fetch my e-KYC profile from UIDAI and utilize Aadhaar OTP authentication for digitally signing PAN Form 49A.
+            </span>
+          </label>
+        </div>
+
+        <!-- OTP Input Area -->
+        <div id="otp-input-area" style="max-width: 400px; margin: 0 auto 24px; text-align: center;">
+          <div class="form-group" style="text-align: left;">
+            <label for="otp_input" style="font-weight: 700;">
+              Enter 6-Digit OTP / ओटीपी दर्ज करें <span class="required-star">*</span>
+            </label>
+            <input type="text" id="otp_input" name="otp_input" class="form-control" placeholder="Enter 6-digit OTP from demo phone" maxlength="6" style="font-size: 18px; letter-spacing: 4px; text-align: center; font-weight: 700;" autocomplete="off">
+            <span class="form-hint" style="text-align: center; display: block; margin-top: 4px;">
+              Read the OTP from the mock SMS notification window in the bottom-right corner
+            </span>
+          </div>
+        </div>
+
+        <!-- Authenticate & Submit Button -->
+        <div style="text-align: center; border-top: 1px solid var(--pan-border); padding-top: 20px;">
+          <button type="button" id="btn-authenticate-submit" class="btn btn-success" style="padding: 14px 36px; font-size: 15px;" onclick="handleAuthenticateSubmit()">
+            Authenticate & Submit / प्रमाणित कर जमा करें
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="/mock/_shared/demo.js"></script>
+  <script src="pan.js"></script>
+  <script>
+    let otpChecker = null;
+
+    document.addEventListener('DOMContentLoaded', function () {
+      const reg = window.PanStorage ? window.PanStorage.get('reg', {}) : {};
+      const data = window.PanStorage ? window.PanStorage.get('data', {}) : {};
+      const token = reg.tokenNumber || (window.PanStorage ? window.PanStorage.get('token', '0012345678') : '0012345678');
+      document.getElementById('payment-header-token').textContent = token;
+
+      if (data.aadhaar && data.aadhaar.length >= 4) {
+        document.getElementById('esign-aadhaar-masked').textContent = 'XXXXXXXX' + data.aadhaar.slice(-4);
+      } else {
+        document.getElementById('esign-aadhaar-masked').textContent = 'XXXXXXXX9012';
+      }
+    });
+
+    function showPaymentError(msg) {
+      const banner = document.getElementById('payment-error-banner');
+      banner.textContent = msg;
+      banner.style.display = 'block';
+      banner.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    function hidePaymentError() {
+      const banner = document.getElementById('payment-error-banner');
+      banner.style.display = 'none';
+      banner.textContent = '';
+    }
+
+    function handleMockPayment() {
+      hidePaymentError();
+      const statusBadge = document.getElementById('payment-status-badge');
+      statusBadge.textContent = 'Paid (Demo ₹107.00)';
+      statusBadge.style.background = '#dcfce7';
+      statusBadge.style.color = '#166534';
+
+      document.getElementById('btn-mock-pay').disabled = true;
+      document.getElementById('btn-mock-pay').textContent = '✓ Payment Complete';
+
+      // Unlock Section 2 (Aadhaar e-Sign)
+      const esignCard = document.getElementById('esign-card');
+      esignCard.style.display = 'block';
+      esignCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+      // Save payment status
+      if (window.PanStorage) {
+        window.PanStorage.set('payment', {
+          paid: true,
+          amount: '107.00',
+          txnId: 'TXN' + (window.DemoPortal ? window.DemoPortal.fakeNumber('', 10) : '9941829381'),
+          paidAt: new Date().toISOString()
+        });
+      }
+    }
+
+    function handleSendOtp() {
+      hidePaymentError();
+      const consent = document.getElementById('esign-consent').checked;
+      if (!consent) {
+        showPaymentError('Please check the consent box authorizing UIDAI Aadhaar e-KYC authentication.');
+        return;
+      }
+
+      if (window.DemoPortal && window.DemoPortal.sendOtp) {
+        otpChecker = window.DemoPortal.sendOtp('Your Aadhaar e-Sign OTP for PAN Form 49A is');
+      } else {
+        showPaymentError('Demo OTP service is unavailable.');
+      }
+    }
+
+    function handleAuthenticateSubmit() {
+      hidePaymentError();
+      const otpVal = document.getElementById('otp_input').value.trim();
+
+      if (!otpVal) {
+        showPaymentError('Please enter the 6-digit OTP sent to your mock demo phone.');
+        return;
+      }
+
+      if (!otpChecker) {
+        showPaymentError('Please click "Send OTP" first to generate a one-time password.');
+        return;
+      }
+
+      if (!otpChecker.check(otpVal)) {
+        showPaymentError('Invalid OTP entered. Please check the code shown in the on-screen demo phone notification.');
+        return;
+      }
+
+      // Generate 15-digit fake Acknowledgement Number
+      const ackNumber = window.DemoPortal ? window.DemoPortal.fakeNumber('', 15) : '881029384756102';
+
+      const reg = window.PanStorage ? window.PanStorage.get('reg', {}) : {};
+      const data = window.PanStorage ? window.PanStorage.get('data', {}) : {};
+      const payment = window.PanStorage ? window.PanStorage.get('payment', {}) : {};
+
+      const ackRecord = {
+        ackNumber: ackNumber,
+        applicantName: reg.fullName || data.nameOnCard || 'RAJESH KUMAR SHARMA',
+        applicationType: 'New PAN - Indian Citizen (Form 49A)',
+        category: reg.category || 'INDIVIDUAL',
+        dob: reg.dateOfBirth || '1990-01-01',
+        fatherName: data.fatherLastName ? [data.fatherFirstName, data.fatherMiddleName, data.fatherLastName].filter(Boolean).join(' ') : 'SHARMA',
+        email: reg.email || 'applicant@example.com',
+        mobile: reg.mobile || '9876543210',
+        aoCode: (data.aoAreaCode || 'BLR') + '/' + (data.aoType || 'W') + '/' + (data.aoRangeCode || '301') + '/' + (data.aoNumber || '1'),
+        address: [data.residenceFlat, data.residencePremises, data.residenceRoad, data.residenceArea, data.residenceCity, data.residenceState, data.residencePincode].filter(Boolean).join(', ') || 'Bengaluru, Karnataka',
+        submittedAt: new Date().toISOString(),
+        paymentTxn: payment.txnId || 'TXN1029384756',
+        amount: '₹107.00'
+      };
+
+      if (window.PanStorage) {
+        window.PanStorage.set('ack', ackRecord);
+      }
+
+      // Redirect to Acknowledgement page
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('demo_test') === '1') {
+        window.location.href = 'ack.html?demo_test=1';
+      } else {
+        window.location.href = 'ack.html';
+      }
+    }
+  </script>
+</body>
+</html>

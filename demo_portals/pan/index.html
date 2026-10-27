@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PAN Application Portal (Demo Replica)</title>
+  <link rel="stylesheet" href="/mock/_shared/demo.css">
+  <link rel="stylesheet" href="pan.css">
+</head>
+<body>
+  <!-- Header -->
+  <header class="pan-header">
+    <div class="pan-header-inner">
+      <div class="pan-brand">
+        <div class="pan-logo-badge">PROTEAN</div>
+        <div class="pan-brand-text">
+          <h1>PAN Application Portal (Demo Replica)</h1>
+          <p>ऑनलाइन पैन आवेदन सेवाएँ · Fictional Assistive Demo for Agastya Assist</p>
+        </div>
+      </div>
+      <div style="font-size: 12px; text-align: right; opacity: 0.9;">
+        <div>Toll-Free Helpline (Demo): 1800-000-DEMO</div>
+        <div>Operational Hours: 24x7 Mock Portal</div>
+      </div>
+    </div>
+    <nav class="pan-nav">
+      <div class="pan-nav-inner">
+        <a href="index.html" class="pan-nav-link active">Home / मुख्य पृष्ठ</a>
+        <a href="register.html" class="pan-nav-link">Apply Online / ऑनलाइन आवेदन</a>
+        <a href="#instructions" class="pan-nav-link">Important Instructions / महत्वपूर्ण निर्देश</a>
+        <a href="#guidelines" class="pan-nav-link">AO Code Guidelines / निर्धारण अधिकारी दिशानिर्देश</a>
+        <a href="/mock/" class="pan-nav-link">All Demo Portals / सभी पोर्टल</a>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Dense News Ticker -->
+  <div class="ticker-wrap" aria-label="News ticker">
+    <div class="ticker-label">LATEST ALERTS / नवीनतम सूचनाएँ</div>
+    <div class="ticker-content">
+      <div class="ticker-items">
+        <span class="ticker-item">★ NOTICE: Linking of PAN with Aadhaar is mandatory for all Indian citizens (Demo Replica).</span>
+        <span class="ticker-item">★ IMPORTANT: Quote correct Assessing Officer (AO) Code based on residential or office address jurisdiction.</span>
+        <span class="ticker-item">★ PAPERLESS e-KYC: Form 49A applicants can use Aadhaar OTP based e-Sign for paperless processing.</span>
+        <span class="ticker-item">★ ADVISORY: Do not disclose OTP, PIN, or confidential details to unauthorized persons.</span>
+        <span class="ticker-item">★ FEE STRUCTURE: Processing fee is ₹107.00 (inclusive of 18% GST) for delivery within India.</span>
+      </div>
+    </div>
+  </div>
+
+  <main class="pan-container">
+    <!-- Notice Banner -->
+    <div class="alert alert-info" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+      <div>
+        <strong>Welcome to the PAN Application Portal (Demo Replica).</strong>
+        Use this replica to experience paperless PAN card application with Agastya Assist voice navigation.
+      </div>
+      <a href="register.html" class="btn btn-warning btn-sm">Apply Online Now (Form 49A)</a>
+    </div>
+
+    <!-- 6 Service Tiles -->
+    <h2 style="font-size: 18px; font-weight: 700; color: var(--pan-navy); margin-bottom: 16px;">
+      Online PAN Services / ऑनलाइन पैन सेवाएँ
+    </h2>
+
+    <div class="service-grid">
+      <!-- Tile 1: Form 49A -->
+      <div class="service-card primary">
+        <div>
+          <div class="service-card-header">
+            <div>
+              <div class="service-card-title">New PAN - Indian Citizen (Form 49A)</div>
+              <div class="service-card-title-hi">नया पैन कार्ड - भारतीय नागरिक</div>
+            </div>
+            <span class="service-badge online">Paperless</span>
+          </div>
+          <p class="service-card-desc">
+            Application for allotment of Permanent Account Number (PAN) for Indian citizens, Hindu Undivided Families (HUF),
+            firms, and companies having valid Indian address proofs.
+          </p>
+        </div>
+        <div>
+          <a href="register.html" id="apply-online-49a" class="btn btn-primary" style="width: 100%;">Apply Online / ऑनलाइन आवेदन करें</a>
+        </div>
+      </div>
+
+      <!-- Tile 2: Form 49AA -->
+      <div class="service-card">
+        <div>
+          <div class="service-card-header">
+            <div>
+              <div class="service-card-title">New PAN - Foreign Citizen (Form 49AA)</div>
+              <div class="service-card-title-hi">नया पैन कार्ड - विदेशी नागरिक</div>
+            </div>
+            <span class="service-badge popular">NRI / Foreign</span>
+          </div>
+          <p class="service-card-desc">
+            Application for allotment of PAN for individuals not being citizens of India, foreign corporate entities,
+            or organizations registered outside India.
+          </p>
+        </div>
+        <div>
+          <a href="register.html?type=49aa" class="btn btn-outline" style="width: 100%;">Apply Online (Foreign)</a>
+        </div>
+      </div>
+
+      <!-- Tile 3: Correction -->
+      <div class="service-card">
+        <div>
+          <div class="service-card-header">
+            <div>
+              <div class="service-card-title">Changes or Correction in PAN Data</div>
+              <div class="service-card-title-hi">पैन डेटा में सुधार या परिवर्तन</div>
+            </div>
+            <span class="service-badge online">Update</span>
+          </div>
+          <p class="service-card-desc">
+            Request for update of name, father's name, date of birth, photo, or address in the existing PAN database,
+            or issuance of a revised PAN card.
+          </p>
+        </div>
+        <div>
+          <a href="register.html?type=correction" class="btn btn-outline" style="width: 100%;">Update PAN Details</a>
+        </div>
+      </div>
+
+      <!-- Tile 4: Reprint -->
+      <div class="service-card">
+        <div>
+          <div class="service-card-header">
+            <div>
+              <div class="service-card-title">Reprint of PAN Card</div>
+              <div class="service-card-title-hi">पैन कार्ड का पुनर्मुद्रण</div>
+            </div>
+            <span class="service-badge">Physical Card</span>
+          </div>
+          <p class="service-card-desc">
+            Request for a duplicate physical plastic PAN card when the existing card is lost, stolen, damaged, or misplaced
+            without any change in PAN data.
+          </p>
+        </div>
+        <div>
+          <button type="button" class="btn btn-secondary" style="width: 100%;" onclick="alert('Demo notice: Reprint flow is mapped via Form 49A/Correction.')">Request Reprint</button>
+        </div>
+      </div>
+
+      <!-- Tile 5: Know Status -->
+      <div class="service-card">
+        <div>
+          <div class="service-card-header">
+            <div>
+              <div class="service-card-title">Know Status of Application</div>
+              <div class="service-card-title-hi">आवेदन की स्थिति जानें</div>
+            </div>
+            <span class="service-badge">Track</span>
+          </div>
+          <p class="service-card-desc">
+            Track real-time status of your 15-digit PAN application acknowledgement number or temporary token registration.
+          </p>
+        </div>
+        <div>
+          <button type="button" class="btn btn-secondary" style="width: 100%;" onclick="alert('Demo notice: To track status, submit an application to receive a 15-digit acknowledgement number.')">Track Status</button>
+        </div>
+      </div>
+
+      <!-- Tile 6: Instant e-PAN -->
+      <div class="service-card">
+        <div>
+          <div class="service-card-header">
+            <div>
+              <div class="service-card-title">Aadhaar-based Instant e-PAN</div>
+              <div class="service-card-title-hi">आधार आधारित तत्काल ई-पैन</div>
+            </div>
+            <span class="service-badge popular">Instant</span>
+          </div>
+          <p class="service-card-desc">
+            Paperless digital allotment of PAN within 10 minutes for adult citizens possessing a valid Aadhaar number
+            and linked mobile number.
+          </p>
+        </div>
+        <div>
+          <button type="button" class="btn btn-secondary" style="width: 100%;" onclick="alert('Demo notice: Available through Income Tax e-Filing Portal replica.')">Get Instant e-PAN</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Long Important Instructions Accordion -->
+    <section id="instructions">
+      <h2 style="font-size: 18px; font-weight: 700; color: var(--pan-navy); margin-bottom: 16px;">
+        Important Instructions for Applicants / महत्वपूर्ण निर्देश
+      </h2>
+
+      <div class="accordion">
+        <!-- Section 1 -->
+        <div class="accordion-item active">
+          <button type="button" class="accordion-header" onclick="toggleAccordion(this)">
+            1. General Instructions for Filing Form 49A (New PAN - Indian Citizens)
+          </button>
+          <div class="accordion-body">
+            <p>Form 49A is the statutory application form prescribed under Section 139A of the Income Tax Act, 1961 for allotment of a Permanent Account Number to Indian entities. Please review these essential guidelines:</p>
+            <ul>
+              <li>The applicant must provide details in full uppercase English alphabets.</li>
+              <li>Aadhaar number must be quoted where available, and the name entered should match official Aadhaar records.</li>
+              <li>Upon initial registration, a temporary <strong>Token Number</strong> is generated and displayed. Note this number to resume application in case of session disconnection.</li>
+              <li>Providing an accurate mobile number and email ID is mandatory to receive digital dispatch of the e-PAN PDF.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Section 2 -->
+        <div class="accordion-item">
+          <button type="button" class="accordion-header" onclick="toggleAccordion(this)">
+            2. Documents Acceptable as Proof of Identity (POI), Address (POA), and Date of Birth (DOB)
+          </button>
+          <div class="accordion-body">
+            <p>Every applicant must submit or reference valid documentary proof under Rule 114 of Income Tax Rules:</p>
+            <ul>
+              <li><strong>Proof of Identity (POI):</strong> Aadhaar Card issued by UIDAI, Voter's Photo Identity Card, Passport, Driving License, or Ration Card having photograph of the applicant.</li>
+              <li><strong>Proof of Address (POA):</strong> Aadhaar Card, Electricity Bill / Water Bill / Gas Connection Bill (not older than 3 months), Bank Account Statement, Passport, or Post Office Passbook.</li>
+              <li><strong>Proof of Date of Birth (DOB):</strong> Aadhaar Card, Birth Certificate issued by Municipal Authority or Registrar, Matriculation / 10th Class Marksheet, or Passport.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Section 3 -->
+        <div class="accordion-item">
+          <button type="button" class="accordion-header" onclick="toggleAccordion(this)">
+            3. Guidelines for Paperless Aadhaar e-KYC and Digital e-Sign Authentication
+          </button>
+          <div class="accordion-body">
+            <p>The online PAN portal offers a fully digital, paperless application route via Aadhaar OTP authentication:</p>
+            <ul>
+              <li>The demographic details (Name, Gender, Date of Birth, and Address) will be validated directly against the Aadhaar database.</li>
+              <li>An OTP will be transmitted to the mobile number registered in the Aadhaar profile.</li>
+              <li>No physical documents need to be signed or dispatched by courier when e-Sign authentication is successfully completed.</li>
+              <li>The photograph appearing on the Aadhaar card will be utilized on the physical PAN card.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Section 4 -->
+        <div class="accordion-item">
+          <button type="button" class="accordion-header" onclick="toggleAccordion(this)">
+            4. Fee Structure & Payment Modes (₹107.00 for Indian Dispatch)
+          </button>
+          <div class="accordion-body">
+            <p>The processing fee for Form 49A with physical delivery within India is ₹107.00:</p>
+            <ul>
+              <li>Application Processing Fee: ₹93.00</li>
+              <li>Goods and Services Tax (GST @ 18%): ₹14.00</li>
+              <li>Total Amount Payable: ₹107.00 (Demo payment — no actual funds are charged or moved)</li>
+              <li>Supported payment options in the demo system include mock Net Banking, Debit/Credit Card, and UPI.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Section 5 -->
+        <div class="accordion-item">
+          <button type="button" class="accordion-header" onclick="toggleAccordion(this)">
+            5. Assessing Officer (AO) Code Selection Guidelines & Jurisdiction Search
+          </button>
+          <div class="accordion-body">
+            <p>The Assessing Officer (AO) Code identifies the specific Income Tax Circle or Ward having territorial jurisdiction over the applicant:</p>
+            <ul>
+              <li>AO Code consists of 4 parts: <strong>Area Code</strong> (3 letters), <strong>AO Type</strong> (1-2 letters), <strong>Range Code</strong> (1-3 digits), and <strong>AO Number</strong> (1-3 digits).</li>
+              <li>Individual salary earners and residential applicants select their AO code based on their place of residence.</li>
+              <li>Business applicants, professionals, and corporate bodies select their AO code based on the principal place of business.</li>
+              <li>Use the interactive <strong>AO Code Search Tool</strong> embedded within Form 49A Tab 2 to search your city and select your ward automatically.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Section 6 -->
+        <div class="accordion-item">
+          <button type="button" class="accordion-header" onclick="toggleAccordion(this)">
+            6. Do's and Don'ts while Filling Online Form 49A
+          </button>
+          <div class="accordion-body">
+            <ul>
+              <li><strong>DO:</strong> Provide father's full name even for married female applicants, unless mother is a single parent.</li>
+              <li><strong>DO:</strong> Verify the spelling of the applicant's name against Aadhaar records to prevent mismatch rejections.</li>
+              <li><strong>DO NOT:</strong> Use abbreviations or initials unless the official name in records contains initials.</li>
+              <li><strong>DO NOT:</strong> Submit multiple applications; possessing more than one PAN is illegal under Section 272B of Income Tax Act.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer style="background: #0f172a; color: #94a3b8; padding: 24px 20px; font-size: 12px; text-align: center;">
+    <div style="max-width: 1200px; margin: 0 auto;">
+      <p>PAN Application Portal (Demo Replica) · Built for the Agastya Assist Voice AI Hackathon Demo</p>
+      <p style="margin-top: 6px;">This replica is for demonstration only and does NOT connect to Income Tax Department or Protean production databases.</p>
+    </div>
+  </footer>
+
+  <script src="/mock/_shared/demo.js"></script>
+  <script src="pan.js"></script>
+  <script>
+    function toggleAccordion(btn) {
+      const item = btn.closest('.accordion-item');
+      item.classList.toggle('active');
+    }
+  </script>
+</body>
+</html>

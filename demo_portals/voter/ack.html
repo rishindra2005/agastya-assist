@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Voters' Service Portal (Demo Replica) - Form 6 Acknowledgement</title>
+  <link rel="stylesheet" href="/mock/_shared/demo.css">
+  <link rel="stylesheet" href="voter.css">
+  <script src="/mock/_shared/demo.js"></script>
+  <script src="voter.js"></script>
+  <style>
+    .ack-card {
+      background: #fff;
+      border: 1px solid var(--eci-border);
+      border-radius: 8px;
+      padding: 32px;
+      text-align: center;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+      max-width: 680px;
+      margin: 32px auto;
+    }
+    .success-icon {
+      font-size: 48px;
+      color: var(--eci-green);
+      margin-bottom: 8px;
+    }
+    .ack-details-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 24px 0;
+      text-align: left;
+      font-size: 14px;
+    }
+    .ack-details-table th, .ack-details-table td {
+      border: 1px solid var(--eci-border);
+      padding: 10px 14px;
+    }
+    .ack-details-table th {
+      background: #f0f4f8;
+      width: 40%;
+      color: var(--eci-navy);
+    }
+  </style>
+</head>
+<body>
+  <header class="portal-header">
+    <div class="header-inner">
+      <div class="portal-brand">
+        <div class="brand-icon">🗳️</div>
+        <div class="brand-text">
+          <h1>Voters' Service Portal (Demo Replica)</h1>
+          <small>Application Submission Acknowledgement</small>
+        </div>
+      </div>
+      <nav class="header-nav">
+        <a href="index.html">Home</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="main-container">
+    <div class="ack-card">
+      <div class="success-icon">✓</div>
+      <h2 style="color: var(--eci-navy); margin-top: 0;">Application Submitted Successfully!</h2>
+      <p style="color: #555; font-size: 14px; margin-bottom: 16px;">
+        Your Form 6 application for inclusion in the electoral roll has been received. Please quote the reference number below for all future correspondence.
+      </p>
+
+      <div style="font-size: 13px; font-weight: 600; color: #666; text-transform: uppercase; letter-spacing: 0.5px;">
+        Acknowledgement Reference Number
+      </div>
+      <div id="ack-reference-number" class="ref-badge">F6-000000000</div>
+
+      <table class="ack-details-table">
+        <tbody>
+          <tr>
+            <th>Application Type</th>
+            <td>Form 6 (New Elector Registration)</td>
+          </tr>
+          <tr>
+            <th>Applicant Name</th>
+            <td id="ack-name">Ramesh Kumar Sharma</td>
+          </tr>
+          <tr>
+            <th>Relative Name</th>
+            <td id="ack-relative">Father: Suresh Sharma</td>
+          </tr>
+          <tr>
+            <th>State &amp; Constituency</th>
+            <td id="ack-constituency">Maharashtra · 154 - Bandra West</td>
+          </tr>
+          <tr>
+            <th>Registered Mobile</th>
+            <td id="ack-mobile">9876543210</td>
+          </tr>
+          <tr>
+            <th>Date &amp; Time of Submission</th>
+            <td id="ack-time">Today</td>
+          </tr>
+          <tr>
+            <th>Application Status</th>
+            <td><strong style="color: var(--eci-blue);">Submitted (Pending Verification by BLO)</strong></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+        <button type="button" class="btn-primary" onclick="alert('Demo receipt downloaded');">📥 Download Acknowledgement (Demo PDF)</button>
+        <a href="index.html" class="btn-secondary" style="text-decoration: none; display: inline-flex; align-items: center;">Home</a>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const refParam = urlParams.get('ref');
+      const savedData = window.DemoPortal ? window.DemoPortal.load('voter_form6_app') : null;
+
+      const refEl = document.getElementById('ack-reference-number');
+      const nameEl = document.getElementById('ack-name');
+      const relEl = document.getElementById('ack-relative');
+      const constEl = document.getElementById('ack-constituency');
+      const mobEl = document.getElementById('ack-mobile');
+      const timeEl = document.getElementById('ack-time');
+
+      if (refParam) {
+        refEl.textContent = refParam;
+      } else if (savedData && savedData.ref) {
+        refEl.textContent = savedData.ref;
+      }
+
+      if (savedData) {
+        if (savedData.applicant_name) nameEl.textContent = savedData.applicant_name;
+        if (savedData.relative_name) relEl.textContent = savedData.relative_name;
+        if (savedData.assembly_constituency) constEl.textContent = `${savedData.state} · ${savedData.assembly_constituency}`;
+        if (savedData.mobile) mobEl.textContent = savedData.mobile;
+        if (savedData.submitted_at) timeEl.textContent = savedData.submitted_at;
+      } else {
+        timeEl.textContent = new Date().toLocaleString();
+      }
+    });
+  </script>
+</body>
+</html>

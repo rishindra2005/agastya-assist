@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Corporate Affairs Portal (Demo Replica)</title>
+  <link rel="stylesheet" href="/mock/_shared/demo.css">
+  <link rel="stylesheet" href="mca.css">
+  <script src="/mock/_shared/demo.js"></script>
+  <script src="mca.js"></script>
+</head>
+<body>
+  <header class="mca-header">
+    <div class="header-top">
+      <div class="mca-brand">
+        <div class="brand-logo-mock">🏛️</div>
+        <div class="mca-title">
+          <h1>Corporate Affairs Portal (Demo Replica)</h1>
+          <small>Ministry of Corporate Affairs · Government Business Filing &amp; Incorporation Services</small>
+        </div>
+      </div>
+      <div style="font-size: 13px; opacity: 0.9;">
+        Helpdesk: 0124-4832500 &middot; Fictional Demo Portal
+      </div>
+    </div>
+
+    <nav class="nav-bar">
+      <div class="nav-container">
+        <div class="nav-item">
+          <a href="index.html" class="nav-link">Home</a>
+        </div>
+        <div class="nav-item">
+          <span class="nav-link" id="nav-mca-services">MCA Services ▾</span>
+          <div class="mega-menu" id="mca-mega-menu">
+            <div class="mega-col">
+              <h4>Company Services</h4>
+              <ul>
+                <li><a href="spice.html" id="link-spice-part-a"><strong>SPICe+ (Part A) - Name Reservation</strong></a></li>
+                <li><a href="#spice-b" onclick="alert('SPICe+ Part B demo placeholder');">SPICe+ (Part B) - Incorporation</a></li>
+                <li><a href="#run" onclick="alert('RUN service demo placeholder');">Reserve Unique Name (RUN)</a></li>
+                <li><a href="#master" onclick="alert('Master data search demo placeholder');">View Company Master Data</a></li>
+              </ul>
+            </div>
+            <div class="mega-col">
+              <h4>Director Services (DIN)</h4>
+              <ul>
+                <li><a href="#dir3" onclick="alert('DIR-3 KYC demo placeholder');">DIR-3 KYC Web</a></li>
+                <li><a href="#din-verify" onclick="alert('Verify DIN demo placeholder');">Verify Director Details</a></li>
+                <li><a href="#din-apply" onclick="alert('DIN application demo placeholder');">Apply for Director Identification Number</a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="nav-item">
+          <a href="spice.html" class="nav-link" style="color: var(--mca-gold); font-weight: 700;">SPICe+ Part A</a>
+        </div>
+        <div class="nav-item">
+          <a href="#notices" class="nav-link">Notices &amp; Circulars</a>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <div class="ticker-bar">
+    <strong>📢 MCA News &amp; Updates:</strong>
+    <div class="ticker-content">
+      General Circular No. 04/2026: Extension of timeline for filing SPICe+ Part A forms | Advisory: Director KYC verification deadline approaching | Important guidelines on Company Name Availability under Rule 8 of Companies Rules, 2014 | MCA21 System Maintenance on Sunday
+    </div>
+  </div>
+
+  <main class="mca-main">
+    <div class="notice-box">
+      <strong>Important Citizen Advisory:</strong> All proposed company names must comply with Rule 8 and Rule 8A of the Companies (Incorporation) Rules, 2014. Use the integrated <em>Check Name</em> tool prior to submission.
+    </div>
+
+    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px; margin-bottom: 32px;">
+      
+      <!-- Primary Feature Card: SPICe+ -->
+      <div class="form-card" style="padding: 24px; display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+          <span style="background: #e0f2fe; color: #0369a1; padding: 3px 8px; font-size: 12px; font-weight: 700; border-radius: 4px;">
+            Primary Corporate Service
+          </span>
+          <h2 style="color: var(--mca-blue); margin: 12px 0 8px 0;">SPICe+ (Part A) - Name Reservation</h2>
+          <p style="color: #4b5563; font-size: 14px; line-height: 1.6;">
+            SPICe+ (Simplified Proforma for Incorporating Company Electronically Plus) Part A is the statutory web-form for reserving a name for new company incorporation or changing an existing company's name.
+          </p>
+          <ul style="color: #374151; font-size: 13px; line-height: 1.7; padding-left: 20px;">
+            <li>Select company type, class, category, and sub-category via dependent dropdowns.</li>
+            <li>Look up 2-digit National Industrial Classification (NIC) division code.</li>
+            <li>Propose up to two names with instant automated availability check.</li>
+            <li>Submit for name reservation with instant demo SRN generation.</li>
+          </ul>
+        </div>
+        <div style="margin-top: 20px;">
+          <a href="spice.html" class="btn-mca-primary" id="btn-start-spice" style="text-decoration: none; display: inline-block; font-size: 15px; padding: 12px 28px;">
+            Launch SPICe+ Part A Web Form &rarr;
+          </a>
+        </div>
+      </div>
+
+      <!-- Quick Notices & Master Data Search Box -->
+      <div class="form-card" style="padding: 20px;">
+        <h3 style="color: var(--mca-blue); margin-top: 0; font-size: 16px; border-bottom: 2px solid var(--mca-border); padding-bottom: 8px;">
+          Quick Company Search
+        </h3>
+        <p style="font-size: 12px; color: #666;">
+          Check existing registered companies to avoid trademark or name collisions.
+        </p>
+        <div class="form-field">
+          <label for="quick_search">Company Name or CIN</label>
+          <input type="text" id="quick_search" placeholder="e.g. Tata, Infosys, Reliance">
+        </div>
+        <button type="button" class="btn-mca-secondary" style="width: 100%;" onclick="alert('Company search demo placeholder');">
+          Search Master Data
+        </button>
+
+        <div style="margin-top: 24px; padding-top: 16px; border-top: 1px dashed var(--mca-border);">
+          <h4 style="margin: 0 0 8px 0; font-size: 13px; color: #333;">Statutory Filing Fees (Demo)</h4>
+          <p style="font-size: 12px; color: #555; margin: 0;">
+            SPICe+ Part A fee is <strong>₹1,000 (demo)</strong>. Name is reserved for 20 days upon approval.
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</body>
+</html>

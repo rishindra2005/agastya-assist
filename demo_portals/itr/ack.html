@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Filing Acknowledgement · Income Tax e-Filing (Demo Replica)</title>
+  <link rel="stylesheet" href="/mock/_shared/demo.css">
+  <script src="/mock/_shared/demo.js"></script>
+  <link rel="stylesheet" href="itr.css">
+  <script src="itr.js"></script>
+</head>
+<body>
+  <!-- Top Nav -->
+  <div class="top-nav">
+    <div>Government of India (Replica) · Income Tax Department e-Filing</div>
+    <div class="top-nav-right">
+      <a href="dashboard.html">Dashboard</a>
+      <span>|</span>
+      <a href="index.html">Logout</a>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header class="main-header">
+    <div class="brand-area">
+      <div class="brand-icon">IT</div>
+      <div>
+        <h1 class="brand-title">Income Tax e-Filing (Demo Replica)</h1>
+        <p class="brand-subtitle">ITR-1 (Sahaj) Filing Acknowledgement (ITR-V)</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <a href="dashboard.html" class="btn btn-outline btn-sm">Dashboard</a>
+    </div>
+  </header>
+
+  <main class="wide-container">
+    <div class="ack-box">
+      <div class="ack-icon">✓</div>
+      <h2 style="color: var(--itr-success); margin: 0 0 8px 0; font-size: 22px;">
+        Return Successfully Filed and e-Verified!
+      </h2>
+      <p style="color: var(--itr-text-muted); font-size: 13px; margin: 0 0 16px 0;">
+        Your Form ITR-1 for Assessment Year <strong>2026-27</strong> has been digitally submitted and verified via Aadhaar OTP.
+      </p>
+
+      <div style="font-size: 13px; color: var(--itr-text-muted); margin-bottom: 4px;">
+        15-DIGIT ACKNOWLEDGEMENT NUMBER:
+      </div>
+      <div class="ack-number" id="ack_number">
+        268491827401928
+      </div>
+      <div style="font-size: 12px; color: var(--itr-text-muted); margin-bottom: 24px;">
+        Filing Timestamp: <strong id="ack_filing_date">27-Oct-2026</strong> · Status: <span class="news-badge" style="background: var(--itr-success);">e-Verified</span>
+      </div>
+
+      <!-- Financial Echo Card -->
+      <div class="card" style="text-align: left; background: #fafbfc; margin-bottom: 24px;">
+        <div class="card-header">
+          <h3>Filing Summary & Tax Determination</h3>
+        </div>
+        <div class="card-body">
+          <table class="table table-sm table-striped">
+            <tbody>
+              <tr>
+                <td style="width: 50%;">Taxpayer Name</td>
+                <td><strong id="ack_name">TEST KUMAR DEMO</strong></td>
+              </tr>
+              <tr>
+                <td>Permanent Account Number (PAN)</td>
+                <td><strong id="ack_pan">ABCDE1234F</strong></td>
+              </tr>
+              <tr>
+                <td>Assessment Year</td>
+                <td><strong>2026-27 (FY 2025-26)</strong></td>
+              </tr>
+              <tr>
+                <td>Tax Regime</td>
+                <td><strong id="ack_regime">New Tax Regime u/s 115BAC</strong></td>
+              </tr>
+              <tr>
+                <td>Gross Total Income (GTI)</td>
+                <td id="ack_gti">₹12,07,500</td>
+              </tr>
+              <tr>
+                <td>Total Tax Liability</td>
+                <td id="ack_tax_liability">₹84,760</td>
+              </tr>
+              <tr>
+                <td>Total Taxes Paid (TDS)</td>
+                <td id="ack_tds_paid">₹90,000</td>
+              </tr>
+              <tr id="ack_row_refund" style="background: #e8f5e9; font-size: 15px; font-weight: 800;">
+                <td style="color: var(--itr-success);">Computed Refund Due</td>
+                <td id="ack_refund_display" style="color: var(--itr-success);">₹5,240</td>
+              </tr>
+              <tr id="ack_row_payable" style="background: #fde8e8; font-size: 15px; font-weight: 800; display: none;">
+                <td style="color: var(--itr-danger);">Computed Tax Payable</td>
+                <td id="ack_payable_display" style="color: var(--itr-danger);">₹0</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: center; gap: 14px; flex-wrap: wrap;">
+        <button type="button" class="btn btn-secondary" onclick="alert('Demo Receipt: ITR-V download simulated.')">
+          📥 Download Receipt (ITR-V)
+        </button>
+        <a href="dashboard.html" class="btn btn-primary" id="btn_back_dashboard">
+          Back to Dashboard
+        </a>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      let ackData = null;
+      if (window.DemoPortal && window.DemoPortal.load) {
+        ackData = window.DemoPortal.load('itr_ack');
+      }
+
+      if (!ackData) {
+        // Fallback default
+        ackData = {
+          ackNo: '268491827401928',
+          filingDate: '27-Oct-2026',
+          taxpayerName: 'TEST KUMAR DEMO',
+          pan: 'ABCDE1234F',
+          regime: 'New Tax Regime u/s 115BAC (Default)',
+          grossTotalIncome: 1207500,
+          taxLiability: 84760,
+          tdsPaid: 90000,
+          refund: 5240,
+          payable: 0,
+        };
+      }
+
+      document.getElementById('ack_number').textContent = ackData.ackNo;
+      document.getElementById('ack_filing_date').textContent = ackData.filingDate || '27-Oct-2026';
+      document.getElementById('ack_name').textContent = ackData.taxpayerName || 'TEST KUMAR DEMO';
+      document.getElementById('ack_pan').textContent = ackData.pan || 'ABCDE1234F';
+      document.getElementById('ack_regime').textContent = ackData.regime || 'New Tax Regime u/s 115BAC';
+      document.getElementById('ack_gti').textContent = ITREngine.formatRupees(ackData.grossTotalIncome);
+      document.getElementById('ack_tax_liability').textContent = ITREngine.formatRupees(ackData.taxLiability);
+      document.getElementById('ack_tds_paid').textContent = ITREngine.formatRupees(ackData.tdsPaid);
+
+      if (Number(ackData.refund) > 0) {
+        document.getElementById('ack_row_refund').style.display = '';
+        document.getElementById('ack_row_payable').style.display = 'none';
+        document.getElementById('ack_refund_display').textContent = ITREngine.formatRupees(ackData.refund);
+      } else {
+        document.getElementById('ack_row_refund').style.display = 'none';
+        document.getElementById('ack_row_payable').style.display = '';
+        document.getElementById('ack_payable_display').textContent = ITREngine.formatRupees(ackData.payable);
+      }
+    });
+  </script>
+</body>
+</html>

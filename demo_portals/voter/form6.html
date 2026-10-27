@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Voters' Service Portal (Demo Replica) - Form 6 Application</title>
+  <link rel="stylesheet" href="/mock/_shared/demo.css">
+  <link rel="stylesheet" href="voter.css">
+  <script src="/mock/_shared/demo.js"></script>
+  <script src="voter.js"></script>
+</head>
+<body>
+  <header class="portal-header">
+    <div class="header-inner">
+      <div class="portal-brand">
+        <div class="brand-icon">🗳️</div>
+        <div class="brand-text">
+          <h1>Voters' Service Portal (Demo Replica)</h1>
+          <small>Form 6: Application for Inclusion of Name in Electoral Roll for First Time Voter</small>
+        </div>
+      </div>
+      <nav class="header-nav">
+        <a href="index.html">Home</a>
+        <a href="login.html">Login</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="notice-banner">
+    <strong>📋 Instructions:</strong>
+    <div class="notice-marquee">
+      Sections A to J correspond to the official Election Commission Form 6. Mandatory fields are marked with asterisk (*). You can review all details before final submission.
+    </div>
+  </div>
+
+  <main class="main-container">
+    <form id="voter-form-6" onsubmit="return false;">
+      
+      <!-- Section A -->
+      <section class="form-section" id="section-a">
+        <div class="section-header">
+          <span class="section-tag">A</span>
+          <span>Select State, District &amp; Assembly / Parliamentary Constituency</span>
+        </div>
+        <div class="section-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="state">Select State / UT <span class="required">*</span></label>
+              <select id="state" name="state" required>
+                <option value="">-- Select State --</option>
+                <option value="MH">Maharashtra</option>
+                <option value="KA">Karnataka</option>
+                <option value="DL">NCT of Delhi</option>
+                <option value="UP">Uttar Pradesh</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="district">Select District <span class="required">*</span></label>
+              <select id="district" name="district" required disabled>
+                <option value="">-- Select District --</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="assembly_constituency">Select Assembly Constituency <span class="required">*</span></label>
+              <select id="assembly_constituency" name="assembly_constituency" required disabled>
+                <option value="">-- Select Assembly Constituency --</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section B -->
+      <section class="form-section" id="section-b">
+        <div class="section-header">
+          <span class="section-tag">B</span>
+          <span>Personal Details (Applicant Name &amp; Regional Language)</span>
+        </div>
+        <div class="section-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="first_name">First Name followed by Middle Name (in English) <span class="required">*</span></label>
+              <input type="text" id="first_name" name="first_name" placeholder="e.g. Ramesh Kumar" required>
+            </div>
+            <div class="form-group">
+              <label for="first_name_reg">First Name (Regional Language / क्षेत्रीय भाषा)</label>
+              <input type="text" id="first_name_reg" name="first_name_reg" placeholder="क्षेत्रीय भाषा में नाम">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="surname">Surname (if any, in English) <span class="required">*</span></label>
+              <input type="text" id="surname" name="surname" placeholder="e.g. Sharma" required>
+            </div>
+            <div class="form-group">
+              <label for="surname_reg">Surname (Regional Language / क्षेत्रीय भाषा)</label>
+              <input type="text" id="surname_reg" name="surname_reg" placeholder="क्षेत्रीय भाषा में उपनाम">
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section C -->
+      <section class="form-section" id="section-c">
+        <div class="section-header">
+          <span class="section-tag">C</span>
+          <span>Photograph Upload</span>
+        </div>
+        <div class="section-body">
+          <div class="form-row">
+            <div class="form-group full-width">
+              <label for="photo_upload">Upload Passport Size Photograph (Optional in demo) (Max 2MB)</label>
+              <input type="file" id="photo_upload" name="photo_upload" accept="image/*">
+              <span class="help-text">Recent colour photograph showing clear front face view. Optional for demo replica.</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section D -->
+      <section class="form-section" id="section-d">
+        <div class="section-header">
+          <span class="section-tag">D</span>
+          <span>Relative Details</span>
+        </div>
+        <div class="section-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="relative_type">Relation Type <span class="required">*</span></label>
+              <select id="relative_type" name="relative_type" required>
+                <option value="Father">Father / पिता</option>
+                <option value="Mother">Mother / माता</option>
+                <option value="Husband">Husband / पति</option>
+                <option value="Wife">Wife / पत्नी</option>
+                <option value="Legal Guardian">Legal Guardian / कानूनी अभिभावक</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="relative_name">Relative First Name <span class="required">*</span></label>
+              <input type="text" id="relative_name" name="relative_name" placeholder="Relative first name" required>
+            </div>
+            <div class="form-group">
+              <label for="relative_surname">Relative Surname</label>
+              <input type="text" id="relative_surname" name="relative_surname" placeholder="Relative surname">
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section E -->
+      <section class="form-section" id="section-e">
+        <div class="section-header">
+          <span class="section-tag">E</span>
+          <span>Contact Details</span>
+        </div>
+        <div class="section-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Mobile Number Owned By <span class="required">*</span></label>
+              <div class="radio-group">
+                <label><input type="radio" name="mobile_owner" value="self" checked> Self</label>
+                <label><input type="radio" name="mobile_owner" value="relative"> Relative mentioned in Section D</label>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="mobile">Mobile Number <span class="required">*</span></label>
+              <input type="tel" id="mobile" name="mobile" placeholder="10-digit mobile number" maxlength="10" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Email Address Owned By</label>
+              <div class="radio-group">
+                <label><input type="radio" name="email_owner" value="self" checked> Self</label>
+                <label><input type="radio" name="email_owner" value="relative"> Relative mentioned in Section D</label>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="email">Email Address</label>
+              <input type="email" id="email" name="email" placeholder="example@domain.com">
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section F -->
+      <section class="form-section" id="section-f">
+        <div class="section-header">
+          <span class="section-tag">F</span>
+          <span>Aadhaar Details</span>
+        </div>
+        <div class="section-body">
+          <div class="form-row">
+            <div class="form-group full-width">
+              <div class="radio-group" style="margin-bottom: 10px;">
+                <label><input type="radio" name="aadhaar_opt" id="aadhaar_opt_yes" value="yes" checked> Aadhaar Number</label>
+                <label><input type="radio" name="aadhaar_opt" id="aadhaar_opt_no" value="no"> I am not able to furnish my Aadhaar Number because I do not have Aadhaar number</label>
+              </div>
+            </div>
+          </div>
+          <div class="form-row" id="aadhaar-input-row">
+            <div class="form-group">
+              <label for="aadhaar">Aadhaar Number (12 digits)</label>
+              <input type="text" id="aadhaar" name="aadhaar" placeholder="XXXX XXXX XXXX" maxlength="12">
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section G -->
+      <section class="form-section" id="section-g">
+        <div class="section-header">
+          <span class="section-tag">G</span>
+          <span>Gender</span>
+        </div>
+        <div class="section-body">
+          <div class="form-row">
+            <div class="form-group full-width">
+              <label>Select Gender <span class="required">*</span></label>
+              <div class="radio-group">
+                <label><input type="radio" name="gender" id="gender_male" value="Male" checked> Male / पुरुष</label>
+                <label><input type="radio" name="gender" id="gender_female" value="Female"> Female / महिला</label>
+                <label><input type="radio" name="gender" id="gender_third" value="Third Gender"> Third Gender / उभयलिंगी</label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section H -->
+      <section class="form-section" id="section-h">
+        <div class="section-header">
+          <span class="section-tag">H</span>
+          <span>Date of Birth Details</span>
+        </div>
+        <div class="section-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="dob">Date of Birth <span class="required">*</span></label>
+              <input type="date" id="dob" name="dob" required>
+            </div>
+            <div class="form-group">
+              <label for="dob_doc_type">Document for Proof of Date of Birth <span class="required">*</span></label>
+              <select id="dob_doc_type" name="dob_doc_type" required>
+                <option value="Birth Certificate">Birth Certificate issued by Registrar</option>
+                <option value="Aadhaar Card">Aadhaar Card</option>
+                <option value="PAN Card">PAN Card</option>
+                <option value="Indian Passport">Indian Passport</option>
+                <option value="Class 10 Marksheet">Class 10 / Matriculation Marksheet</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="dob_doc_file">Upload Proof of DOB (Optional in demo)</label>
+              <input type="file" id="dob_doc_file" name="dob_doc_file">
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section I -->
+      <section class="form-section" id="section-i">
+        <div class="section-header">
+          <span class="section-tag">I</span>
+          <span>Present Ordinary Residence Details</span>
+        </div>
+        <div class="section-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="house_no">House / Building / Apartment No <span class="required">*</span></label>
+              <input type="text" id="house_no" name="house_no" placeholder="e.g. Flat 102, B-Wing" required>
+            </div>
+            <div class="form-group">
+              <label for="street_area">Street / Area / Locality / Mohalla / Road <span class="required">*</span></label>
+              <input type="text" id="street_area" name="street_area" placeholder="e.g. M.G. Road" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="town_village">Town / Village <span class="required">*</span></label>
+              <input type="text" id="town_village" name="town_village" placeholder="Town or Village" required>
+            </div>
+            <div class="form-group">
+              <label for="post_office">Post Office <span class="required">*</span></label>
+              <input type="text" id="post_office" name="post_office" placeholder="Post Office" required>
+            </div>
+            <div class="form-group">
+              <label for="pincode">PIN Code <span class="required">*</span></label>
+              <input type="text" id="pincode" name="pincode" placeholder="6-digit PIN code" maxlength="6" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="tehsil_taluka">Tehsil / Taluka / Mandal <span class="required">*</span></label>
+              <input type="text" id="tehsil_taluka" name="tehsil_taluka" placeholder="Tehsil or Mandal" required>
+            </div>
+            <div class="form-group">
+              <label for="address_district">District (Present Address) <span class="required">*</span></label>
+              <input type="text" id="address_district" name="address_district" placeholder="District" required>
+            </div>
+            <div class="form-group">
+              <label for="address_state">State / UT (Present Address) <span class="required">*</span></label>
+              <input type="text" id="address_state" name="address_state" placeholder="State" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="resident_month">Ordinarily Resident Since - Month <span class="required">*</span></label>
+              <select id="resident_month" name="resident_month" required>
+                <option value="January">January</option>
+                <option value="February">February</option>
+                <option value="March">March</option>
+                <option value="April">April</option>
+                <option value="May">May</option>
+                <option value="June">June</option>
+                <option value="July">July</option>
+                <option value="August">August</option>
+                <option value="September">September</option>
+                <option value="October">October</option>
+                <option value="November">November</option>
+                <option value="December">December</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="resident_year">Ordinarily Resident Since - Year <span class="required">*</span></label>
+              <input type="number" id="resident_year" name="resident_year" min="1950" max="2026" value="2020" required>
+            </div>
+            <div class="form-group">
+              <label for="address_doc_type">Document for Proof of Address <span class="required">*</span></label>
+              <select id="address_doc_type" name="address_doc_type" required>
+                <option value="Water/Electricity Bill">Water / Electricity / Gas Connection Bill</option>
+                <option value="Aadhaar Card">Aadhaar Card</option>
+                <option value="Current Passbook">Current Passbook of Bank / Post Office</option>
+                <option value="Indian Passport">Indian Passport</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section J -->
+      <section class="form-section" id="section-j">
+        <div class="section-header">
+          <span class="section-tag">J</span>
+          <span>Disability Category (Optional)</span>
+        </div>
+        <div class="section-body">
+          <div class="form-row">
+            <div class="form-group full-width">
+              <label>Category of Disability (if any)</label>
+              <div class="checkbox-group">
+                <label><input type="checkbox" name="disability_locomotor" id="disability_locomotor" value="1"> Locomotor / चलन दिव्यांगता</label>
+                <label><input type="checkbox" name="disability_visual" id="disability_visual" value="1"> Visual / दृष्टिबाधित</label>
+                <label><input type="checkbox" name="disability_hearing" id="disability_hearing" value="1"> Deaf &amp; Dumb / मूक-बधिर</label>
+                <label><input type="checkbox" name="disability_other" id="disability_other" value="1"> Other / अन्य</label>
+              </div>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="disability_percentage">Percentage of Disability (%)</label>
+              <input type="number" id="disability_percentage" name="disability_percentage" min="0" max="100" placeholder="e.g. 40">
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Declaration -->
+      <section class="form-section" id="section-declaration">
+        <div class="section-header">
+          <span class="section-tag">📜</span>
+          <span>Declaration / घोषणा</span>
+        </div>
+        <div class="section-body">
+          <p style="font-size: 13px; color: #555; margin-top: 0;">
+            I hereby declare that to the best of my knowledge and belief, I am a citizen of India and I have not applied for the inclusion of my name in electoral roll for any other constituency.
+          </p>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="decl_village">Village / Town of Residence <span class="required">*</span></label>
+              <input type="text" id="decl_village" name="decl_village" placeholder="Village or Town" required>
+            </div>
+            <div class="form-group">
+              <label for="decl_date">Declaration Date</label>
+              <input type="date" id="decl_date" name="decl_date" readonly>
+            </div>
+            <div class="form-group">
+              <label for="decl_place">Place <span class="required">*</span></label>
+              <input type="text" id="decl_place" name="decl_place" placeholder="City or Place" required>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div style="margin: 20px 0; text-align: center;">
+        <button type="button" id="btn-preview" class="btn-primary" style="font-size: 16px; padding: 12px 32px;">
+          Preview &amp; Submit / पूर्वावलोकन
+        </button>
+      </div>
+
+      <!-- Preview Section -->
+      <div id="preview-section" class="preview-container">
+        <h3 style="margin-top: 0; color: var(--eci-navy); border-bottom: 2px solid var(--eci-navy); padding-bottom: 8px;">
+          Application Preview (Form 6)
+        </h3>
+        <p style="font-size: 13px; color: #666;">
+          Please review the details entered below. Solve the captcha and click Submit to complete your application.
+        </p>
+
+        <table class="preview-table" id="preview-table">
+          <tbody>
+            <!-- Populated dynamically -->
+          </tbody>
+        </table>
+
+        <div class="captcha-wrapper">
+          <label for="submit_captcha" style="font-weight: 600;">Enter Captcha <span class="required">*</span>:</label>
+          <div id="submit-captcha-box"></div>
+          <input type="text" id="submit_captcha" name="submit_captcha" placeholder="Enter captcha" required style="max-width: 160px;">
+        </div>
+
+        <div id="submit-error" style="color: #b00020; font-size: 14px; margin-bottom: 12px; display: none;"></div>
+
+        <div style="display: flex; gap: 16px; justify-content: flex-end; align-items: center;">
+          <button type="button" id="btn-back-edit" class="btn-secondary">Edit Application / Back</button>
+          <button type="button" id="btn-final-submit" class="btn-submit">Submit / आवेदन जमा करें</button>
+        </div>
+      </div>
+
+    </form>
+  </main>
+
+  <script>
+    let submitCaptchaHelper = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // 1. Set today's date in declaration
+      const today = new Date().toISOString().split('T')[0];
+      const declDateEl = document.getElementById('decl_date');
+      if (declDateEl) declDateEl.value = today;
+
+      // 2. Transliteration helper for regional names
+      const firstNameEl = document.getElementById('first_name');
+      const firstNameRegEl = document.getElementById('first_name_reg');
+      const surnameEl = document.getElementById('surname');
+      const surnameRegEl = document.getElementById('surname_reg');
+
+      if (firstNameEl && firstNameRegEl) {
+        firstNameEl.addEventListener('input', () => {
+          if (!firstNameRegEl.dataset.userEdited) {
+            firstNameRegEl.value = firstNameEl.value;
+          }
+        });
+        firstNameRegEl.addEventListener('input', () => {
+          firstNameRegEl.dataset.userEdited = 'true';
+        });
+      }
+
+      if (surnameEl && surnameRegEl) {
+        surnameEl.addEventListener('input', () => {
+          if (!surnameRegEl.dataset.userEdited) {
+            surnameRegEl.value = surnameEl.value;
+          }
+        });
+        surnameRegEl.addEventListener('input', () => {
+          surnameRegEl.dataset.userEdited = 'true';
+        });
+      }
+
+      // 3. Aadhaar radio toggle
+      const aadhaarYes = document.getElementById('aadhaar_opt_yes');
+      const aadhaarNo = document.getElementById('aadhaar_opt_no');
+      const aadhaarRow = document.getElementById('aadhaar-input-row');
+      const aadhaarInput = document.getElementById('aadhaar');
+
+      function updateAadhaarState() {
+        if (aadhaarNo.checked) {
+          aadhaarRow.style.display = 'none';
+          if (aadhaarInput) aadhaarInput.value = '';
+        } else {
+          aadhaarRow.style.display = 'flex';
+        }
+      }
+      if (aadhaarYes && aadhaarNo) {
+        aadhaarYes.addEventListener('change', updateAadhaarState);
+        aadhaarNo.addEventListener('change', updateAadhaarState);
+      }
+
+      // 4. Dependent dropdowns: State -> District -> Assembly Constituency
+      const stateSel = document.getElementById('state');
+      const distSel = document.getElementById('district');
+      const acSel = document.getElementById('assembly_constituency');
+
+      function populateDistricts() {
+        const stateKey = stateSel.value;
+        distSel.innerHTML = '<option value="">-- Select District --</option>';
+        acSel.innerHTML = '<option value="">-- Select Assembly Constituency --</option>';
+        acSel.disabled = true;
+
+        if (!stateKey || !VOTER_LOCATION_DATA[stateKey]) {
+          distSel.disabled = true;
+          return;
+        }
+
+        const stateData = VOTER_LOCATION_DATA[stateKey];
+        Object.keys(stateData.districts).forEach(distKey => {
+          const opt = document.createElement('option');
+          opt.value = distKey;
+          opt.textContent = stateData.districts[distKey].name;
+          distSel.appendChild(opt);
+        });
+        distSel.disabled = false;
+      }
+
+      function populateConstituencies() {
+        const stateKey = stateSel.value;
+        const distKey = distSel.value;
+        acSel.innerHTML = '<option value="">-- Select Assembly Constituency --</option>';
+
+        if (!stateKey || !distKey || !VOTER_LOCATION_DATA[stateKey] || !VOTER_LOCATION_DATA[stateKey].districts[distKey]) {
+          acSel.disabled = true;
+          return;
+        }
+
+        const consts = VOTER_LOCATION_DATA[stateKey].districts[distKey].constituencies;
+        consts.forEach(c => {
+          const opt = document.createElement('option');
+          opt.value = c;
+          opt.textContent = c;
+          acSel.appendChild(opt);
+        });
+        acSel.disabled = false;
+      }
+
+      stateSel.addEventListener('change', populateDistricts);
+      distSel.addEventListener('change', populateConstituencies);
+
+      // 5. Preview & Captcha Handling
+      const previewBtn = document.getElementById('btn-preview');
+      const previewSec = document.getElementById('preview-section');
+      const previewTableBody = document.querySelector('#preview-table tbody');
+      const backEditBtn = document.getElementById('btn-back-edit');
+      const submitBtn = document.getElementById('btn-final-submit');
+      const submitCaptchaBox = document.getElementById('submit-captcha-box');
+      const submitError = document.getElementById('submit-error');
+
+      previewBtn.addEventListener('click', () => {
+        // Collect and display preview
+        const stateText = stateSel.options[stateSel.selectedIndex]?.text || '';
+        const distText = distSel.options[distSel.selectedIndex]?.text || '';
+        const acText = acSel.value || '';
+        const nameText = `${document.getElementById('first_name').value || ''} ${document.getElementById('surname').value || ''}`.trim();
+        const relText = `${document.getElementById('relative_type').value || ''}: ${document.getElementById('relative_name').value || ''} ${document.getElementById('relative_surname').value || ''}`.trim();
+        const mobText = document.getElementById('mobile').value || '';
+        const emailText = document.getElementById('email').value || '';
+        const dobText = document.getElementById('dob').value || '';
+        const genderText = document.querySelector('input[name="gender"]:checked')?.value || '';
+        const addressText = `${document.getElementById('house_no').value || ''}, ${document.getElementById('street_area').value || ''}, ${document.getElementById('town_village').value || ''}, ${document.getElementById('post_office').value || ''} - ${document.getElementById('pincode').value || ''}`.trim();
+
+        previewTableBody.innerHTML = `
+          <tr><th>State & District</th><td>${stateText} &middot; ${distText}</td></tr>
+          <tr><th>Assembly Constituency</th><td>${acText || 'Not selected'}</td></tr>
+          <tr><th>Applicant Full Name</th><td>${nameText || 'Not provided'}</td></tr>
+          <tr><th>Relative Details</th><td>${relText}</td></tr>
+          <tr><th>Date of Birth & Gender</th><td>${dobText} &middot; ${genderText}</td></tr>
+          <tr><th>Mobile & Email</th><td>${mobText} &middot; ${emailText}</td></tr>
+          <tr><th>Present Address</th><td>${addressText}</td></tr>
+          <tr><th>Declaration Place</th><td>${document.getElementById('decl_place').value || ''}</td></tr>
+        `;
+
+        previewSec.classList.add('active');
+        previewSec.scrollIntoView({ behavior: 'smooth' });
+
+        if (!submitCaptchaHelper && window.DemoPortal && window.DemoPortal.captcha) {
+          submitCaptchaHelper = window.DemoPortal.captcha(submitCaptchaBox);
+        }
+      });
+
+      backEditBtn.addEventListener('click', () => {
+        previewSec.classList.remove('active');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+
+      submitBtn.addEventListener('click', () => {
+        submitError.style.display = 'none';
+        const captchaVal = (document.getElementById('submit_captcha').value || '').trim();
+
+        if (!submitCaptchaHelper || !submitCaptchaHelper.check(captchaVal)) {
+          submitError.textContent = 'Incorrect Captcha. Please enter the characters shown.';
+          submitError.style.display = 'block';
+          if (submitCaptchaHelper) submitCaptchaHelper.refresh();
+          return;
+        }
+
+        // Generate fake Form 6 reference number F6-...
+        const refNumber = window.DemoPortal.fakeNumber('F6-', 9);
+        const appData = {
+          ref: refNumber,
+          state: stateSel.options[stateSel.selectedIndex]?.text || '',
+          district: distSel.options[distSel.selectedIndex]?.text || '',
+          assembly_constituency: acSel.value || '',
+          applicant_name: `${document.getElementById('first_name').value || ''} ${document.getElementById('surname').value || ''}`.trim(),
+          relative_name: `${document.getElementById('relative_type').value || ''}: ${document.getElementById('relative_name').value || ''}`.trim(),
+          mobile: document.getElementById('mobile').value || '',
+          submitted_at: new Date().toLocaleString()
+        };
+
+        window.DemoPortal.save('voter_form6_app', appData);
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const isDemoTest = urlParams.get('demo_test') === '1';
+        const dest = new URL('ack.html', window.location.href);
+        dest.searchParams.set('ref', refNumber);
+        if (isDemoTest) dest.searchParams.set('demo_test', '1');
+
+        window.location.href = dest.toString();
+      });
+    });
+  </script>
+</body>
+</html>

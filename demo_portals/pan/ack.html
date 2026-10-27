@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PAN Application Acknowledgement (Demo Replica)</title>
+  <link rel="stylesheet" href="/mock/_shared/demo.css">
+  <link rel="stylesheet" href="pan.css">
+</head>
+<body>
+  <!-- Header -->
+  <header class="pan-header no-print">
+    <div class="pan-header-inner">
+      <div class="pan-brand">
+        <div class="pan-logo-badge">PROTEAN</div>
+        <div class="pan-brand-text">
+          <h1>PAN Application Portal (Demo Replica)</h1>
+          <p>Online Application for Allotment of PAN — Official Acknowledgement</p>
+        </div>
+      </div>
+      <div style="font-size: 12px; text-align: right; opacity: 0.9;">
+        <div>Income Tax Department (Govt of India Replica)</div>
+        <div>Status: Form 49A Allotment Accepted</div>
+      </div>
+    </div>
+    <nav class="pan-nav">
+      <div class="pan-nav-inner">
+        <a href="index.html" class="pan-nav-link">Home / मुख्य पृष्ठ</a>
+        <a href="register.html" class="pan-nav-link">New Application / नया आवेदन</a>
+        <a href="/mock/" class="pan-nav-link">All Demo Portals / सभी पोर्टल</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="pan-container" style="max-width: 860px;">
+    <!-- Success Banner -->
+    <div class="alert alert-success no-print" style="display: flex; align-items: center; gap: 12px;">
+      <span style="font-size: 28px;">✅</span>
+      <div>
+        <strong style="font-size: 15px;">Application Submitted Successfully / आवेदन सफलतापूर्वक जमा किया गया</strong>
+        <div style="font-size: 12px; margin-top: 2px;">
+          Your Form 49A application has been digitally authenticated and received by Protean e-Gov Technologies (Demo Replica).
+        </div>
+      </div>
+    </div>
+
+    <!-- Official Acknowledgement Card -->
+    <div class="ack-card">
+      <div class="ack-stamp">SUBMITTED (DEMO)</div>
+
+      <div style="text-align: center; border-bottom: 2px solid var(--pan-navy); padding-bottom: 16px; margin-bottom: 20px;">
+        <h2 style="font-size: 18px; font-weight: 800; color: var(--pan-navy); letter-spacing: 0.5px;">
+          ACKNOWLEDGEMENT FOR NEW PAN ALLOTMENT (FORM 49A)
+        </h2>
+        <div style="font-size: 13px; color: var(--pan-muted); margin-top: 4px;">
+          आयकर विभाग · Income Tax Department (Demo Replica) · Rule 114 of Income Tax Rules, 1962
+        </div>
+      </div>
+
+      <!-- 15-Digit Acknowledgement Number Box -->
+      <div class="ack-number-box">
+        <div class="label">15-Digit Acknowledgement Number / पावती संख्या</div>
+        <div class="number" id="ack-number">881029384756102</div>
+      </div>
+
+      <p style="font-size: 12px; color: var(--pan-muted); margin-bottom: 20px;">
+        Please quote this 15-digit acknowledgement number in all future correspondences or when tracking your application status.
+      </p>
+
+      <!-- Acknowledgement Details Table -->
+      <table class="pan-table" style="font-size: 13px; margin-bottom: 24px;">
+        <tbody>
+          <tr>
+            <th style="width: 35%;">Name of Applicant</th>
+            <td id="ack-applicant-name" style="font-weight: 700; color: var(--pan-navy);">-</td>
+          </tr>
+          <tr>
+            <th>Father's Name</th>
+            <td id="ack-father-name">-</td>
+          </tr>
+          <tr>
+            <th>Date of Birth</th>
+            <td id="ack-dob">-</td>
+          </tr>
+          <tr>
+            <th>Application Type & Category</th>
+            <td>New PAN - Indian Citizen (Form 49A) · INDIVIDUAL</td>
+          </tr>
+          <tr>
+            <th>Address for Communication</th>
+            <td id="ack-address">-</td>
+          </tr>
+          <tr>
+            <th>Contact Details</th>
+            <td id="ack-contact">-</td>
+          </tr>
+          <tr>
+            <th>Assessing Officer (AO) Code</th>
+            <td id="ack-ao-code" style="font-family: monospace; font-weight: 600;">-</td>
+          </tr>
+          <tr>
+            <th>Payment Status</th>
+            <td><strong style="color: var(--pan-green);">Paid ₹107.00 (Demo Transaction Ref: <span id="ack-txn">-</span>)</strong></td>
+          </tr>
+          <tr>
+            <th>Authentication Method</th>
+            <td>Aadhaar OTP Based Electronic Signature (e-Sign Verified)</td>
+          </tr>
+          <tr>
+            <th>Date & Time of Submission</th>
+            <td id="ack-timestamp">-</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Instructions & Next Steps -->
+      <div style="background: #f8fafc; border: 1px solid var(--pan-border); border-radius: 6px; padding: 16px; margin-bottom: 24px; font-size: 12px; line-height: 1.6;">
+        <h4 style="font-size: 13px; font-weight: 700; color: var(--pan-navy); margin-bottom: 6px;">Next Steps / आगामी चरण:</h4>
+        <ul style="margin-left: 18px;">
+          <li>Your digitized application will be validated by the Income Tax Department verification cell.</li>
+          <li>A digitally signed e-PAN card PDF will be delivered to your registered email address within 48 hours.</li>
+          <li>The physical plastic PAN card will be dispatched to your residential address via India Post Speed Post.</li>
+          <li>For demo purposes, no real PAN card is printed or dispatched.</li>
+        </ul>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="no-print" style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--pan-border); padding-top: 20px; flex-wrap: wrap; gap: 12px;">
+        <a href="index.html" class="btn btn-secondary">
+          ← Return to Portal Home / मुख्य पृष्ठ
+        </a>
+        <div style="display: flex; gap: 12px;">
+          <button type="button" id="btn-download-ack" class="btn btn-primary" onclick="window.print()">
+            🖨️ Download Acknowledgement / पावती डाउनलोड करें
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="/mock/_shared/demo.js"></script>
+  <script src="pan.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const ack = window.PanStorage ? window.PanStorage.get('ack', {}) : {};
+      const reg = window.PanStorage ? window.PanStorage.get('reg', {}) : {};
+      const data = window.PanStorage ? window.PanStorage.get('data', {}) : {};
+
+      const ackNum = ack.ackNumber || (window.DemoPortal ? window.DemoPortal.fakeNumber('', 15) : '881029384756102');
+      document.getElementById('ack-number').textContent = ackNum;
+
+      const applicantName = ack.applicantName || reg.fullName || data.nameOnCard || 'RAJESH KUMAR SHARMA';
+      document.getElementById('ack-applicant-name').textContent = applicantName;
+
+      const fatherName = ack.fatherName || (data.fatherLastName ? [data.fatherFirstName, data.fatherMiddleName, data.fatherLastName].filter(Boolean).join(' ') : 'KUMAR SHARMA');
+      document.getElementById('ack-father-name').textContent = fatherName;
+
+      document.getElementById('ack-dob').textContent = ack.dob || reg.dateOfBirth || '1990-01-01';
+
+      const contact = [ack.mobile || reg.mobile, ack.email || reg.email].filter(Boolean).join(' | ');
+      document.getElementById('ack-contact').textContent = contact || '9876543210 | applicant@example.com';
+
+      const address = ack.address || [data.residenceFlat, data.residencePremises, data.residenceRoad, data.residenceArea, data.residenceCity, data.residenceState, data.residencePincode].filter(Boolean).join(', ');
+      document.getElementById('ack-address').textContent = address || 'Flat 402, Tower B, MG Road, Indiranagar, Bengaluru, Karnataka - 560038';
+
+      document.getElementById('ack-ao-code').textContent = ack.aoCode || 'BLR/W/301/1';
+      document.getElementById('ack-txn').textContent = ack.paymentTxn || 'TXN1029384756';
+
+      const timestamp = ack.submittedAt ? new Date(ack.submittedAt).toLocaleString('en-IN') : new Date().toLocaleString('en-IN');
+      document.getElementById('ack-timestamp').textContent = timestamp;
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Corporate Affairs Portal (Demo Replica) - SPICe+ Part A</title>
+  <link rel="stylesheet" href="/mock/_shared/demo.css">
+  <link rel="stylesheet" href="mca.css">
+  <script src="/mock/_shared/demo.js"></script>
+  <script src="mca.js"></script>
+</head>
+<body>
+  <header class="mca-header">
+    <div class="header-top">
+      <div class="mca-brand">
+        <div class="brand-logo-mock">🏛️</div>
+        <div class="mca-title">
+          <h1>Corporate Affairs Portal (Demo Replica)</h1>
+          <small>SPICe+ Part A: Web-Form for Reservation of Name for New Company</small>
+        </div>
+      </div>
+      <nav class="nav-container">
+        <a href="index.html" class="nav-link" style="color:#fff;">Home</a>
+        <a href="index.html" class="nav-link" style="color:#fff;">MCA Services</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="ticker-bar">
+    <strong>📋 SPICe+ Instructions:</strong>
+    <div class="ticker-content">
+      All fields marked with an asterisk (*) are mandatory. Ensure the proposed names adhere to the provisions of Section 4(2) &amp; 4(3) of the Companies Act, 2013 and Rule 8 of Companies Rules, 2014.
+    </div>
+  </div>
+
+  <main class="mca-main">
+    <form id="spice-form" onsubmit="return false;">
+
+      <!-- 1. Classification of Company -->
+      <div class="form-card">
+        <div class="form-header">
+          <span>1. Type, Class &amp; Category of Company (Dependent Classification)</span>
+          <span style="font-size: 12px; font-weight: normal; color: #666;">Step 1 of 4</span>
+        </div>
+        <div class="form-body">
+          <div class="form-grid-2">
+            <div class="form-field">
+              <label for="company_type">Type of Company <span class="req">*</span></label>
+              <select id="company_type" name="company_type" required>
+                <option value="">-- Select Company Type --</option>
+                <option value="private">Private Company</option>
+                <option value="opc">Private (One Person Company)</option>
+                <option value="public">Public Company</option>
+                <option value="producer">Producer Company</option>
+                <option value="section8">Section 8 Company</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label for="company_class">Class of Company <span class="req">*</span></label>
+              <select id="company_class" name="company_class" required disabled>
+                <option value="">-- Select Class --</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-grid-2">
+            <div class="form-field">
+              <label for="company_category">Category of Company <span class="req">*</span></label>
+              <select id="company_category" name="company_category" required disabled>
+                <option value="">-- Select Category --</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label for="company_subcategory">Sub-Category of Company <span class="req">*</span></label>
+              <select id="company_subcategory" name="company_subcategory" required disabled>
+                <option value="">-- Select Sub-Category --</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Industrial Activity & Main Objects -->
+      <div class="form-card">
+        <div class="form-header">
+          <span>2. Industrial Activity (NIC) &amp; Main Objects of Company</span>
+          <span style="font-size: 12px; font-weight: normal; color: #666;">Step 2 of 4</span>
+        </div>
+        <div class="form-body">
+          <div class="form-grid-2">
+            <div class="form-field">
+              <label for="nic_code">Main Division of Industrial Activity (NIC 2-digit) <span class="req">*</span></label>
+              <div style="display: flex; gap: 8px;">
+                <input type="text" id="nic_code" name="nic_code" placeholder="e.g. 62" style="max-width: 100px;" required>
+                <button type="button" id="btn-search-nic" class="btn-mca-secondary" style="white-space: nowrap;">
+                  🔍 Search NIC Code
+                </button>
+              </div>
+            </div>
+            <div class="form-field">
+              <label for="nic_description">Industrial Activity Description</label>
+              <input type="text" id="nic_description" name="nic_description" placeholder="Selected industrial division">
+            </div>
+          </div>
+
+          <div class="form-field" style="margin-top: 10px;">
+            <label for="main_objects">Description of Main Objects of the Proposed Company <span class="req">*</span></label>
+            <textarea id="main_objects" name="main_objects" rows="4" maxlength="300" placeholder="Provide a brief summary of the main business objects of the company (max 300 characters)..." required></textarea>
+            <div id="objects-char-counter" class="char-counter">300 characters remaining</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Proposed Names & Availability Check -->
+      <div class="form-card">
+        <div class="form-header">
+          <span>3. Proposed Company Names &amp; Availability Check</span>
+          <span style="font-size: 12px; font-weight: normal; color: #666;">Step 3 of 4</span>
+        </div>
+        <div class="form-body">
+          <p style="font-size: 13px; color: #555; margin-top: 0;">
+            Provide up to two proposed names in order of preference. Run <strong>Check name</strong> to verify against existing registrations and restricted keywords.
+          </p>
+
+          <div class="form-grid-2">
+            <div class="form-field">
+              <label for="proposed_name_1">Proposed Name 1 (Primary Preference) <span class="req">*</span></label>
+              <input type="text" id="proposed_name_1" name="proposed_name_1" placeholder="e.g. AGASYA TECHNOLOGIES PRIVATE LIMITED" required>
+              <div id="name_1_status" class="name-status"></div>
+            </div>
+            <div class="form-field">
+              <label for="proposed_name_2">Proposed Name 2 (Alternative Preference)</label>
+              <input type="text" id="proposed_name_2" name="proposed_name_2" placeholder="e.g. AGASYA SOLUTIONS PRIVATE LIMITED">
+              <div id="name_2_status" class="name-status"></div>
+            </div>
+          </div>
+
+          <div style="margin-top: 8px;">
+            <button type="button" id="btn-check-name" class="btn-mca-secondary">
+              🔍 Check name / नाम की जांच करें
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. Applicant Details & Auto-Check -->
+      <div class="form-card">
+        <div class="form-header">
+          <span>4. Applicant Identification &amp; Contact Details</span>
+          <span style="font-size: 12px; font-weight: normal; color: #666;">Step 4 of 4</span>
+        </div>
+        <div class="form-body">
+          <div class="form-grid-2">
+            <div class="form-field">
+              <label for="applicant_id_type">Applicant Identification Type <span class="req">*</span></label>
+              <select id="applicant_id_type" name="applicant_id_type" required>
+                <option value="DIN">Director Identification Number (DIN)</option>
+                <option value="PAN">Income Tax PAN Number</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label for="applicant_id_number">DIN / PAN Number <span class="req">*</span></label>
+              <input type="text" id="applicant_id_number" name="applicant_id_number" placeholder="Enter DIN (8 digits) or PAN (10 chars)" required>
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-field">
+              <label for="applicant_name">Applicant Full Name <span class="req">*</span></label>
+              <input type="text" id="applicant_name" name="applicant_name" placeholder="Full legal name of promoter / director" required>
+            </div>
+            <div class="form-field">
+              <label for="applicant_email">Email Address <span class="req">*</span></label>
+              <input type="email" id="applicant_email" name="applicant_email" placeholder="official@company.com" required>
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-field">
+              <label for="applicant_mobile">Mobile Number <span class="req">*</span></label>
+              <input type="tel" id="applicant_mobile" name="applicant_mobile" placeholder="10-digit mobile number" maxlength="10" required>
+            </div>
+          </div>
+
+          <!-- Auto-check Section -->
+          <div style="margin-top: 16px; padding: 14px; background: #f8fafc; border: 1px dashed var(--mca-border); border-radius: 6px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+              <div>
+                <strong>Form Auto-Check Verification:</strong>
+                <div style="font-size: 12px; color: #666;">Runs syntactic and semantic checks across all entered fields prior to submission.</div>
+              </div>
+              <button type="button" id="btn-auto-check" class="btn-mca-secondary">
+                ✓ Auto-check / स्वतः जांच
+              </button>
+            </div>
+            <div id="autocheck-status" style="margin-top: 10px; font-size: 13px; font-weight: 600; display: none;"></div>
+          </div>
+
+          <!-- Submit Button -->
+          <div style="margin-top: 24px; text-align: center;">
+            <button type="button" id="btn-submit-name" class="btn-mca-submit">
+              Submit for name reservation / नाम आरक्षण हेतु जमा करें
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </form>
+
+    <!-- NIC Search Modal -->
+    <div id="nic-modal" class="modal-overlay">
+      <div class="modal-window">
+        <div class="modal-header">
+          <h3>National Industrial Classification (NIC) Division Search</h3>
+          <button type="button" class="modal-close" id="btn-close-nic-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <input type="text" id="nic-filter-input" placeholder="Search by activity keyword (e.g. computer, food, textiles)..." style="width: 100%; padding: 8px 10px; border: 1px solid var(--mca-border); border-radius: 4px; margin-bottom: 12px;">
+          <table class="modal-table" id="nic-table">
+            <thead>
+              <tr>
+                <th style="width: 60px;">Code</th>
+                <th>Industrial Activity Description</th>
+                <th style="width: 80px;">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Populated dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Submission Verification Modal (Captcha + OTP) -->
+    <div id="submission-modal" class="modal-overlay">
+      <div class="modal-window" style="max-width: 520px;">
+        <div class="modal-header">
+          <h3>Statutory Submission Verification (Demo)</h3>
+          <button type="button" class="modal-close" id="btn-close-submit-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p style="font-size: 13px; color: #555; margin-top: 0;">
+            A one-time verification password has been dispatched to your mobile. Enter the OTP and solve the captcha to complete name reservation.
+          </p>
+
+          <div class="form-field" style="margin-bottom: 16px;">
+            <label for="spice_otp">Enter One-Time Password (OTP) <span class="req">*</span></label>
+            <input type="text" id="spice_otp" name="spice_otp" placeholder="Enter 6-digit OTP from demo phone" maxlength="6">
+            <span style="font-size: 11px; color: #666; margin-top: 3px;">Read the OTP from the on-screen demo phone at bottom right.</span>
+          </div>
+
+          <div class="form-field" style="margin-bottom: 16px;">
+            <label for="spice_captcha">Enter Captcha <span class="req">*</span></label>
+            <div id="spice-captcha-box" style="margin-bottom: 8px;"></div>
+            <input type="text" id="spice_captcha" name="spice_captcha" placeholder="Enter characters shown above" required>
+          </div>
+
+          <div id="submission-error" style="color: #b00020; font-size: 13px; margin-bottom: 12px; display: none;"></div>
+
+          <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 16px;">
+            <button type="button" id="btn-cancel-submit" class="btn-mca-secondary">Cancel</button>
+            <button type="button" id="btn-confirm-submit" class="btn-mca-submit" style="padding: 10px 20px;">
+              Confirm &amp; Reserve Name / पुष्टि करें
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    let spiceCaptchaHelper = null;
+    let spiceOtpHelper = null;
+    let nameCheckDone = false;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // 1. Dependent dropdowns for Company Classification
+      const typeSel = document.getElementById('company_type');
+      const classSel = document.getElementById('company_class');
+      const catSel = document.getElementById('company_category');
+      const subcatSel = document.getElementById('company_subcategory');
+
+      typeSel.addEventListener('change', () => {
+        const typeKey = typeSel.value;
+        classSel.innerHTML = '<option value="">-- Select Class --</option>';
+        catSel.innerHTML = '<option value="">-- Select Category --</option>';
+        subcatSel.innerHTML = '<option value="">-- Select Sub-Category --</option>';
+
+        if (!typeKey || !MCA_COMPANY_TYPES[typeKey]) {
+          classSel.disabled = true;
+          catSel.disabled = true;
+          subcatSel.disabled = true;
+          return;
+        }
+
+        const data = MCA_COMPANY_TYPES[typeKey];
+        data.classes.forEach(c => {
+          const opt = document.createElement('option');
+          opt.value = c;
+          opt.textContent = c;
+          classSel.appendChild(opt);
+        });
+        classSel.disabled = false;
+        catSel.disabled = true;
+        subcatSel.disabled = true;
+      });
+
+      classSel.addEventListener('change', () => {
+        const typeKey = typeSel.value;
+        catSel.innerHTML = '<option value="">-- Select Category --</option>';
+        subcatSel.innerHTML = '<option value="">-- Select Sub-Category --</option>';
+
+        if (!typeKey || !classSel.value || !MCA_COMPANY_TYPES[typeKey]) {
+          catSel.disabled = true;
+          subcatSel.disabled = true;
+          return;
+        }
+
+        const data = MCA_COMPANY_TYPES[typeKey];
+        data.categories.forEach(cat => {
+          const opt = document.createElement('option');
+          opt.value = cat;
+          opt.textContent = cat;
+          catSel.appendChild(opt);
+        });
+        catSel.disabled = false;
+        subcatSel.disabled = true;
+      });
+
+      catSel.addEventListener('change', () => {
+        const typeKey = typeSel.value;
+        subcatSel.innerHTML = '<option value="">-- Select Sub-Category --</option>';
+
+        if (!typeKey || !catSel.value || !MCA_COMPANY_TYPES[typeKey]) {
+          subcatSel.disabled = true;
+          return;
+        }
+
+        const data = MCA_COMPANY_TYPES[typeKey];
+        data.subcategories.forEach(sub => {
+          const opt = document.createElement('option');
+          opt.value = sub;
+          opt.textContent = sub;
+          subcatSel.appendChild(opt);
+        });
+        subcatSel.disabled = false;
+      });
+
+      // 2. 300-char counter for Main Objects
+      const objectsText = document.getElementById('main_objects');
+      const objectsCounter = document.getElementById('objects-char-counter');
+      objectsText.addEventListener('input', () => {
+        const rem = 300 - objectsText.value.length;
+        objectsCounter.textContent = `${rem} characters remaining`;
+        if (rem < 0) {
+          objectsCounter.style.color = '#b00020';
+        } else {
+          objectsCounter.style.color = '#666';
+        }
+      });
+
+      // 3. NIC Code Search Modal
+      const nicModal = document.getElementById('nic-modal');
+      const openNicBtn = document.getElementById('btn-search-nic');
+      const closeNicBtn = document.getElementById('btn-close-nic-modal');
+      const nicTableBody = document.querySelector('#nic-table tbody');
+      const nicFilterInput = document.getElementById('nic-filter-input');
+      const nicCodeInput = document.getElementById('nic_code');
+      const nicDescInput = document.getElementById('nic_description');
+
+      nicCodeInput.addEventListener('input', () => {
+        const val = nicCodeInput.value.trim();
+        const found = MCA_NIC_DIVISIONS.find(d => d.code === val || d.code === val.padStart(2, '0'));
+        if (found) {
+          nicDescInput.value = found.title;
+        }
+      });
+
+      function renderNicTable(filterText = '') {
+        nicTableBody.innerHTML = '';
+        const clean = filterText.toLowerCase().trim();
+        const filtered = MCA_NIC_DIVISIONS.filter(item => 
+          item.code.includes(clean) || item.title.toLowerCase().includes(clean)
+        );
+
+        filtered.forEach(item => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td><strong>${item.code}</strong></td>
+            <td>${item.title}</td>
+            <td><button type="button" class="btn-mca-secondary" style="padding: 4px 8px; font-size: 12px;">Select</button></td>
+          `;
+          tr.querySelector('button').addEventListener('click', () => {
+            nicCodeInput.value = item.code;
+            nicDescInput.value = item.title;
+            nicModal.classList.remove('active');
+          });
+          nicTableBody.appendChild(tr);
+        });
+      }
+
+      openNicBtn.addEventListener('click', () => {
+        nicFilterInput.value = '';
+        renderNicTable('');
+        nicModal.classList.add('active');
+      });
+      closeNicBtn.addEventListener('click', () => {
+        nicModal.classList.remove('active');
+      });
+      nicFilterInput.addEventListener('input', () => {
+        renderNicTable(nicFilterInput.value);
+      });
+
+      // 4. Proposed Names Availability Check
+      const checkNameBtn = document.getElementById('btn-check-name');
+      const name1Input = document.getElementById('proposed_name_1');
+      const name2Input = document.getElementById('proposed_name_2');
+      const name1Status = document.getElementById('name_1_status');
+      const name2Status = document.getElementById('name_2_status');
+
+      function applyStatus(el, res) {
+        el.className = 'name-status';
+        if (res.status === 'empty') {
+          el.style.display = 'none';
+          return;
+        }
+        el.textContent = `${res.status.toUpperCase()}: ${res.message}`;
+        el.classList.add(res.status);
+        el.style.display = 'block';
+      }
+
+      checkNameBtn.addEventListener('click', () => {
+        const res1 = checkNameAvailability(name1Input.value);
+        applyStatus(name1Status, res1);
+
+        if (name2Input.value.trim()) {
+          const res2 = checkNameAvailability(name2Input.value);
+          applyStatus(name2Status, res2);
+        } else {
+          name2Status.style.display = 'none';
+        }
+        nameCheckDone = true;
+      });
+
+      // 5. Auto-Check Button
+      const autoCheckBtn = document.getElementById('btn-auto-check');
+      const autoCheckStatus = document.getElementById('autocheck-status');
+
+      autoCheckBtn.addEventListener('click', () => {
+        const missing = [];
+        if (!typeSel.value) missing.push('Company Type');
+        if (!classSel.value) missing.push('Company Class');
+        if (!catSel.value) missing.push('Company Category');
+        if (!subcatSel.value) missing.push('Company Sub-Category');
+        if (!nicCodeInput.value) missing.push('NIC Code');
+        if (!objectsText.value.trim()) missing.push('Main Objects Description');
+        if (!name1Input.value.trim()) missing.push('Proposed Name 1');
+        if (!document.getElementById('applicant_id_number').value.trim()) missing.push('Applicant DIN/PAN');
+        if (!document.getElementById('applicant_name').value.trim()) missing.push('Applicant Name');
+        if (!document.getElementById('applicant_email').value.trim()) missing.push('Applicant Email');
+        if (!document.getElementById('applicant_mobile').value.trim()) missing.push('Applicant Mobile');
+
+        autoCheckStatus.style.display = 'block';
+        if (missing.length > 0) {
+          autoCheckStatus.style.color = '#b00020';
+          autoCheckStatus.textContent = `Auto-check Incomplete: Please fill mandatory fields: ${missing.join(', ')}`;
+        } else {
+          autoCheckStatus.style.color = '#2d6a4f';
+          autoCheckStatus.textContent = `✓ Auto-check Passed: All required sections are valid. Application is ready for submission.`;
+        }
+      });
+
+      // 6. Submit for Name Reservation (Opens OTP + Captcha Modal)
+      const submitNameBtn = document.getElementById('btn-submit-name');
+      const submitModal = document.getElementById('submission-modal');
+      const closeSubmitBtn = document.getElementById('btn-close-submit-modal');
+      const cancelSubmitBtn = document.getElementById('btn-cancel-submit');
+      const confirmSubmitBtn = document.getElementById('btn-confirm-submit');
+      const submitError = document.getElementById('submission-error');
+      const captchaBox = document.getElementById('spice-captcha-box');
+
+      submitNameBtn.addEventListener('click', () => {
+        submitError.style.display = 'none';
+
+        // Trigger mock OTP and Captcha
+        if (window.DemoPortal) {
+          spiceOtpHelper = window.DemoPortal.sendOtp('MCA SPICe+ Name Reservation OTP');
+          captchaBox.innerHTML = '';
+          spiceCaptchaHelper = window.DemoPortal.captcha(captchaBox);
+        }
+
+        submitModal.classList.add('active');
+      });
+
+      closeSubmitBtn.addEventListener('click', () => submitModal.classList.remove('active'));
+      cancelSubmitBtn.addEventListener('click', () => submitModal.classList.remove('active'));
+
+      confirmSubmitBtn.addEventListener('click', () => {
+        submitError.style.display = 'none';
+        const otpVal = (document.getElementById('spice_otp').value || '').trim();
+        const captchaVal = (document.getElementById('spice_captcha').value || '').trim();
+
+        if (!spiceOtpHelper || !spiceOtpHelper.check(otpVal)) {
+          submitError.textContent = 'Invalid OTP. Please enter the OTP displayed on the demo phone.';
+          submitError.style.display = 'block';
+          return;
+        }
+
+        if (!spiceCaptchaHelper || !spiceCaptchaHelper.check(captchaVal)) {
+          submitError.textContent = 'Incorrect Captcha. Please enter the characters shown.';
+          submitError.style.display = 'block';
+          if (spiceCaptchaHelper) spiceCaptchaHelper.refresh();
+          return;
+        }
+
+        // Generate fake SRN
+        const srn = window.DemoPortal.fakeNumber('SRN-', 9);
+        const data = {
+          srn: srn,
+          proposed_name_1: name1Input.value.trim(),
+          proposed_name_2: name2Input.value.trim(),
+          company_type: typeSel.options[typeSel.selectedIndex]?.text || '',
+          company_class: classSel.value,
+          nic_code: nicCodeInput.value,
+          nic_title: nicDescInput.value,
+          applicant_name: document.getElementById('applicant_name').value.trim(),
+          applicant_id: document.getElementById('applicant_id_number').value.trim(),
+          fee: "₹1000 (demo)",
+          submitted_at: new Date().toLocaleString()
+        };
+
+        window.DemoPortal.save('mca_last_reservation', data);
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const isDemoTest = urlParams.get('demo_test') === '1';
+        const dest = new URL('ack.html', window.location.href);
+        dest.searchParams.set('srn', srn);
+        if (isDemoTest) dest.searchParams.set('demo_test', '1');
+
+        window.location.href = dest.toString();
+      });
+
+    });
+  </script>
+</body>
+</html>

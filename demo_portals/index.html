@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agastya Assist — Demo Replica Portals</title>
+  <link rel="stylesheet" href="/mock/_shared/demo.css">
+  <style>
+    :root {
+      --primary: #0e3860;
+      --saffron: #f58220;
+      --text: #1e293b;
+      --muted: #64748b;
+      --border: #cbd5e1;
+      --bg: #f8fafc;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      color: var(--text);
+      background-color: var(--bg);
+      line-height: 1.5;
+    }
+    .header {
+      background: linear-gradient(180deg, #082440 0%, #0e3860 100%);
+      color: #fff;
+      padding: 30px 20px;
+      text-align: center;
+      border-bottom: 4px solid var(--saffron);
+    }
+    .header h1 {
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+    .header p {
+      font-size: 14px;
+      color: #cbd5e1;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+    .container {
+      max-width: 1000px;
+      margin: 36px auto;
+      padding: 0 20px;
+    }
+    .portal-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+      gap: 24px;
+      margin-bottom: 40px;
+    }
+    .portal-card {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .portal-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+    }
+    .portal-card-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .portal-badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 8px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      background: #e0f2fe;
+      color: #0369a1;
+    }
+    .portal-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+    .portal-desc {
+      font-size: 14px;
+      color: #475569;
+      margin-bottom: 20px;
+      flex: 1;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 10px 18px;
+      border-radius: 4px;
+      text-decoration: none;
+      background: var(--primary);
+      color: #ffffff;
+      transition: background 0.15s;
+    }
+    .btn:hover { background: #082440; }
+    .disclaimer-box {
+      background: #fff8e6;
+      border: 1px solid #fde68a;
+      border-left: 5px solid var(--saffron);
+      border-radius: 6px;
+      padding: 18px 22px;
+      font-size: 13px;
+      line-height: 1.6;
+      color: #78350f;
+    }
+    .disclaimer-box h3 {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: #92400e;
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <h1>Agastya Assist — Demo Replica Portals</h1>
+    <p>Fictional, accessible replicas of Indian public service portals built for demonstration, testing, and evaluation of voice-first assistive AI agents.</p>
+  </header>
+
+  <main class="container">
+    <div class="portal-grid">
+      <!-- 1. PAN Application Portal -->
+      <div class="portal-card" style="border-top: 4px solid var(--primary);">
+        <div>
+          <div class="portal-card-header">
+            <span class="portal-badge">Form 49A</span>
+            <h2 class="portal-title">PAN Application Portal (Demo Replica)</h2>
+          </div>
+          <p class="portal-desc">
+            Online application for allotment of Permanent Account Number (Form 49A), token generation, multi-tab details, AO code search, and Aadhaar e-Sign.
+          </p>
+        </div>
+        <div>
+          <a href="/mock/pan/" class="btn" style="width: 100%;">Open PAN Portal (Demo) →</a>
+        </div>
+      </div>
+
+      <!-- 2. Income Tax e-Filing Portal -->
+      <div class="portal-card" style="border-top: 4px solid #16a34a;">
+        <div>
+          <div class="portal-card-header">
+            <span class="portal-badge" style="background: #dcfce7; color: #15803d;">ITR-1 Sahaj</span>
+            <h2 class="portal-title">Income Tax e-Filing Portal (Demo Replica)</h2>
+          </div>
+          <p class="portal-desc">
+            Online income tax return filing (ITR-1 Sahaj), prefilled data from Form 16, deduction verification, and mock tax calculation.
+          </p>
+        </div>
+        <div>
+          <a href="/mock/itr/" class="btn" style="width: 100%; background: #16a34a;">Open ITR Portal (Demo) →</a>
+        </div>
+      </div>
+
+      <!-- 3. Voters' Service Portal -->
+      <div class="portal-card" style="border-top: 4px solid #7c3aed;">
+        <div>
+          <div class="portal-card-header">
+            <span class="portal-badge" style="background: #f3e8ff; color: #6b21a8;">Form 6</span>
+            <h2 class="portal-title">Voters' Service Portal (Demo Replica)</h2>
+          </div>
+          <p class="portal-desc">
+            New voter registration (Form 6), assembly constituency selection, declaration, and EPIC application tracking.
+          </p>
+        </div>
+        <div>
+          <a href="/mock/voter/" class="btn" style="width: 100%; background: #7c3aed;">Open Voter Portal (Demo) →</a>
+        </div>
+      </div>
+
+      <!-- 4. MCA Portal -->
+      <div class="portal-card" style="border-top: 4px solid #ea580c;">
+        <div>
+          <div class="portal-card-header">
+            <span class="portal-badge" style="background: #ffedd5; color: #c2410c;">SPICe+ Part A</span>
+            <h2 class="portal-title">Ministry of Corporate Affairs Portal (Demo Replica)</h2>
+          </div>
+          <p class="portal-desc">
+            Company incorporation and name reservation (SPICe+ Part A), Director Identification Number (DIN) services.
+          </p>
+        </div>
+        <div>
+          <a href="/mock/mca/" class="btn" style="width: 100%; background: #ea580c;">Open MCA Portal (Demo) →</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Official Disclaimer -->
+    <div class="disclaimer-box">
+      <h3>⚠️ Fictional Demonstration Notice & Disclaimer</h3>
+      <p>
+        These portals are fictional, standalone demonstration replicas designed solely for the Agastya Assist assistive AI hackathon showcase.
+        They are <strong>NOT official government portals</strong>, do not submit or store real data, and do not connect to any official government
+        department, UIDAI, Income Tax Department, Election Commission, or payment gateway.
+      </p>
+      <p style="margin-top: 6px;">
+        All numbers, tokens, OTPs, and acknowledgement receipts generated within these replicas are entirely simulated and fake.
+        <strong>Do not enter real personal, confidential, or sensitive financial information.</strong>
+      </p>
+    </div>
+  </main>
+
+  <script src="/mock/_shared/demo.js"></script>
+</body>
+</html>

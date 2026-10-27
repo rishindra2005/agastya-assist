@@ -2,9 +2,15 @@
 <html lang="hi" dir="ltr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Agastya Assist — अगस्त्य सहायक</title>
   <meta name="description" content="Voice-first AI assistant helping Indian citizens navigate government portals securely." />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <meta name="theme-color" content="#FF9933" />
+  <link rel="apple-touch-icon" href="/static/icons/icon-192.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Agastya" />
   <link rel="stylesheet" href="/static/style.css" />
 </head>
 <body>
@@ -26,6 +32,18 @@
     </div>
 
     <div class="header-controls">
+      <!-- Demo Portals Link -->
+      <a href="/mock/" target="_blank" rel="noopener noreferrer" class="btn-demo-portals" id="demo-portals-link" title="डेमो पोर्टल खोलें / Open Demo Portals">
+        <span class="demo-icon" aria-hidden="true">🏛️</span>
+        <span class="demo-text">डेमो पोर्टल (Demo) ↗</span>
+      </a>
+
+      <!-- PWA Install Button (hidden until beforeinstallprompt fires) -->
+      <button type="button" id="pwa-install-btn" class="pwa-install-btn hidden" aria-label="ऐप इंस्टॉल करें / Install App" title="ऐप इंस्टॉल करें (Install App)">
+        <span class="install-icon" aria-hidden="true">📲</span>
+        <span class="install-text">ऐप इंस्टॉल करें (Install)</span>
+      </button>
+
       <!-- Status line with connection dot -->
       <div class="status-badge" id="status-badge" role="status" aria-live="polite">
         <span class="conn-dot" id="conn-dot" title="स्थिति / Status: Disconnected"></span>
@@ -111,6 +129,26 @@
       <div id="profile-fields-list" class="profile-fields-list" role="region" aria-label="Profile Fields List">
         <div class="loading-state">प्रोफ़ाइल लोड हो रही है... / Loading profile...</div>
       </div>
+
+      <!-- Documents Section -->
+      <div class="profile-documents-section" id="profile-documents-section">
+        <div class="section-divider"></div>
+        <div class="documents-header">
+          <div class="documents-title-wrap">
+            <h3 class="documents-title">दस्तावेज़ / Documents</h3>
+            <span id="documents-count" class="badge-count">0</span>
+          </div>
+          <button type="button" id="docs-refresh-btn" class="btn-icon-small" title="दस्तावेज़ रीफ्रेश करें / Refresh Documents" aria-label="Refresh Documents">
+            🔄
+          </button>
+        </div>
+        <p class="documents-intro">
+          अपलोड किए गए दस्तावेज़ (Form 16, PDF, छवियां) फॉर्म भरने में उपयोग होते हैं।
+        </p>
+        <div id="documents-list" class="documents-list" role="region" aria-label="Uploaded Documents List">
+          <div class="empty-docs-text">कोई दस्तावेज़ अपलोड नहीं है / No documents uploaded yet.</div>
+        </div>
+      </div>
     </section>
 
     <!-- 2. CENTRE: Conversation Panel -->
@@ -130,9 +168,21 @@
         </div>
       </div>
 
+      <!-- Drag & drop indicator overlay -->
+      <div id="chat-drop-overlay" class="chat-drop-overlay hidden" aria-hidden="true">
+        <div class="drop-overlay-content">
+          <span class="drop-icon">📄</span>
+          <span class="drop-text">दस्तावेज़ यहाँ छोड़ें / Drop document here (.pdf, .png, .jpg)</span>
+        </div>
+      </div>
+
       <!-- Quick Start Chips -->
       <div class="quick-chips-wrapper" aria-label="त्वरित सुझाव / Quick Actions">
         <div class="quick-chips-scroll">
+          <button type="button" class="chip chip-demo" data-query="डेमो पोर्टल पर नया पैन कार्ड आवेदन भरना है">डेमो: पैन फॉर्म 49A</button>
+          <button type="button" class="chip chip-demo" data-query="डेमो पोर्टल पर Form 16 से ITR-1 दाखिल करना है">डेमो: ITR-1 + Form 16</button>
+          <button type="button" class="chip chip-demo" data-query="डेमो पोर्टल पर नया वोटर आईडी फॉर्म 6 भरना है">डेमो: वोटर फॉर्म 6</button>
+          <button type="button" class="chip chip-demo" data-query="डेमो पोर्टल पर नया कंपनी नाम (MCA) आवेदन भरना है">डेमो: कंपनी नाम (MCA)</button>
           <button type="button" class="chip" data-query="नया पैन कार्ड">नया पैन कार्ड</button>
           <button type="button" class="chip" data-query="वोटर आईडी (Form 6)">वोटर आईडी (Form 6)</button>
           <button type="button" class="chip" data-query="ITR रिफंड स्टेटस">ITR रिफंड स्टेटस</button>
@@ -155,6 +205,24 @@
             <span class="mic-icon" aria-hidden="true">🎙️</span>
             <span class="mic-wave" aria-hidden="true"></span>
           </button>
+
+          <!-- Document Attach Button -->
+          <button
+            type="button"
+            id="attach-btn"
+            class="attach-btn"
+            aria-label="दस्तावेज़ जोड़ें / Attach document"
+            title="दस्तावेज़ जोड़ें (.pdf, .png, .jpg / Attach document)"
+          >
+            <span class="attach-icon" aria-hidden="true">📎</span>
+          </button>
+          <input
+            type="file"
+            id="doc-file-input"
+            class="visually-hidden"
+            accept=".pdf,.png,.jpg,.jpeg"
+            aria-label="दस्तावेज़ फ़ाइल चुनें / Choose document file"
+          />
 
           <!-- Input wrapper with status / timer -->
           <div class="input-wrapper">

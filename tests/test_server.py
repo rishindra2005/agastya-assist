@@ -876,3 +876,253 @@ def test_ws_live_invalid_messages() -> None:
             assert err3["type"] == "error"
             assert "Unknown message type" in err3["message"]
 
+
+# ==============================================================================
+# Batch F Tests: Demo Portals, Document Upload, and PWA (Manifest, SW, Icons)
+# ==============================================================================
+
+def test_mock_portals_serving(tmp_path: Path) -> None:
+    """Test that /mock/ serves demo_portals/index.html and portal subdirectories."""
+    # Setup mock demo_portals hierarchy
+    (tmp_path / "index.html").write_text("<!DOCTYPE html><html><body><h1>Demo Replica Hub</h1></body></html>")
+    pan_dir = tmp_path / "pan"
+    pan_dir.mkdir()
+    (pan_dir / "index.html").write_text("<!DOCTYPE html><html><body><h1>PAN 49A Demo Portal</h1></body></html>")
+
+    app = create_app(demo_portals_dir=tmp_path)
+    client = TestClient(app)
+
+    # 1. Root /mock/ serves index.html
+    res_root = client.get("/mock/")
+    assert res_root.status_code == 200
+    assert "Demo Replica Hub" in res_root.text
+
+    # 2. Sub-portal /mock/pan/ serves pan/index.html
+    res_pan = client.get("/mock/pan/")
+    assert res_pan.status_code == 200
+    assert "PAN 49A Demo Portal" in res_pan.text
+
+    # 3. Non-existent sub-portal returns 404 cleanly
+    res_404 = client.get("/mock/nonexistent/")
+    assert res_404.status_code == 404
+
+
+def test_mock_portals_missing_dir(tmp_path: Path) -> None:
+    """Test that /mock/ works cleanly even if the demo_portals dir is empty or absent."""
+    missing_dir = tmp_path / "not_created_yet"
+    app = create_app(demo_portals_dir=missing_dir)
+    client = TestClient(app)
+
+    res = client.get("/mock/")
+    assert res.status_code == 404  # Clean 404, no unhandled exception
+
+
+def test_upload_document_pdf() -> None:
+    """Test uploading a PDF file to /api/documents."""
+    sample_path = Path("demo_portals/samples/form16_demo_test_kumar.pdf")
+    if sample_path.exists():
+        pdf_bytes = sample_path.read_bytes()
+        filename = "form16_demo_test_kumar.pdf"
+    else:
+        pdf_bytes = (
+            b"%PDF-1.4\n"
+            b"1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj\n"
+            b"2 0 obj << /Type /Pages /Kids [3 0 R] /Count 1 >> endobj\n"
+            b"3 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R >> endobj\n"
+            b"4 0 obj << /Length 15 >> stream\n"
+            b"BT /F1 12 Tf ET\n"
+            b"endstream endobj\n"
+            b"xref\n0 5\n0000000000 65535 f \n"
+            b"0000000009 00000 n \n0000000058 00000 n \n0000000115 00000 n \n0000000210 00000 n \n"
+            b"trailer << /Size 5 /Root 1 0 R >>\nstartxref\n275\n%%EOF\n"
+        )
+        filename = "form16_2026.pdf"
+
+    app = create_app()
+    client = TestClient(app)
+
+    # POST document
+    files = {"file": (filename, pdf_bytes, "application/pdf")}
+    res = client.post("/api/documents?user_id=alice", files=files)
+    assert res.status_code == 200
+    data = res.json()
+    assert "id" in data
+    assert data["filename"] == filename
+    assert data["kind"] == "form16"
+    assert "summary" in data
+    assert "Form 16" in data["summary"]
+    if sample_path.exists():
+        assert "AY 2026-27" in data["summary"]
+        assert "Demo Infotech" in data["summary"]
+
+    # GET documents
+    get_res = client.get("/api/documents?user_id=alice")
+    assert get_res.status_code == 200
+    docs = get_res.json()
+    assert isinstance(docs, list)
+    assert any(d["id"] == data["id"] and d["filename"] == filename for d in docs)
+
+
+def test_upload_document_generic_pdf() -> None:
+    """Test uploading a generic PDF document."""
+    minimal_pdf = (
+        b"%PDF-1.4\n"
+        b"1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj\n"
+        b"2 0 obj << /Type /Pages /Kids [3 0 R] /Count 1 >> endobj\n"
+        b"3 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R >> endobj\n"
+        b"4 0 obj << /Length 15 >> stream\n"
+        b"BT /F1 12 Tf ET\n"
+        b"endstream endobj\n"
+        b"xref\n0 5\n0000000000 65535 f \n"
+        b"0000000009 00000 n \n0000000058 00000 n \n0000000115 00000 n \n0000000210 00000 n \n"
+        b"trailer << /Size 5 /Root 1 0 R >>\nstartxref\n275\n%%EOF\n"
+    )
+    app = create_app()
+    client = TestClient(app)
+    res = client.post(
+        "/api/documents?user_id=frank",
+        files={"file": ("generic_report.pdf", minimal_pdf, "application/pdf")},
+    )
+    assert res.status_code == 200
+    data = res.json()
+    assert data["filename"] == "generic_report.pdf"
+    assert "kind" in data
+    assert "summary" in data
+    assert "generic_report.pdf" in data["summary"]
+
+
+def test_upload_document_images() -> None:
+    """Test uploading PNG and JPG documents."""
+    png_bytes = (
+        b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00"
+        b"\x1f\x15c4\x00\x00\x00\rIDATx\x9cc\xf8\xff\xff?\x03\x00\x05\xfe\x02\xfe\xa7V\x01\x81"
+        b"\x00\x00\x00\x00IEND\xaeB`\x82"
+    )
+    jpg_bytes = b"\xff\xd8\xff\xe0\x00\x10JFIF\x00\x01\x01\x00\x00\x01\x00\x01\x00\x00\xff\xd9"
+
+    app = create_app()
+    client = TestClient(app)
+
+    # 1. PNG upload
+    res_png = client.post(
+        "/api/documents?user_id=bob",
+        files={"file": ("salary_slip.png", png_bytes, "image/png")},
+    )
+    assert res_png.status_code == 200
+    assert res_png.json()["filename"] == "salary_slip.png"
+
+    # 2. JPG upload
+    res_jpg = client.post(
+        "/api/documents?user_id=bob",
+        files={"file": ("photo.jpg", jpg_bytes, "image/jpeg")},
+    )
+    assert res_jpg.status_code == 200
+    assert res_jpg.json()["filename"] == "photo.jpg"
+
+
+def test_upload_document_session_dispatch() -> None:
+    """Test that uploading a document emits event on session bus and sends user message to agent."""
+    session = FakeSession("charlie")
+    pipeline = FakePipeline(session)
+
+    app = create_app(
+        session_factory=lambda u: session,
+        pipeline_factory=lambda s: pipeline,
+    )
+    client = TestClient(app)
+
+    # Connect WebSocket to register session in app.state.sessions
+    with client.websocket_connect("/ws?user_id=charlie") as ws:
+        # Subscribe to bus events
+        q = session.bus.subscribe()
+
+        # Upload a document
+        pdf_data = b"%PDF-1.4 sample content"
+        res = client.post(
+            "/api/documents?user_id=charlie",
+            files={"file": ("form16.pdf", pdf_data, "application/pdf")},
+        )
+        assert res.status_code == 200
+        doc_info = res.json()
+
+        # Verify session received message
+        assert len(session.received_messages) == 1
+        msg_text, _ = session.received_messages[0]
+        assert f"user uploaded document form16.pdf id={doc_info['id']}" in msg_text
+
+        # Verify document_uploaded event on bus
+        assert not q.empty()
+        event = q.get_nowait()
+        assert event.type == "document_uploaded"
+        assert event.data["id"] == doc_info["id"]
+        assert event.data["filename"] == "form16.pdf"
+
+
+def test_upload_document_rejection_413_size() -> None:
+    """Test that files exceeding 10 MB are rejected with status 413."""
+    app = create_app()
+    client = TestClient(app)
+
+    # 10 MB + 1 byte
+    oversized = b"0" * (10 * 1024 * 1024 + 1)
+    res = client.post(
+        "/api/documents?user_id=dave",
+        files={"file": ("big_doc.pdf", oversized, "application/pdf")},
+    )
+    assert res.status_code == 413
+    assert "too large" in res.json()["detail"].lower()
+
+
+def test_upload_document_rejection_415_type() -> None:
+    """Test that unsupported file extensions are rejected with status 415."""
+    app = create_app()
+    client = TestClient(app)
+
+    # Text file
+    res_txt = client.post(
+        "/api/documents?user_id=eva",
+        files={"file": ("notes.txt", b"plain text", "text/plain")},
+    )
+    assert res_txt.status_code == 415
+    assert "only .pdf, .png, .jpg" in res_txt.json()["detail"].lower()
+
+    # Executable file
+    res_exe = client.post(
+        "/api/documents?user_id=eva",
+        files={"file": ("malware.exe", b"MZ", "application/octet-stream")},
+    )
+    assert res_exe.status_code == 415
+
+
+def test_manifest_and_sw_served() -> None:
+    """Test that /manifest.webmanifest and /sw.js are served with correct media types and content."""
+    app = create_app()
+    client = TestClient(app)
+
+    # 1. Manifest
+    res_manifest = client.get("/manifest.webmanifest")
+    assert res_manifest.status_code == 200
+    assert res_manifest.headers["content-type"].startswith("application/manifest+json")
+    manifest = res_manifest.json()
+    assert manifest["name"] == "Agastya Assist — अगस्त्य सहायक"
+    assert manifest["short_name"] == "Agastya"
+    assert manifest["display"] == "standalone"
+    assert manifest["start_url"] == "/"
+    assert len(manifest["icons"]) >= 2
+
+    # 2. Service Worker
+    res_sw = client.get("/sw.js")
+    assert res_sw.status_code == 200
+    assert "javascript" in res_sw.headers["content-type"]
+    sw_text = res_sw.text
+    assert "agastya-shell-v1" in sw_text
+    assert "/api" in sw_text
+    assert "/mock" in sw_text
+
+    # 3. Icons
+    for icon_name in ("icon-192.png", "icon-512.png", "maskable-512.png"):
+        res_icon = client.get(f"/static/icons/{icon_name}")
+        assert res_icon.status_code == 200
+        assert res_icon.headers["content-type"] == "image/png"
+
+

@@ -1,0 +1,90 @@
+id: "demo_voter_form6"
+portal: "Voters' Service Portal (Demo Replica)"
+title_en: "New Voter Registration Form 6 (Demo Replica)"
+title_hi: "नए मतदाता का पंजीकरण फॉर्म 6 (डेमो प्रतिकृति)"
+live_url: "http://127.0.0.1:8000/mock/voter/login.html"
+fixture: "demo_portals/voter/form6.html"
+requires_login: true
+required_fields:
+  - "full_name"
+  - "father_name"
+  - "date_of_birth"
+  - "gender"
+  - "mobile"
+  - "state"
+  - "district"
+  - "assembly_constituency"
+  - "address_line1"
+  - "pincode"
+optional_fields:
+  - "email"
+  - "aadhaar"
+  - "mother_name"
+  - "address_line2"
+  - "city"
+field_hints:
+  state:
+    - "state"
+  district:
+    - "district"
+    - "address_district"
+  assembly_constituency:
+    - "assembly_constituency"
+  full_name:
+    - "first_name"
+    - "surname"
+    - "name"
+  father_name:
+    - "relative_name"
+    - "relative_type"
+  mother_name:
+    - "relative_name"
+    - "mother_name"
+  gender:
+    - "gender"
+  date_of_birth:
+    - "dob"
+  mobile:
+    - "mobile"
+  email:
+    - "email"
+  aadhaar:
+    - "aadhaar"
+  address_line1:
+    - "house_no"
+    - "street_area"
+  address_line2:
+    - "tehsil_taluka"
+    - "post_office"
+  city:
+    - "town_village"
+    - "city"
+  pincode:
+    - "pincode"
+steps:
+  - "Navigate to the Voters Service Portal demo login page, enter mobile number, and click Request OTP."
+  - "Hand off to the citizen so they solve the login captcha and enter the OTP received on the demo phone."
+  - "Once on Form 6, select State, District, and Assembly Constituency from Section A dependent dropdowns."
+  - "Fill applicant personal details in Section B and relative details in Section D from profile."
+  - "Enter contact mobile and email in Section E, Aadhaar details in Section F, and gender in Section G."
+  - "Fill date of birth and proof document in Section H, followed by present address details in Section I."
+  - "Complete disability category in Section J if applicable, and complete declaration village and place."
+  - "Click Preview & Submit, verify details, and hand off before final Submit for the citizen to solve captcha."
+stop_before:
+  - "Request OTP"
+  - "Verify & Login"
+  - "Submit"
+  - "Preview & Submit"
+  - "ओटीपी भेजें"
+  - "लॉगिन करें"
+  - "आवेदन जमा करें"
+keywords:
+  - "voter"
+  - "voter id"
+  - "form 6"
+  - "elector"
+  - "demo"
+  - "डेमो"
+  - "मतदाता"
+  - "फॉर्म 6"
+  - "पहचान पत्र"

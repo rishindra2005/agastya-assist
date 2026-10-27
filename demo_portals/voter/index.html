@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Voters' Service Portal (Demo Replica)</title>
+  <link rel="stylesheet" href="/mock/_shared/demo.css">
+  <link rel="stylesheet" href="voter.css">
+  <script src="/mock/_shared/demo.js"></script>
+  <script src="voter.js"></script>
+</head>
+<body>
+  <header class="portal-header">
+    <div class="header-inner">
+      <div class="portal-brand">
+        <div class="brand-icon">🗳️</div>
+        <div class="brand-text">
+          <h1>Voters' Service Portal (Demo Replica)</h1>
+          <small>Election Commission Services & Electoral Registration Portal · Fictional Demonstration</small>
+        </div>
+      </div>
+      <nav class="header-nav">
+        <a href="index.html">Home</a>
+        <a href="login.html">Login</a>
+        <a href="form6.html">Form 6 (New Voter)</a>
+        <a href="#search">Search Roll</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="notice-banner">
+    <strong>📢 Latest Updates:</strong>
+    <div class="notice-marquee">
+      Special Summary Revision of Electoral Roll 2026 is now live | Link Aadhaar with EPIC using Form 6B | Form 6 applications for first-time electors open across all Assembly Constituencies | Demo Helpline: 1800-000-DEMO
+    </div>
+  </div>
+
+  <main class="main-container">
+    <div class="services-heading">
+      <span>Electoral Services for Citizens (Demo Replica)</span>
+      <small>Select a service to proceed with online filing</small>
+    </div>
+
+    <div class="cards-grid">
+      <!-- Card 1: Form 6 -->
+      <div class="service-card" id="card-form6">
+        <div>
+          <span class="card-badge">New Voter</span>
+          <h3>Form 6: Register as a New Elector</h3>
+          <p>Application for inclusion of name in Electoral Roll for first-time electors or shifting from another constituency.</p>
+        </div>
+        <div class="card-action">
+          <a href="login.html?redirect=form6.html" id="link-fill-form6">Fill Form 6 &rarr;</a>
+        </div>
+      </div>
+
+      <!-- Card 2: Form 6A -->
+      <div class="service-card" id="card-form6a">
+        <div>
+          <span class="card-badge">Overseas Citizen</span>
+          <h3>Form 6A: Overseas Elector Registration</h3>
+          <p>Application for registration of name in electoral roll by an Indian citizen ordinarily residing outside India.</p>
+        </div>
+        <div class="card-action">
+          <button type="button" onclick="alert('Form 6A demo placeholder');">Fill Form 6A</button>
+        </div>
+      </div>
+
+      <!-- Card 3: Form 7 -->
+      <div class="service-card" id="card-form7">
+        <div>
+          <span class="card-badge">Objection</span>
+          <h3>Form 7: Objection / Deletion of Name</h3>
+          <p>Application for objection to proposed inclusion or deletion of existing name in the electoral roll.</p>
+        </div>
+        <div class="card-action">
+          <button type="button" onclick="alert('Form 7 demo placeholder');">Fill Form 7</button>
+        </div>
+      </div>
+
+      <!-- Card 4: Form 8 -->
+      <div class="service-card" id="card-form8">
+        <div>
+          <span class="card-badge">Correction</span>
+          <h3>Form 8: Shifting / Correction of Entries</h3>
+          <p>Application for correction of entries in existing electoral roll, replacement of EPIC, or marking PwD.</p>
+        </div>
+        <div class="card-action">
+          <button type="button" onclick="alert('Form 8 demo placeholder');">Fill Form 8</button>
+        </div>
+      </div>
+
+      <!-- Card 5: Track Application -->
+      <div class="service-card" id="card-track">
+        <div>
+          <span class="card-badge">Status</span>
+          <h3>Track Application Status</h3>
+          <p>Check real-time processing status of submitted Form 6, Form 7, or Form 8 using your reference number.</p>
+        </div>
+        <div class="card-action">
+          <button type="button" onclick="alert('Track Status demo placeholder');">Track Status</button>
+        </div>
+      </div>
+
+      <!-- Card 6: Search Roll -->
+      <div class="service-card" id="card-search">
+        <div>
+          <span class="card-badge">Electoral Roll</span>
+          <h3>Search in Electoral Roll</h3>
+          <p>Search your polling station, Part number, and Serial number by details, EPIC number, or mobile.</p>
+        </div>
+        <div class="card-action">
+          <button type="button" onclick="alert('Search Roll demo placeholder');">Search Roll</button>
+        </div>
+      </div>
+
+      <!-- Card 7: Download e-EPIC -->
+      <div class="service-card" id="card-epic">
+        <div>
+          <span class="card-badge">Digital EPIC</span>
+          <h3>Download e-EPIC</h3>
+          <p>Download portable PDF of your digital Electoral Photo Identity Card authenticated with QR code.</p>
+        </div>
+        <div class="card-action">
+          <button type="button" onclick="alert('Download e-EPIC demo placeholder');">Download e-EPIC</button>
+        </div>
+      </div>
+
+      <!-- Card 8: Know your BLO -->
+      <div class="service-card" id="card-blo">
+        <div>
+          <span class="card-badge">Officers</span>
+          <h3>Know your BLO / Officer</h3>
+          <p>Locate contact information for your Booth Level Officer (BLO), Electoral Registration Officer (ERO), and DEO.</p>
+        </div>
+        <div class="card-action">
+          <button type="button" onclick="alert('Officer search demo placeholder');">Find Officer</button>
+        </div>
+      </div>
+    </div>
+  </main>
+</body>
+</html>

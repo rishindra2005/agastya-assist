@@ -21,6 +21,9 @@ class Settings(BaseSettings):
     PLAYWRIGHT_MCP: bool = True
     # Agent reasoning effort: lower = faster replies
     AGENT_EFFORT: str = "low"
+    # Which brain runs the in-app agent: "claude" (Claude Agent SDK) or "agy" (Antigravity CLI)
+    AGENT_BACKEND: str = "claude"
+    AGY_MODEL: str = "gemini-3.8-flash-high"
     LIVE_QUALITY: int = 60
     LIVE_MAX_WIDTH: int = 1280
     DEFAULT_LANGUAGE: str = "hi-IN"

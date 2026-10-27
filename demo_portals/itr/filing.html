@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ITR-1 (Sahaj) Filing · Income Tax e-Filing (Demo Replica)</title>
+  <link rel="stylesheet" href="/mock/_shared/demo.css">
+  <script src="/mock/_shared/demo.js"></script>
+  <link rel="stylesheet" href="itr.css">
+  <script src="itr.js"></script>
+</head>
+<body>
+  <!-- Top Utility Bar -->
+  <div class="top-nav">
+    <div>Government of India (Replica) · ITR-1 Sahaj Return Filing · AY 2026-27 (FY 2025-26)</div>
+    <div class="top-nav-right">
+      <a href="dashboard.html">Back to Dashboard</a>
+      <span>|</span>
+      <a href="index.html">Logout</a>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header class="main-header">
+    <div class="brand-area">
+      <div class="brand-icon">IT</div>
+      <div>
+        <h1 class="brand-title">Income Tax e-Filing (Demo Replica)</h1>
+        <p class="brand-subtitle">Form ITR-1 (Sahaj) Filing Form · Form 16 Pre-fill</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <span style="font-size: 13px; font-weight: 700; color: var(--itr-primary-dark);" id="filing_regime_badge">New Tax Regime u/s 115BAC (Default)</span>
+      <button type="button" id="btn_save_draft_top" class="btn btn-outline btn-sm" onclick="saveDraft()">Save Draft</button>
+    </div>
+  </header>
+
+  <!-- Filing Form Container -->
+  <main class="wide-container">
+    <div class="card" style="margin-bottom: 24px;">
+      <!-- Tab Navigation -->
+      <div class="itr-tabs-nav" role="tablist">
+        <button type="button" class="itr-tab-btn active" id="tab_btn_personal" role="tab" aria-selected="true" onclick="switchTab('personal')">
+          <span>1. Personal Information</span>
+          <span class="itr-tab-badge" id="badge_personal">In Progress</span>
+        </button>
+        <button type="button" class="itr-tab-btn" id="tab_btn_income" role="tab" aria-selected="false" onclick="switchTab('income')">
+          <span>2. Gross Total Income</span>
+          <span class="itr-tab-badge" id="badge_income">Pending</span>
+        </button>
+        <button type="button" class="itr-tab-btn" id="tab_btn_deductions" role="tab" aria-selected="false" onclick="switchTab('deductions')">
+          <span>3. Total Deductions</span>
+          <span class="itr-tab-badge" id="badge_deductions">Pending</span>
+        </button>
+        <button type="button" class="itr-tab-btn" id="tab_btn_taxes" role="tab" aria-selected="false" onclick="switchTab('taxes')">
+          <span>4. Tax Paid</span>
+          <span class="itr-tab-badge" id="badge_taxes">Pending</span>
+        </button>
+        <button type="button" class="itr-tab-btn" id="tab_btn_liability" role="tab" aria-selected="false" onclick="switchTab('liability')">
+          <span>5. Total Tax Liability</span>
+          <span class="itr-tab-badge" id="badge_liability">Pending</span>
+        </button>
+      </div>
+
+      <!-- Tab Content Area -->
+      <div class="card-body" style="padding: 0;">
+
+        <!-- TAB 1: Personal Information -->
+        <section id="pane_personal" class="tab-pane active" role="tabpanel" aria-labelledby="tab_btn_personal">
+          <div style="border-bottom: 1px solid var(--itr-border); padding-bottom: 12px; margin-bottom: 20px;">
+            <h2 style="font-size: 16px; color: var(--itr-primary-dark); margin: 0 0 4px 0;">Part A: General Information & Contact Details</h2>
+            <p style="font-size: 12px; color: var(--itr-text-muted); margin: 0;">
+              Verify prefilled identification and address details. Select your nature of employment and tax regime option.
+            </p>
+          </div>
+
+          <!-- Basic ID block -->
+          <h3 style="font-size: 14px; color: var(--itr-primary-dark); margin-bottom: 12px;">Taxpayer Identification</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="taxpayer_name">Full Name <span class="req">*</span></label>
+              <input type="text" id="taxpayer_name" name="taxpayer_name" class="form-control" value="TEST KUMAR DEMO" readonly>
+            </div>
+            <div class="form-group">
+              <label for="pan">Permanent Account Number (PAN) <span class="req">*</span></label>
+              <input type="text" id="pan" name="pan" class="form-control" value="ABCDE1234F" readonly>
+            </div>
+            <div class="form-group">
+              <label for="dob">Date of Birth <span class="req">*</span></label>
+              <input type="date" id="dob" name="dob" class="form-control" value="1990-01-15">
+            </div>
+            <div class="form-group">
+              <label for="aadhaar">Aadhaar Number <span class="req">*</span></label>
+              <input type="text" id="aadhaar" name="aadhaar" class="form-control" value="999988887777" maxlength="12">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="mobile">Mobile Number <span class="req">*</span></label>
+              <input type="tel" id="mobile" name="mobile" class="form-control" value="9876543210" maxlength="10">
+            </div>
+            <div class="form-group">
+              <label for="email">Email Address <span class="req">*</span></label>
+              <input type="email" id="email" name="email" class="form-control" value="test.kumar@example.com">
+            </div>
+          </div>
+
+          <!-- Address block -->
+          <h3 style="font-size: 14px; color: var(--itr-primary-dark); margin-top: 24px; margin-bottom: 12px;">Contact Address Details</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="flat_no">Flat / Door / Block No. <span class="req">*</span></label>
+              <input type="text" id="flat_no" name="flat_no" class="form-control" value="Flat 402, Shanti Heights">
+            </div>
+            <div class="form-group">
+              <label for="premises">Premises / Building / Village</label>
+              <input type="text" id="premises" name="premises" class="form-control" value="Bandra West">
+            </div>
+            <div class="form-group">
+              <label for="street">Road / Street</label>
+              <input type="text" id="street" name="street" class="form-control" value="Linking Road">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="locality">Area / Locality <span class="req">*</span></label>
+              <input type="text" id="locality" name="locality" class="form-control" value="Bandra">
+            </div>
+            <div class="form-group">
+              <label for="city">Town / City / District <span class="req">*</span></label>
+              <input type="text" id="city" name="city" class="form-control" value="Mumbai">
+            </div>
+            <div class="form-group">
+              <label for="state">State <span class="req">*</span></label>
+              <select id="state" name="state" class="form-control">
+                <option value="Maharashtra" selected>Maharashtra</option>
+                <option value="Delhi">Delhi</option>
+                <option value="Karnataka">Karnataka</option>
+                <option value="Tamil Nadu">Tamil Nadu</option>
+                <option value="Gujarat">Gujarat</option>
+                <option value="West Bengal">West Bengal</option>
+                <option value="Uttar Pradesh">Uttar Pradesh</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="pincode">PIN Code <span class="req">*</span></label>
+              <input type="text" id="pincode" name="pincode" class="form-control" value="400050" maxlength="6">
+            </div>
+          </div>
+
+          <!-- Employment and Tax Regime block -->
+          <h3 style="font-size: 14px; color: var(--itr-primary-dark); margin-top: 24px; margin-bottom: 12px;">Filing Status & Tax Regime Selection</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="nature_of_employment">Nature of Employment <span class="req">*</span></label>
+              <select id="nature_of_employment" name="nature_of_employment" class="form-control">
+                <option value="">-- Select Nature of Employment --</option>
+                <option value="CENTRAL_GOVT">Central Government</option>
+                <option value="STATE_GOVT">State Government</option>
+                <option value="PUBLIC_SECTOR">Public Sector Undertaking (PSU)</option>
+                <option value="OTHERS" selected>Others (Private Sector / Non-Govt)</option>
+                <option value="PENSIONERS">Pensioners</option>
+                <option value="NOT_APPLICABLE">Not Applicable</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Regime Opt-out Question -->
+          <div class="card" style="border: 2px solid var(--itr-primary); background: #f8fafc; margin-top: 16px;">
+            <div class="card-body">
+              <label style="font-size: 14px; font-weight: 700; color: var(--itr-primary-dark); display: block; margin-bottom: 8px;">
+                Do you wish to opt out of the new tax regime? <span class="req">*</span>
+              </label>
+              <div class="form-check" style="margin-bottom: 10px;">
+                <input type="radio" id="opt_out_no" name="opt_out_regime" value="no" checked onchange="onRegimeChange()">
+                <label for="opt_out_no">
+                  <strong>No (Continue with New Tax Regime u/s 115BAC — Default)</strong><br>
+                  <span style="font-size: 12px; color: var(--itr-text-muted);">
+                    Lower slab rates. Standard deduction is ₹75,000. Chapter VI-A deductions (80C, 80D, 80TTA) and HRA are not allowable.
+                  </span>
+                </label>
+              </div>
+
+              <div class="form-check">
+                <input type="radio" id="opt_out_yes" name="opt_out_regime" value="yes" onchange="onRegimeChange()">
+                <label for="opt_out_yes">
+                  <strong>Yes (Opt out of New Tax Regime and file under Old Tax Regime)</strong><br>
+                  <span style="font-size: 12px; color: var(--itr-text-muted);">
+                    Standard deduction is ₹50,000. Chapter VI-A deductions (80C up to ₹1,50,000, 80D, 80TTA) are allowable.
+                  </span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="tab-footer">
+            <span style="font-size: 12px; color: var(--itr-text-muted);">Ensure all identification and address fields are accurate.</span>
+            <button type="button" id="btn_confirm_personal" class="btn btn-primary" onclick="confirmTab('personal', 'income')">Confirm</button>
+          </div>
+        </section>
+
+        <!-- TAB 2: Gross Total Income -->
+        <section id="pane_income" class="tab-pane" role="tabpanel" aria-labelledby="tab_btn_income">
+          <div style="border-bottom: 1px solid var(--itr-border); padding-bottom: 12px; margin-bottom: 20px;">
+            <h2 style="font-size: 16px; color: var(--itr-primary-dark); margin: 0 0 4px 0;">Part B: Gross Total Income</h2>
+            <p style="font-size: 12px; color: var(--itr-text-muted); margin: 0;">
+              Enter details of salary income from Form 16 (Part B) and income from other sources (savings interest).
+            </p>
+          </div>
+
+          <!-- Salary breakdown section -->
+          <div class="card" style="margin-bottom: 20px;">
+            <div class="card-header">
+              <h3>1. Income from Salary (as per Form 16)</h3>
+            </div>
+            <div class="card-body">
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="salary_17_1">Salary as per section 17(1) <span class="req">*</span></label>
+                  <input type="number" id="salary_17_1" name="salary_17_1" class="form-control" value="1250000" step="1" oninput="recalculateAll()">
+                  <div class="form-text">Basic salary, DA, allowances, bonus as per Form 16 Part B line 1(a).</div>
+                </div>
+
+                <div class="form-group">
+                  <label for="perquisites_17_2">Value of perquisites as per section 17(2)</label>
+                  <input type="number" id="perquisites_17_2" name="perquisites_17_2" class="form-control" value="25000" step="1" oninput="recalculateAll()">
+                  <div class="form-text">Value of perquisites from employer as per Form 12BA / Form 16 line 1(b).</div>
+                </div>
+
+                <div class="form-group">
+                  <label for="profits_17_3">Profits in lieu of salary as per section 17(3)</label>
+                  <input type="number" id="profits_17_3" name="profits_17_3" class="form-control" value="0" step="1" oninput="recalculateAll()">
+                  <div class="form-text">Profits in lieu of salary as per Form 16 line 1(c).</div>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group" style="max-width: 320px;">
+                  <label for="gross_salary">Gross Salary (17(1) + 17(2) + 17(3))</label>
+                  <input type="number" id="gross_salary" name="gross_salary" class="form-control" value="1275000" readonly style="font-weight: 700; background: #eef4fb;">
+                </div>
+              </div>
+
+              <!-- Exempt Allowances table -->
+              <h4 style="font-size: 13px; color: var(--itr-primary-dark); margin-top: 16px; margin-bottom: 8px;">
+                Allowances to the extent exempt u/s 10
+              </h4>
+              <div style="background: #fafafa; border: 1px solid var(--itr-border); border-radius: 6px; padding: 12px; margin-bottom: 16px;">
+                <table class="table table-sm" id="table_exempt_allowances">
+                  <thead>
+                    <tr>
+                      <th style="width: 45%;">Allowance Description & Section</th>
+                      <th style="width: 35%;">Exempt Amount (₹)</th>
+                      <th style="width: 20%;">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tbody_exempt_allowances">
+                    <!-- Populated dynamically / initial row -->
+                  </tbody>
+                </table>
+                <button type="button" id="btn_add_allowance" class="btn btn-sm btn-secondary" onclick="addAllowanceRow('10(13A)', 0)">
+                  + Add Allowance u/s 10 (e.g. HRA 10(13A))
+                </button>
+                <div class="form-text" id="hra_regime_note" style="margin-top: 6px; color: var(--itr-text-muted);">
+                  Note: HRA exemption u/s 10(13A) is not allowable under the New Tax Regime.
+                </div>
+              </div>
+
+              <!-- Deductions u/s 16 -->
+              <h4 style="font-size: 13px; color: var(--itr-primary-dark); margin-top: 16px; margin-bottom: 8px;">
+                Deductions under Section 16
+              </h4>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="standard_deduction_16ia">Standard deduction u/s 16(ia) <span class="req">*</span></label>
+                  <input type="number" id="standard_deduction_16ia" name="standard_deduction_16ia" class="form-control" value="75000" readonly style="background: #f1f5f9; font-weight: 600;">
+                  <div class="form-text" id="std_ded_note">Auto-applied: ₹75,000 under New Regime / ₹50,000 under Old Regime.</div>
+                </div>
+
+                <div class="form-group">
+                  <label for="professional_tax_16iii">Tax on employment / Professional tax u/s 16(iii)</label>
+                  <input type="number" id="professional_tax_16iii" name="professional_tax_16iii" class="form-control" value="2500" step="1" oninput="recalculateAll()">
+                  <div class="form-text">Professional tax paid during FY 2025-26 as per Form 16.</div>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group" style="max-width: 340px;">
+                  <label for="income_chargeable_salaries">Income Chargeable under Salaries</label>
+                  <input type="number" id="income_chargeable_salaries" name="income_chargeable_salaries" class="form-control" value="1197500" readonly style="font-weight: 800; color: var(--itr-primary); background: #eef4fb;">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Other Sources section -->
+          <div class="card" style="margin-bottom: 20px;">
+            <div class="card-header">
+              <h3>2. Income from Other Sources</h3>
+            </div>
+            <div class="card-body">
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="interest_savings">Interest from Savings Bank Accounts</label>
+                  <input type="number" id="interest_savings" name="interest_savings" class="form-control" value="10000" step="1" oninput="recalculateAll()">
+                  <div class="form-text">Eligible for deduction u/s 80TTA (up to ₹10,000) under Old Regime.</div>
+                </div>
+
+                <div class="form-group">
+                  <label for="other_sources_income">Other Interest / Dividend / Miscellaneous Income</label>
+                  <input type="number" id="other_sources_income" name="other_sources_income" class="form-control" value="0" step="1" oninput="recalculateAll()">
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group" style="max-width: 320px;">
+                  <label for="total_other_sources">Total Income from Other Sources</label>
+                  <input type="number" id="total_other_sources" name="total_other_sources" class="form-control" value="10000" readonly style="background: #f1f5f9;">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Gross Total Income summary block -->
+          <div class="alert alert-info" style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <label for="gross_total_income" style="font-weight: 700; margin-bottom: 0;">Gross Total Income (GTI):</label>
+              <div style="font-size: 11px;">Sum of Income from Salaries and Income from Other Sources.</div>
+            </div>
+            <div>
+              <input type="number" id="gross_total_income" name="gross_total_income" class="form-control" value="1207500" readonly style="font-size: 16px; font-weight: 800; width: 200px; text-align: right; background: #fff; color: var(--itr-primary-dark);">
+            </div>
+          </div>
+
+          <div class="tab-footer">
+            <button type="button" class="btn btn-secondary" onclick="switchTab('personal')">Previous: Personal Info</button>
+            <button type="button" id="btn_confirm_income" class="btn btn-primary" onclick="confirmTab('income', 'deductions')">Confirm</button>
+          </div>
+        </section>
+
+        <!-- TAB 3: Total Deductions (Chapter VI-A) -->
+        <section id="pane_deductions" class="tab-pane" role="tabpanel" aria-labelledby="tab_btn_deductions">
+          <div style="border-bottom: 1px solid var(--itr-border); padding-bottom: 12px; margin-bottom: 20px;">
+            <h2 style="font-size: 16px; color: var(--itr-primary-dark); margin: 0 0 4px 0;">Part C: Deductions under Chapter VI-A</h2>
+            <p style="font-size: 12px; color: var(--itr-text-muted); margin: 0;">
+              Claim deductions for investments and payments u/s 80C, 80D, 80TTA.
+            </p>
+          </div>
+
+          <!-- Regime Notice Banner -->
+          <div id="regime_deduction_notice" class="alert alert-warning">
+            <strong>⚠ New Tax Regime Active (Default):</strong>
+            Under Section 115BAC, Chapter VI-A deductions (Sections 80C, 80D, 80TTA) are not allowable and are greyed out.
+            To claim these deductions, select <strong>Yes</strong> to opt out of the New Regime under the <strong>Personal Information</strong> tab.
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <h3>Deductions u/s 80C, 80D, 80TTA</h3>
+            </div>
+            <div class="card-body">
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="deduction_80c">Deduction u/s 80C (Life insurance, PF, PPF, ELSS - Max ₹1,50,000)</label>
+                  <input type="number" id="deduction_80c" name="deduction_80c" class="form-control greyed-out" value="150000" disabled oninput="recalculateAll()">
+                  <div class="form-text">As extracted from Form 16 Part B Section 10(a).</div>
+                </div>
+
+                <div class="form-group">
+                  <label for="deduction_80d">Deduction u/s 80D (Health Insurance / Mediclaim - Max ₹25,000)</label>
+                  <input type="number" id="deduction_80d" name="deduction_80d" class="form-control greyed-out" value="25000" disabled oninput="recalculateAll()">
+                  <div class="form-text">As extracted from Form 16 Part B Section 10(b).</div>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group" style="max-width: 360px;">
+                  <label for="deduction_80tta">Deduction u/s 80TTA (Savings Account Interest - Max ₹10,000)</label>
+                  <input type="number" id="deduction_80tta" name="deduction_80tta" class="form-control greyed-out" value="10000" disabled oninput="recalculateAll()">
+                  <div class="form-text">Limited to the actual interest earned from savings accounts.</div>
+                </div>
+              </div>
+
+              <div class="form-row" style="margin-top: 16px;">
+                <div class="form-group" style="max-width: 300px;">
+                  <label for="total_deductions">Total Deductions (Chapter VI-A)</label>
+                  <input type="number" id="total_deductions" name="total_deductions" class="form-control" value="0" readonly style="font-weight: 700; background: #eef4fb;">
+                </div>
+                <div class="form-group" style="max-width: 300px;">
+                  <label for="total_taxable_income">Total Taxable Income (GTI - Deductions)</label>
+                  <input type="number" id="total_taxable_income" name="total_taxable_income" class="form-control" value="1207500" readonly style="font-weight: 800; color: var(--itr-primary-dark); background: #eef4fb;">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tab-footer">
+            <button type="button" class="btn btn-secondary" onclick="switchTab('income')">Previous: Gross Income</button>
+            <button type="button" id="btn_confirm_deductions" class="btn btn-primary" onclick="confirmTab('deductions', 'taxes')">Confirm</button>
+          </div>
+        </section>
+
+        <!-- TAB 4: Tax Paid -->
+        <section id="pane_taxes" class="tab-pane" role="tabpanel" aria-labelledby="tab_btn_taxes">
+          <div style="border-bottom: 1px solid var(--itr-border); padding-bottom: 12px; margin-bottom: 20px;">
+            <h2 style="font-size: 16px; color: var(--itr-primary-dark); margin: 0 0 4px 0;">Part D: Taxes Paid & Tax Deducted at Source (TDS)</h2>
+            <p style="font-size: 12px; color: var(--itr-text-muted); margin: 0;">
+              Verify details of TDS on Salary reported by employer as per Form 16 / Form 26AS.
+            </p>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <h3>TDS on Salary (Schedule TDS1)</h3>
+            </div>
+            <div class="card-body">
+              <table class="table table-striped" id="table_tds">
+                <thead>
+                  <tr>
+                    <th>Tax Deduction Account No. (TAN)</th>
+                    <th>Employer Name</th>
+                    <th>Income Chargeable under Salaries (₹)</th>
+                    <th>Total Tax Deducted (TDS) (₹)</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="tbody_tds">
+                  <!-- Initial TDS row -->
+                  <tr id="tds_row_0">
+                    <td>
+                      <input type="text" class="form-control form-control-sm tds-tan" id="tds_tan_0" name="tds_tan_0" value="DELD12345E" maxlength="10" placeholder="e.g. DELD12345E">
+                    </td>
+                    <td>
+                      <input type="text" class="form-control form-control-sm tds-emp-name" id="tds_employer_name_0" name="tds_employer_name_0" value="Demo Infotech Private Limited" placeholder="Employer Name">
+                    </td>
+                    <td>
+                      <input type="number" class="form-control form-control-sm tds-income" id="tds_income_0" name="tds_income_0" value="1197500" step="1" oninput="recalculateAll()">
+                    </td>
+                    <td>
+                      <input type="number" class="form-control form-control-sm tds-amount" id="tds_amount_0" name="tds_amount_0" value="90000" step="1" oninput="recalculateAll()">
+                    </td>
+                    <td>
+                      <button type="button" class="btn btn-sm btn-secondary" onclick="removeTdsRow('tds_row_0')">Delete</button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <div style="margin-top: 10px;">
+                <button type="button" id="btn_add_tds" class="btn btn-secondary btn-sm" onclick="addTdsRow()">
+                  + Add another TDS entry
+                </button>
+              </div>
+
+              <div style="margin-top: 20px; max-width: 340px;">
+                <label for="total_tax_paid" style="font-weight: 700;">Total Taxes Paid (TDS on Salary)</label>
+                <input type="number" id="total_tax_paid" name="total_tax_paid" class="form-control" value="90000" readonly style="font-size: 15px; font-weight: 800; background: #eef4fb; color: var(--itr-primary);">
+              </div>
+            </div>
+          </div>
+
+          <div class="tab-footer">
+            <button type="button" class="btn btn-secondary" onclick="switchTab('deductions')">Previous: Deductions</button>
+            <button type="button" id="btn_confirm_taxes" class="btn btn-primary" onclick="confirmTab('taxes', 'liability')">Confirm</button>
+          </div>
+        </section>
+
+        <!-- TAB 5: Total Tax Liability & Comparison -->
+        <section id="pane_liability" class="tab-pane" role="tabpanel" aria-labelledby="tab_btn_liability">
+          <div style="border-bottom: 1px solid var(--itr-border); padding-bottom: 12px; margin-bottom: 20px;">
+            <h2 style="font-size: 16px; color: var(--itr-primary-dark); margin: 0 0 4px 0;">Part E: Total Tax Liability & Tax Computation</h2>
+            <p style="font-size: 12px; color: var(--itr-text-muted); margin: 0;">
+              Live computation of tax liability under New vs Old tax regimes for Assessment Year 2026-27.
+            </p>
+          </div>
+
+          <!-- Spoken Comparison Sentence Alert Banner -->
+          <div class="alert alert-info" id="comparison_alert_banner" style="font-size: 14px; font-weight: 600;">
+            <span id="comparison_sentence">
+              Under the new tax regime you get a refund of ₹5,240, whereas under the old regime you would have to pay ₹41,820, so the new regime saves you ₹47,060.
+            </span>
+          </div>
+
+          <!-- Regime Comparison Cards -->
+          <div class="regime-comparison">
+            <div id="card_new_regime" class="regime-box selected">
+              <div class="regime-box-title">New Tax Regime u/s 115BAC (Selected)</div>
+              <div class="regime-box-amount" id="disp_new_liability">₹84,760</div>
+              <div style="font-size: 12px; margin-bottom: 8px;">
+                TDS Paid: <strong id="disp_new_tds">₹90,000</strong> · 
+                <span id="disp_new_outcome" style="color: var(--itr-success); font-weight: 700;">Refund: ₹5,240</span>
+              </div>
+              <span class="regime-box-tag">Standard Deduction ₹75,000 · Lower Slabs</span>
+            </div>
+
+            <div id="card_old_regime" class="regime-box">
+              <div class="regime-box-title">Old Tax Regime (With Chapter VI-A)</div>
+              <div class="regime-box-amount" id="disp_old_liability">₹1,31,820</div>
+              <div style="font-size: 12px; margin-bottom: 8px;">
+                TDS Paid: <strong id="disp_old_tds">₹90,000</strong> · 
+                <span id="disp_old_outcome" style="color: var(--itr-danger); font-weight: 700;">Payable: ₹41,820</span>
+              </div>
+              <span class="regime-box-tag">Standard Deduction ₹50,000 · 80C/80D/80TTA</span>
+            </div>
+          </div>
+
+          <!-- Detailed Breakdown Table -->
+          <div class="card" style="margin-top: 20px;">
+            <div class="card-header">
+              <h3>Computation of Tax Liability Breakdown (AY 2026-27)</h3>
+            </div>
+            <div class="card-body">
+              <table class="table table-striped table-sm">
+                <thead>
+                  <tr>
+                    <th>Particulars</th>
+                    <th class="text-right" style="width: 25%;">Active Selected Regime (₹)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Gross Total Income (GTI)</td>
+                    <td class="text-right" id="row_gti">₹12,07,500</td>
+                  </tr>
+                  <tr>
+                    <td>Less: Total Deductions under Chapter VI-A</td>
+                    <td class="text-right" id="row_deductions">₹0</td>
+                  </tr>
+                  <tr style="font-weight: 700;">
+                    <td>Total Taxable Income (Rounded off u/s 288A)</td>
+                    <td class="text-right" id="row_taxable">₹12,07,500</td>
+                  </tr>
+                  <tr>
+                    <td>Tax Payable on Total Income at normal slab rates</td>
+                    <td class="text-right" id="row_tax_slabs">₹81,500</td>
+                  </tr>
+                  <tr>
+                    <td>Less: Rebate u/s 87A</td>
+                    <td class="text-right" id="row_rebate">₹0</td>
+                  </tr>
+                  <tr>
+                    <td>Tax after Rebate</td>
+                    <td class="text-right" id="row_tax_after_rebate">₹81,500</td>
+                  </tr>
+                  <tr>
+                    <td>Add: Health and Education Cess @ 4%</td>
+                    <td class="text-right" id="row_cess">₹3,260</td>
+                  </tr>
+                  <tr style="font-weight: 800; background: #eef4fb;">
+                    <td>Total Tax Liability (Gross Tax Payable)</td>
+                    <td class="text-right">
+                      <input type="number" id="tax_liability_total" name="tax_liability_total" class="form-control form-control-sm text-right" value="84760" readonly style="font-weight: 800; color: var(--itr-primary);">
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>Less: Total Taxes Paid (TDS on Salary)</td>
+                    <td class="text-right">
+                      <input type="number" id="tax_paid_display" class="form-control form-control-sm text-right" value="90000" readonly style="font-weight: 700;">
+                    </td>
+                  </tr>
+                  <tr id="row_refund_tr" style="background: #e8f5e9;">
+                    <td style="color: var(--itr-success); font-weight: 800; font-size: 14px;">Refund Due to Taxpayer</td>
+                    <td class="text-right">
+                      <input type="number" id="refund_amount" name="refund_amount" class="form-control form-control-sm text-right" value="5240" readonly style="font-weight: 800; color: var(--itr-success); font-size: 14px;">
+                    </td>
+                  </tr>
+                  <tr id="row_payable_tr" style="background: #fde8e8; display: none;">
+                    <td style="color: var(--itr-danger); font-weight: 800; font-size: 14px;">Net Amount Tax Payable</td>
+                    <td class="text-right">
+                      <input type="number" id="tax_payable_amount" name="tax_payable_amount" class="form-control form-control-sm text-right" value="0" readonly style="font-weight: 800; color: var(--itr-danger); font-size: 14px;">
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="tab-footer">
+            <button type="button" class="btn btn-secondary" onclick="switchTab('taxes')">Previous: Taxes Paid</button>
+            <div style="display: flex; gap: 10px;">
+              <button type="button" id="btn_confirm_liability" class="btn btn-primary" onclick="confirmTab('liability', 'preview')">Confirm</button>
+              <button type="button" id="btn_proceed_preview" class="btn btn-accent btn-lg" onclick="goToPreview()">Proceed to Preview ➔</button>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </div>
+  </main>
+
+  <script>
+    let tdsCounter = 1;
+    let allowanceCounter = 0;
+
+    document.addEventListener('DOMContentLoaded', function() {
+      // Initialize with default allowance row if empty
+      addAllowanceRow('10(13A)', 0);
+      recalculateAll();
+    });
+
+    function switchTab(tabKey) {
+      const tabs = ['personal', 'income', 'deductions', 'taxes', 'liability'];
+      tabs.forEach(t => {
+        const btn = document.getElementById('tab_btn_' + t);
+        const pane = document.getElementById('pane_' + t);
+        if (t === tabKey) {
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+          pane.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+          btn.setAttribute('aria-selected', 'false');
+          pane.classList.remove('active');
+        }
+      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function confirmTab(currentTab, nextTab) {
+      const badge = document.getElementById('badge_' + currentTab);
+      const btn = document.getElementById('tab_btn_' + currentTab);
+      badge.textContent = '✓ Confirmed';
+      btn.classList.add('confirmed');
+
+      saveDraft();
+
+      if (nextTab === 'preview') {
+        goToPreview();
+      } else if (nextTab) {
+        switchTab(nextTab);
+      }
+    }
+
+    function onRegimeChange() {
+      recalculateAll();
+    }
+
+    function addAllowanceRow(section, amount) {
+      const tbody = document.getElementById('tbody_exempt_allowances');
+      const rowId = 'allowance_row_' + allowanceCounter++;
+      const tr = document.createElement('tr');
+      tr.id = rowId;
+      tr.innerHTML = `
+        <td>
+          <select class="form-control form-control-sm allowance-sec" onchange="recalculateAll()">
+            <option value="10(13A)" ${section === '10(13A)' ? 'selected' : ''}>10(13A) - House Rent Allowance (HRA)</option>
+            <option value="10(5)" ${section === '10(5)' ? 'selected' : ''}>10(5) - Leave Travel Concession</option>
+            <option value="10(10)" ${section === '10(10)' ? 'selected' : ''}>10(10) - Gratuity</option>
+            <option value="10(14)" ${section === '10(14)' ? 'selected' : ''}>10(14) - Special Allowances</option>
+          </select>
+        </td>
+        <td>
+          <input type="number" class="form-control form-control-sm allowance-val" value="${amount || 0}" step="1" oninput="recalculateAll()">
+        </td>
+        <td>
+          <button type="button" class="btn btn-sm btn-secondary" onclick="document.getElementById('${rowId}').remove(); recalculateAll();">Delete</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+      recalculateAll();
+    }
+
+    function addTdsRow() {
+      const tbody = document.getElementById('tbody_tds');
+      const idx = tdsCounter++;
+      const rowId = 'tds_row_' + idx;
+      const tr = document.createElement('tr');
+      tr.id = rowId;
+      tr.innerHTML = `
+        <td><input type="text" class="form-control form-control-sm tds-tan" id="tds_tan_${idx}" name="tds_tan_${idx}" placeholder="TAN" maxlength="10"></td>
+        <td><input type="text" class="form-control form-control-sm tds-emp-name" id="tds_employer_name_${idx}" name="tds_employer_name_${idx}" placeholder="Employer Name"></td>
+        <td><input type="number" class="form-control form-control-sm tds-income" id="tds_income_${idx}" name="tds_income_${idx}" value="0" step="1" oninput="recalculateAll()"></td>
+        <td><input type="number" class="form-control form-control-sm tds-amount" id="tds_amount_${idx}" name="tds_amount_${idx}" value="0" step="1" oninput="recalculateAll()"></td>
+        <td><button type="button" class="btn btn-sm btn-secondary" onclick="removeTdsRow('${rowId}')">Delete</button></td>
+      `;
+      tbody.appendChild(tr);
+      recalculateAll();
+    }
+
+    function removeTdsRow(rowId) {
+      const el = document.getElementById(rowId);
+      if (el) el.remove();
+      recalculateAll();
+    }
+
+    function recalculateAll() {
+      const isOptOut = document.getElementById('opt_out_yes').checked;
+      const activeRegime = isOptOut ? 'old' : 'new';
+
+      // Update regime badge on header
+      const regimeBadge = document.getElementById('filing_regime_badge');
+      if (isOptOut) {
+        regimeBadge.textContent = 'Old Tax Regime u/s 115BAC Opt-Out';
+        regimeBadge.style.color = '#b84300';
+      } else {
+        regimeBadge.textContent = 'New Tax Regime u/s 115BAC (Default)';
+        regimeBadge.style.color = 'var(--itr-primary-dark)';
+      }
+
+      // 1. Gather salary components
+      const s17_1 = Number(document.getElementById('salary_17_1').value) || 0;
+      const s17_2 = Number(document.getElementById('perquisites_17_2').value) || 0;
+      const s17_3 = Number(document.getElementById('profits_17_3').value) || 0;
+      const grossSalary = s17_1 + s17_2 + s17_3;
+      document.getElementById('gross_salary').value = grossSalary;
+
+      // Allowances exempt u/s 10
+      let totalExemptAllowances = 0;
+      document.querySelectorAll('.allowance-val').forEach(input => {
+        totalExemptAllowances += Number(input.value) || 0;
+      });
+
+      // Standard deduction u/s 16(ia): 75,000 (new) / 50,000 (old)
+      const stdDed = isOptOut ? Math.min(grossSalary, 50000) : Math.min(grossSalary, 75000);
+      document.getElementById('standard_deduction_16ia').value = stdDed;
+      document.getElementById('std_ded_note').textContent = isOptOut
+        ? 'Applied: ₹50,000 under Old Regime.'
+        : 'Applied: ₹75,000 under New Regime.';
+
+      const profTax = Number(document.getElementById('professional_tax_16iii').value) || 0;
+
+      // Exempt allowances allowable: under new regime HRA is not allowable
+      const effectiveAllowances = isOptOut ? totalExemptAllowances : 0;
+      const salaryChargeable = Math.max(0, grossSalary - effectiveAllowances - stdDed - profTax);
+      document.getElementById('income_chargeable_salaries').value = salaryChargeable;
+
+      // Other sources
+      const savingsInterest = Number(document.getElementById('interest_savings').value) || 0;
+      const otherIncome = Number(document.getElementById('other_sources_income').value) || 0;
+      const totalOther = savingsInterest + otherIncome;
+      document.getElementById('total_other_sources').value = totalOther;
+
+      const gti = salaryChargeable + totalOther;
+      document.getElementById('gross_total_income').value = gti;
+
+      // 2. Chapter VI-A Deductions
+      const input80c = document.getElementById('deduction_80c');
+      const input80d = document.getElementById('deduction_80d');
+      const input80tta = document.getElementById('deduction_80tta');
+      const noticeBanner = document.getElementById('regime_deduction_notice');
+
+      let deductions80cVal = Number(input80c.value) || 0;
+      let deductions80dVal = Number(input80d.value) || 0;
+      let deductions80ttaVal = Number(input80tta.value) || 0;
+
+      if (isOptOut) {
+        // Old regime: enable fields, remove greyed-out
+        input80c.disabled = false;
+        input80c.classList.remove('greyed-out');
+        input80d.disabled = false;
+        input80d.classList.remove('greyed-out');
+        input80tta.disabled = false;
+        input80tta.classList.remove('greyed-out');
+        noticeBanner.style.display = 'none';
+      } else {
+        // New regime: disable & grey out
+        input80c.disabled = true;
+        input80c.classList.add('greyed-out');
+        input80d.disabled = true;
+        input80d.classList.add('greyed-out');
+        input80tta.disabled = true;
+        input80tta.classList.add('greyed-out');
+        noticeBanner.style.display = 'block';
+      }
+
+      // Total TDS
+      let totalTds = 0;
+      document.querySelectorAll('.tds-amount').forEach(inp => {
+        totalTds += Number(inp.value) || 0;
+      });
+      document.getElementById('total_tax_paid').value = totalTds;
+      document.getElementById('tax_paid_display').value = totalTds;
+
+      // 3. Compute tax for BOTH regimes
+      const baseInputs = {
+        grossSalary,
+        exemptAllowances: totalExemptAllowances,
+        professionalTax: profTax,
+        savingsInterest,
+        otherIncome,
+        deductions80c: deductions80cVal,
+        deductions80d: deductions80dVal,
+        deductions80tta: deductions80ttaVal,
+        tdsPaid: totalTds,
+      };
+
+      const resNew = ITREngine.computeTax('new', baseInputs);
+      const resOld = ITREngine.computeTax('old', baseInputs);
+      const activeRes = isOptOut ? resOld : resNew;
+
+      // Update Deductions tab numbers
+      document.getElementById('total_deductions').value = activeRes.totalDeductions;
+      document.getElementById('total_taxable_income').value = activeRes.taxableIncome;
+
+      // Update Breakdown Table
+      document.getElementById('row_gti').textContent = ITREngine.formatRupees(activeRes.grossTotalIncome);
+      document.getElementById('row_deductions').textContent = ITREngine.formatRupees(activeRes.totalDeductions);
+      document.getElementById('row_taxable').textContent = ITREngine.formatRupees(activeRes.taxableIncome);
+      document.getElementById('row_tax_slabs').textContent = ITREngine.formatRupees(activeRes.taxBeforeCess);
+      document.getElementById('row_rebate').textContent = ITREngine.formatRupees(activeRes.rebate87a);
+      document.getElementById('row_tax_after_rebate').textContent = ITREngine.formatRupees(activeRes.taxAfterRebate);
+      document.getElementById('row_cess').textContent = ITREngine.formatRupees(activeRes.cess);
+      document.getElementById('tax_liability_total').value = activeRes.totalTaxLiability;
+      document.getElementById('refund_amount').value = activeRes.refund;
+      document.getElementById('tax_payable_amount').value = activeRes.payable;
+
+      if (activeRes.isRefund) {
+        document.getElementById('row_refund_tr').style.display = '';
+        document.getElementById('row_payable_tr').style.display = 'none';
+      } else {
+        document.getElementById('row_refund_tr').style.display = 'none';
+        document.getElementById('row_payable_tr').style.display = '';
+      }
+
+      // Update Comparison Boxes
+      document.getElementById('disp_new_liability').textContent = ITREngine.formatRupees(resNew.totalTaxLiability);
+      document.getElementById('disp_new_tds').textContent = ITREngine.formatRupees(totalTds);
+      document.getElementById('disp_new_outcome').textContent = resNew.isRefund
+        ? 'Refund: ' + ITREngine.formatRupees(resNew.refund)
+        : 'Payable: ' + ITREngine.formatRupees(resNew.payable);
+      document.getElementById('disp_new_outcome').style.color = resNew.isRefund ? 'var(--itr-success)' : 'var(--itr-danger)';
+
+      document.getElementById('disp_old_liability').textContent = ITREngine.formatRupees(resOld.totalTaxLiability);
+      document.getElementById('disp_old_tds').textContent = ITREngine.formatRupees(totalTds);
+      document.getElementById('disp_old_outcome').textContent = resOld.isRefund
+        ? 'Refund: ' + ITREngine.formatRupees(resOld.refund)
+        : 'Payable: ' + ITREngine.formatRupees(resOld.payable);
+      document.getElementById('disp_old_outcome').style.color = resOld.isRefund ? 'var(--itr-success)' : 'var(--itr-danger)';
+
+      const cardNew = document.getElementById('card_new_regime');
+      const cardOld = document.getElementById('card_old_regime');
+      if (isOptOut) {
+        cardOld.classList.add('selected');
+        cardNew.classList.remove('selected');
+      } else {
+        cardNew.classList.add('selected');
+        cardOld.classList.remove('selected');
+      }
+
+      // Generate Spoken Comparison Sentence
+      const savings = Math.abs(resOld.totalTaxLiability - resNew.totalTaxLiability);
+      let sentence = '';
+      if (resNew.totalTaxLiability < resOld.totalTaxLiability) {
+        sentence = `Under the new tax regime you get a ${resNew.isRefund ? 'refund of ' + ITREngine.formatRupees(resNew.refund) : 'tax liability of ' + ITREngine.formatRupees(resNew.totalTaxLiability)}, whereas under the old regime you would ${resOld.isRefund ? 'get a refund of ' + ITREngine.formatRupees(resOld.refund) : 'have to pay ' + ITREngine.formatRupees(resOld.payable)}, so the new regime saves you ${ITREngine.formatRupees(savings)}.`;
+      } else {
+        sentence = `Under the old tax regime you get a ${resOld.isRefund ? 'refund of ' + ITREngine.formatRupees(resOld.refund) : 'tax liability of ' + ITREngine.formatRupees(resOld.totalTaxLiability)}, whereas under the new regime you would ${resNew.isRefund ? 'get a refund of ' + ITREngine.formatRupees(resNew.refund) : 'have to pay ' + ITREngine.formatRupees(resNew.payable)}, so the old regime saves you ${ITREngine.formatRupees(savings)}.`;
+      }
+      document.getElementById('comparison_sentence').textContent = sentence;
+    }
+
+    function saveDraft() {
+      const isOptOut = document.getElementById('opt_out_yes').checked;
+      const filingState = {
+        optOutRegime: isOptOut ? 'yes' : 'no',
+        taxpayer_name: document.getElementById('taxpayer_name').value,
+        pan: document.getElementById('pan').value,
+        dob: document.getElementById('dob').value,
+        aadhaar: document.getElementById('aadhaar').value,
+        mobile: document.getElementById('mobile').value,
+        email: document.getElementById('email').value,
+        flat_no: document.getElementById('flat_no').value,
+        premises: document.getElementById('premises').value,
+        street: document.getElementById('street').value,
+        locality: document.getElementById('locality').value,
+        city: document.getElementById('city').value,
+        state: document.getElementById('state').value,
+        pincode: document.getElementById('pincode').value,
+        nature_of_employment: document.getElementById('nature_of_employment').value,
+        salary_17_1: Number(document.getElementById('salary_17_1').value) || 0,
+        perquisites_17_2: Number(document.getElementById('perquisites_17_2').value) || 0,
+        profits_17_3: Number(document.getElementById('profits_17_3').value) || 0,
+        gross_salary: Number(document.getElementById('gross_salary').value) || 0,
+        standard_deduction: Number(document.getElementById('standard_deduction_16ia').value) || 0,
+        professional_tax: Number(document.getElementById('professional_tax_16iii').value) || 0,
+        income_chargeable_salaries: Number(document.getElementById('income_chargeable_salaries').value) || 0,
+        interest_savings: Number(document.getElementById('interest_savings').value) || 0,
+        other_sources_income: Number(document.getElementById('other_sources_income').value) || 0,
+        gross_total_income: Number(document.getElementById('gross_total_income').value) || 0,
+        deduction_80c: Number(document.getElementById('deduction_80c').value) || 0,
+        deduction_80d: Number(document.getElementById('deduction_80d').value) || 0,
+        deduction_80tta: Number(document.getElementById('deduction_80tta').value) || 0,
+        total_deductions: Number(document.getElementById('total_deductions').value) || 0,
+        total_taxable_income: Number(document.getElementById('total_taxable_income').value) || 0,
+        total_tds: Number(document.getElementById('total_tax_paid').value) || 0,
+        total_tax_liability: Number(document.getElementById('tax_liability_total').value) || 0,
+        refund_amount: Number(document.getElementById('refund_amount').value) || 0,
+        tax_payable: Number(document.getElementById('tax_payable_amount').value) || 0,
+      };
+      ITREngine.saveFiling(filingState);
+    }
+
+    function goToPreview() {
+      saveDraft();
+      window.location.href = 'preview.html' + (window.location.search || '');
+    }
+  </script>
+</body>
+</html>

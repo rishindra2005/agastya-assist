@@ -18,6 +18,7 @@ EventType = Literal[
     "done",
     "transcript",
     "tts",
+    "document_uploaded",
 ]
 
 

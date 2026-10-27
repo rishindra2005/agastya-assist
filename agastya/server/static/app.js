@@ -273,6 +273,15 @@ const browserPlaceholder = document.getElementById('browser-placeholder');
 const activityLog = document.getElementById('activity-log');
 const activityCountEl = document.getElementById('activity-count');
 
+const attachBtn = document.getElementById('attach-btn');
+const docFileInput = document.getElementById('doc-file-input');
+const chatDropOverlay = document.getElementById('chat-drop-overlay');
+const chatPanel = document.getElementById('chat-panel');
+const documentsList = document.getElementById('documents-list');
+const documentsCount = document.getElementById('documents-count');
+const docsRefreshBtn = document.getElementById('docs-refresh-btn');
+const pwaInstallBtn = document.getElementById('pwa-install-btn');
+
 /* ==========================================================================
    Helpers
    ========================================================================== */
@@ -386,6 +395,21 @@ function appendAssistantMessage(text) {
     <div class="bubble-avatar" aria-hidden="true">🏛️</div>
     <div class="bubble-content">
       <p>${escapeHtml(text).replace(/\n/g, '<br/>')}</p>
+    </div>
+  `;
+  chatMessages.appendChild(bubble);
+  scrollChatToBottom();
+}
+
+function appendDocumentChip(doc) {
+  const summary = doc.summary || doc.filename || 'दस्तावेज़ (Document)';
+  const bubble = document.createElement('div');
+  bubble.className = 'chat-bubble bubble-user doc-bubble';
+  bubble.innerHTML = `
+    <div class="bubble-content">
+      <div class="doc-chip-wrap">
+        <span class="doc-chip">📄 ${escapeHtml(summary)}</span>
+      </div>
     </div>
   `;
   chatMessages.appendChild(bubble);
@@ -767,6 +791,118 @@ function clearFieldHighlights(specificKeys = null) {
 }
 
 /* ==========================================================================
+   Document Management (REST: GET / POST /api/documents)
+   ========================================================================== */
+async function loadDocuments() {
+  if (!documentsList) return;
+  try {
+    const res = await fetch(`/api/documents?user_id=${encodeURIComponent(userId)}`);
+    if (!res.ok) {
+      throw new Error(`Documents status: ${res.status}`);
+    }
+    const docs = await res.json();
+    renderDocumentsList(docs);
+  } catch (err) {
+    console.warn('Failed to load documents:', err);
+    if (documentsList) {
+      documentsList.innerHTML = `<div class="empty-docs-text">दस्तावेज़ लोड करने में त्रुटि (Error loading documents).</div>`;
+    }
+  }
+}
+
+function renderDocumentsList(docs) {
+  if (!documentsList) return;
+  documentsList.innerHTML = '';
+  if (documentsCount) {
+    documentsCount.textContent = String(docs ? docs.length : 0);
+  }
+
+  if (!Array.isArray(docs) || docs.length === 0) {
+    documentsList.innerHTML = `<div class="empty-docs-text">कोई दस्तावेज़ अपलोड नहीं है / No documents uploaded yet.</div>`;
+    return;
+  }
+
+  docs.forEach((doc) => {
+    const card = document.createElement('div');
+    card.className = 'doc-card';
+    card.dataset.id = doc.id;
+
+    const isImg = (doc.kind === 'image') || (doc.filename && /\.(png|jpe?g)$/i.test(doc.filename));
+    const icon = isImg ? '🖼️' : '📄';
+    const summary = doc.summary || doc.filename || 'Document';
+    const kind = doc.kind || 'document';
+    const dateStr = doc.uploaded_at ? new Date(doc.uploaded_at).toLocaleTimeString() : '';
+
+    card.innerHTML = `
+      <span class="doc-card-icon" aria-hidden="true">${icon}</span>
+      <div class="doc-card-info">
+        <span class="doc-card-summary">${escapeHtml(summary)}</span>
+        <div class="doc-card-meta">
+          <span class="doc-kind-badge">${escapeHtml(kind)}</span>
+          <span class="doc-filename">${escapeHtml(doc.filename || '')}</span>
+          ${dateStr ? `<span class="doc-time">${escapeHtml(dateStr)}</span>` : ''}
+        </div>
+      </div>
+    `;
+    documentsList.appendChild(card);
+  });
+}
+
+async function uploadDocumentFile(file) {
+  if (!file) return;
+
+  const validExtensions = ['.pdf', '.png', '.jpg', '.jpeg'];
+  const ext = '.' + file.name.split('.').pop().toLowerCase();
+  if (!validExtensions.includes(ext)) {
+    showToast('केवल .pdf, .png, .jpg फ़ाइलें समर्थित हैं (Only .pdf, .png, .jpg allowed).');
+    return;
+  }
+
+  const maxSize = 10 * 1024 * 1024; // 10 MB
+  if (file.size > maxSize) {
+    showToast('फ़ाइल 10 MB से बड़ी है (File size exceeds 10 MB limit).');
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append('file', file);
+
+  updateStatus('thinking', 'दस्तावेज़ अपलोड हो रहा है… (Uploading…)');
+
+  try {
+    const res = await fetch(`/api/documents?user_id=${encodeURIComponent(userId)}`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (res.ok) {
+      const doc = await res.json();
+      appendDocumentChip(doc);
+      await loadDocuments();
+      if (isReady) {
+        updateStatus('ready', 'तैयार (Ready)');
+      } else {
+        updateStatus('idle', '');
+      }
+    } else if (res.status === 413) {
+      showToast('फ़ाइल 10 MB से बड़ी है (File size exceeds 10 MB limit).');
+      updateStatus('idle', 'त्रुटि (Error)');
+    } else if (res.status === 415) {
+      showToast('केवल .pdf, .png, .jpg फ़ाइलें समर्थित हैं (Only .pdf, .png, .jpg allowed).');
+      updateStatus('idle', 'त्रुटि (Error)');
+    } else {
+      const err = await res.json().catch(() => ({}));
+      showToast(err.detail || `Upload failed: ${res.status}`);
+      updateStatus('idle', 'त्रुटि (Error)');
+    }
+  } catch (err) {
+    console.error('Document upload network error:', err);
+    showToast('दस्तावेज़ अपलोड विफल रहा (Network error during upload).');
+    updateStatus('idle', 'त्रुटि (Error)');
+  }
+}
+
+/* ==========================================================================
    Languages (REST: GET /api/languages)
    ========================================================================== */
 async function loadLanguages() {
@@ -970,6 +1106,13 @@ function handleAgentEvent(event) {
 
     case 'profile_updated':
       loadProfile();
+      break;
+
+    case 'document_uploaded':
+      if (data && (data.summary || data.filename)) {
+        appendDocumentChip(data);
+      }
+      loadDocuments();
       break;
 
     case 'tts':
@@ -1230,7 +1373,100 @@ function initEventListeners() {
       }
     });
   });
+
+  // 10. Document attach button and file input
+  if (attachBtn && docFileInput) {
+    attachBtn.addEventListener('click', () => {
+      docFileInput.click();
+    });
+
+    docFileInput.addEventListener('change', async () => {
+      if (docFileInput.files && docFileInput.files[0]) {
+        const file = docFileInput.files[0];
+        await uploadDocumentFile(file);
+        docFileInput.value = '';
+      }
+    });
+  }
+
+  // 11. Documents refresh button
+  if (docsRefreshBtn) {
+    docsRefreshBtn.addEventListener('click', loadDocuments);
+  }
+
+  // 12. Drag and drop onto chat panel
+  if (chatPanel) {
+    ['dragenter', 'dragover'].forEach((eventName) => {
+      chatPanel.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (chatDropOverlay) {
+          chatDropOverlay.classList.remove('hidden');
+        }
+      });
+    });
+
+    ['dragleave', 'drop'].forEach((eventName) => {
+      chatPanel.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (chatDropOverlay && (eventName === 'drop' || e.relatedTarget === null || !chatPanel.contains(e.relatedTarget))) {
+          chatDropOverlay.classList.add('hidden');
+        }
+      });
+    });
+
+    chatPanel.addEventListener('drop', async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (chatDropOverlay) {
+        chatDropOverlay.classList.add('hidden');
+      }
+      if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]) {
+        await uploadDocumentFile(e.dataTransfer.files[0]);
+      }
+    });
+  }
+
+  // 13. PWA install button
+  if (pwaInstallBtn) {
+    pwaInstallBtn.addEventListener('click', async () => {
+      if (!deferredInstallPrompt) return;
+      deferredInstallPrompt.prompt();
+      const choice = await deferredInstallPrompt.userChoice;
+      if (choice && choice.outcome === 'accepted') {
+        pwaInstallBtn.classList.add('hidden');
+      }
+      deferredInstallPrompt = null;
+    });
+  }
 }
+
+// Register Service Worker for PWA
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker
+      .register('/sw.js', { scope: '/' })
+      .catch((err) => console.warn('[PWA] Service worker registration failed:', err));
+  });
+}
+
+// PWA Install Prompt handling
+let deferredInstallPrompt = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  if (pwaInstallBtn) {
+    pwaInstallBtn.classList.remove('hidden');
+  }
+});
+
+window.addEventListener('appinstalled', () => {
+  deferredInstallPrompt = null;
+  if (pwaInstallBtn) {
+    pwaInstallBtn.classList.add('hidden');
+  }
+});
 
 function switchToTab(panelId) {
   const tabBtns = document.querySelectorAll('.tab-btn');
@@ -1265,5 +1501,6 @@ window.addEventListener('DOMContentLoaded', async () => {
   });
   await loadLanguages();
   await loadProfile();
+  await loadDocuments();
   connectWebSocket();
 });

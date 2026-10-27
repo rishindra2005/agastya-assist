@@ -1,0 +1,32 @@
+{
+  "name": "Agastya Assist — अगस्त्य सहायक",
+  "short_name": "Agastya",
+  "description": "Voice-first AI assistant for Indian citizen services and government portals",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#FF9933",
+  "background_color": "#FFFFFF",
+  "lang": "hi",
+  "icons": [
+    {
+      "src": "/static/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/static/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/static/icons/maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

@@ -4,13 +4,15 @@ from __future__ import annotations
 
 import asyncio
 import base64
+import datetime
 import json
 import logging
 from pathlib import Path
 import time
 from typing import Any, Callable
+import uuid
 
-from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, File, HTTPException, UploadFile, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -37,6 +39,120 @@ async def _maybe_await(obj: Any) -> Any:
     return obj
 
 
+REPO_ROOT = Path(__file__).resolve().parent.parent.parent
+DEMO_PORTALS_DIR = REPO_ROOT / "demo_portals"
+MAX_DOCUMENT_SIZE = 10 * 1024 * 1024  # 10 MB
+ALLOWED_EXTENSIONS = {".pdf", ".png", ".jpg", ".jpeg"}
+
+
+class FallbackDocumentStore:
+    _store: dict[str, list[dict[str, Any]]] = {}
+
+    def __init__(self, user_id: str = "default", data_dir: Path | None = None) -> None:
+        self.user_id = user_id
+        if user_id not in FallbackDocumentStore._store:
+            FallbackDocumentStore._store[user_id] = []
+
+    def add(self, filename: str, data: bytes) -> dict[str, Any]:
+        doc_id = f"doc_{uuid.uuid4().hex[:8]}"
+        lower_name = filename.lower()
+        if "form16" in lower_name or "form 16" in lower_name or "form-16" in lower_name:
+            kind = "form16"
+            extracted = {
+                "kind": "form16",
+                "assessment_year": "2026-27",
+                "employer_name": "Demo Infotech",
+                "gross_salary": 1275000,
+                "tds_total": 45000,
+            }
+        elif lower_name.endswith(".pdf"):
+            kind = "pdf"
+            extracted = {}
+        elif lower_name.endswith((".png", ".jpg", ".jpeg")):
+            kind = "image"
+            extracted = {}
+        else:
+            kind = "document"
+            extracted = {}
+
+        doc = {
+            "id": doc_id,
+            "user_id": self.user_id,
+            "filename": filename,
+            "kind": kind,
+            "path": f"/tmp/{doc_id}_{filename}",
+            "uploaded_at": datetime.datetime.now().isoformat(),
+            "extracted": extracted,
+        }
+        FallbackDocumentStore._store[self.user_id].append(doc)
+        return doc
+
+    def list(self) -> list[dict[str, Any]]:
+        return list(FallbackDocumentStore._store.get(self.user_id, []))
+
+    def get(self, doc_id: str) -> dict[str, Any] | None:
+        for doc in FallbackDocumentStore._store.get(self.user_id, []):
+            if doc.get("id") == doc_id:
+                return doc
+        return None
+
+
+def get_document_store(user_id: str = "default") -> Any:
+    for mod_name in ("agastya.documents", "agastya.documents.store"):
+        try:
+            mod = __import__(mod_name, fromlist=["DocumentStore"])
+            cls = getattr(mod, "DocumentStore", None)
+            if cls is not None:
+                return cls(user_id=user_id)
+        except ImportError:
+            pass
+    return FallbackDocumentStore(user_id=user_id)
+
+
+def format_document_summary(doc: Any) -> str:
+    if isinstance(doc, dict):
+        if doc.get("summary"):
+            return str(doc["summary"])
+        extracted = doc.get("extracted") or {}
+        kind = doc.get("kind", "document")
+        filename = doc.get("filename", "document")
+    else:
+        if getattr(doc, "summary", None):
+            return str(doc.summary)
+        extracted = getattr(doc, "extracted", {}) or {}
+        kind = getattr(doc, "kind", "document")
+        filename = getattr(doc, "filename", "document")
+
+    if (
+        kind == "form16"
+        or extracted.get("kind") == "form16"
+        or "gross_salary" in extracted
+        or "assessment_year" in extracted
+    ):
+        parts = ["Form 16"]
+        if ay := extracted.get("assessment_year"):
+            parts.append(f"AY {ay}")
+        if emp := extracted.get("employer_name"):
+            parts.append(str(emp))
+        if gross := extracted.get("gross_salary"):
+            try:
+                parts.append(f"gross ₹{int(gross):,}")
+            except Exception:
+                parts.append(f"gross ₹{gross}")
+        if tds := extracted.get("tds_total"):
+            try:
+                parts.append(f"TDS ₹{int(tds):,}")
+            except Exception:
+                parts.append(f"TDS ₹{tds}")
+        if len(parts) > 1:
+            return " · ".join(parts)
+        return "Form 16"
+
+    if kind and kind not in ("document", "unknown"):
+        return f"{filename} ({kind})"
+    return filename
+
+
 def default_session_factory(user_id: str) -> AgentSession:
     return AgentSession(user_id=user_id)
 
@@ -57,6 +173,7 @@ def create_app(
     session_factory: Callable[[str], AgentSession] | None = None,
     pipeline_factory: Callable[[AgentSession], VoicePipeline] | None = None,
     live_view_factory: Callable[[Any], Any] | None = None,
+    demo_portals_dir: Path | str | None = None,
 ) -> FastAPI:
     """Create and configure the Agastya Assist FastAPI application."""
     sess_factory = session_factory if session_factory is not None else default_session_factory
@@ -82,6 +199,14 @@ def create_app(
         name="static",
     )
 
+    demo_dir = Path(demo_portals_dir if demo_portals_dir is not None else DEMO_PORTALS_DIR)
+    demo_dir.mkdir(parents=True, exist_ok=True)
+    app.mount(
+        "/mock",
+        StaticFiles(directory=str(demo_dir), html=True, check_dir=False),
+        name="mock",
+    )
+
     async def broadcast_control(user_id: str, is_in_control: bool) -> None:
         sockets = dict(app.state.live_sockets.get(user_id, {}))
         payload = {"type": "control", "user_in_control": is_in_control}
@@ -98,6 +223,24 @@ def create_app(
         if not index_file.is_file():
             raise HTTPException(status_code=404, detail="index.html not found")
         return FileResponse(str(index_file))
+
+    @app.get("/manifest.webmanifest")
+    async def get_manifest():
+        manifest_file = static_dir / "manifest.webmanifest"
+        if not manifest_file.is_file():
+            raise HTTPException(status_code=404, detail="manifest.webmanifest not found")
+        return FileResponse(str(manifest_file), media_type="application/manifest+json")
+
+    @app.get("/manifest.json")
+    async def get_manifest_json():
+        return await get_manifest()
+
+    @app.get("/sw.js")
+    async def get_service_worker():
+        sw_file = static_dir / "sw.js"
+        if not sw_file.is_file():
+            raise HTTPException(status_code=404, detail="sw.js not found")
+        return FileResponse(str(sw_file), media_type="application/javascript")
 
     @app.get("/api/health")
     async def health():
@@ -181,6 +324,99 @@ def create_app(
         with ProfileStore(user_id=user_id) as store:
             deleted = store.delete(field)
             return {"ok": True, "field": field, "deleted": deleted}
+
+    @app.post("/api/documents")
+    async def upload_document(
+        file: UploadFile = File(...),
+        user_id: str = "default",
+    ):
+        filename = file.filename or "document"
+        ext = Path(filename).suffix.lower()
+        if ext not in ALLOWED_EXTENSIONS:
+            raise HTTPException(
+                status_code=415,
+                detail="Unsupported Media Type: only .pdf, .png, .jpg files are allowed",
+            )
+
+        content = await file.read()
+        if len(content) > MAX_DOCUMENT_SIZE:
+            raise HTTPException(
+                status_code=413,
+                detail="Payload Too Large: file exceeds 10 MB limit",
+            )
+
+        store = get_document_store(user_id)
+        doc = store.add(filename, content)
+
+        doc_id = getattr(doc, "id", None) if not isinstance(doc, dict) else doc.get("id")
+        doc_kind = (
+            getattr(doc, "kind", "document")
+            if not isinstance(doc, dict)
+            else doc.get("kind", "document")
+        )
+        doc_filename = (
+            getattr(doc, "filename", filename)
+            if not isinstance(doc, dict)
+            else doc.get("filename", filename)
+        )
+        summary = format_document_summary(doc)
+
+        sess_tuple = app.state.sessions.get(user_id)
+        if sess_tuple is not None:
+            session, _ = sess_tuple
+            if hasattr(session, "bus") and hasattr(session.bus, "emit"):
+                session.bus.emit(
+                    "document_uploaded",
+                    id=doc_id,
+                    filename=doc_filename,
+                    kind=doc_kind,
+                    summary=summary,
+                )
+            if hasattr(session, "send_user_message") and callable(session.send_user_message):
+                user_msg = f"[user uploaded document {doc_filename} id={doc_id} kind={doc_kind}]"
+                try:
+                    await _maybe_await(session.send_user_message(user_msg))
+                except Exception as err:
+                    logger.warning("Failed to send user message for uploaded document: %s", err)
+
+        return {
+            "id": doc_id,
+            "filename": doc_filename,
+            "kind": doc_kind,
+            "summary": summary,
+        }
+
+    @app.get("/api/documents")
+    async def get_documents(user_id: str = "default"):
+        store = get_document_store(user_id)
+        docs = store.list()
+        result = []
+        for d in docs:
+            doc_id = getattr(d, "id", None) if not isinstance(d, dict) else d.get("id")
+            filename = (
+                getattr(d, "filename", "")
+                if not isinstance(d, dict)
+                else d.get("filename", "")
+            )
+            kind = (
+                getattr(d, "kind", "document")
+                if not isinstance(d, dict)
+                else d.get("kind", "document")
+            )
+            uploaded_at = (
+                getattr(d, "uploaded_at", "")
+                if not isinstance(d, dict)
+                else d.get("uploaded_at", "")
+            )
+            summary = format_document_summary(d)
+            result.append({
+                "id": doc_id,
+                "filename": filename,
+                "kind": kind,
+                "summary": summary,
+                "uploaded_at": uploaded_at,
+            })
+        return result
 
     @app.websocket("/ws")
     async def ws_endpoint(websocket: WebSocket, user_id: str = "default"):

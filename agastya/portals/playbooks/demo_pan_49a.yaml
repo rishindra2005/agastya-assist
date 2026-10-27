@@ -1,0 +1,104 @@
+id: "demo_pan_49a"
+portal: "Protean PAN (Demo Replica)"
+title_en: "New PAN Card Application Form 49A (Demo Replica)"
+title_hi: "नया पैन कार्ड आवेदन फॉर्म 49A (डेमो प्रतिकृति)"
+live_url: "http://127.0.0.1:8000/mock/pan/"
+fixture: null
+requires_login: false
+required_fields:
+  - "full_name"
+  - "date_of_birth"
+  - "gender"
+  - "father_name"
+  - "mobile"
+  - "email"
+  - "address_line1"
+  - "city"
+  - "state"
+  - "pincode"
+optional_fields:
+  - "mother_name"
+  - "address_line2"
+  - "district"
+  - "occupation"
+  - "annual_income"
+  - "aadhaar"
+field_hints:
+  full_name:
+    - "first_name"
+    - "last_name"
+    - "middle_name"
+    - "name_on_card"
+    - "applicant_name"
+    - "declaration_name"
+  date_of_birth:
+    - "date_of_birth"
+    - "dob"
+    - "birth_date"
+  gender:
+    - "gender"
+  father_name:
+    - "father_last_name"
+    - "father_first_name"
+    - "father_middle_name"
+    - "father_name"
+  mother_name:
+    - "mother_last_name"
+    - "mother_first_name"
+    - "mother_middle_name"
+  mobile:
+    - "mobile"
+    - "tele_phone"
+    - "phone"
+  email:
+    - "email"
+  address_line1:
+    - "residence_flat"
+    - "flat"
+    - "door"
+    - "premises"
+    - "residence_premises"
+  address_line2:
+    - "residence_road"
+    - "residence_area"
+    - "road"
+    - "area"
+  city:
+    - "residence_city"
+    - "city"
+    - "town"
+  district:
+    - "district"
+  state:
+    - "residence_state"
+    - "state"
+  pincode:
+    - "residence_pincode"
+    - "pincode"
+    - "pin_code"
+  aadhaar:
+    - "aadhaar"
+steps:
+  - "Open the PAN application portal demo replica landing page at http://127.0.0.1:8000/mock/pan/ and click Apply Online."
+  - "Select application type as New PAN - Indian Citizen (Form 49A) and category as INDIVIDUAL."
+  - "Fill applicant registration details from the user profile including full name, date of birth, email, and mobile number."
+  - "Stop and hand off to the citizen before ticking the consent checkbox and solving the captcha, and wait for token registration."
+  - "After [user finished registration], click Continue with PAN Application Form to navigate into Form 49A tabs."
+  - "On the Personal Details tab, confirm name printed on card, select gender, and enter father's name and parent card preferences."
+  - "Navigate to the Contact & Other Details tab and fill residential address including flat number, street, city, state, and PIN code."
+  - "Click Search AO Code, search for the applicant's residential city in the modal table, and select the corresponding Assessing Officer code."
+  - "On the Document Details tab, select identity, address, and date-of-birth proof documents and enter the declaration place."
+  - "Proceed to the preview summary and stop before clicking Proceed to Payment or Authenticate & Submit so the citizen completes payment and OTP."
+stop_before:
+  - "Submit"
+  - "Proceed to Payment"
+  - "Send OTP"
+  - "Authenticate & Submit"
+keywords:
+  - "demo pan"
+  - "demo pan card"
+  - "डेमो पैन"
+  - "डेमो पैन कार्ड"
+  - "apply demo pan"
+  - "demo form 49a"
+  - "pan card demo replica"

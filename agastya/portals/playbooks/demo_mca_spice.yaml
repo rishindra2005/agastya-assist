@@ -1,0 +1,60 @@
+id: "demo_mca_spice"
+portal: "Corporate Affairs Portal (Demo Replica)"
+title_en: "SPICe+ Part A - Company Name Reservation (Demo Replica)"
+title_hi: "SPICe+ भाग A - कंपनी नाम आरक्षण (डेमो प्रतिकृति)"
+live_url: "http://127.0.0.1:8000/mock/mca/spice.html"
+fixture: "demo_portals/mca/spice.html"
+requires_login: false
+required_fields:
+  - "company_name"
+optional_fields:
+  - "full_name"
+  - "din"
+  - "pan"
+  - "email"
+  - "mobile"
+field_hints:
+  company_name:
+    - "proposed_name_1"
+    - "proposed_name_2"
+  din:
+    - "applicant_id_number"
+  pan:
+    - "applicant_id_number"
+  full_name:
+    - "applicant_name"
+  email:
+    - "applicant_email"
+  mobile:
+    - "applicant_mobile"
+steps:
+  - "Navigate to the Corporate Affairs Portal demo replica SPICe+ Part A web form."
+  - "Ask the citizen for two proposed company names and their main business activity if not already known."
+  - "Select the company type, class, category, and sub-category from the dependent dropdowns."
+  - "Open the NIC code search modal, search for the industry keyword, and select the appropriate 2-digit division."
+  - "Fill the description of main objects in the textarea within 300 characters."
+  - "Enter the primary name in Proposed Name 1 and alternative name in Proposed Name 2."
+  - "Run 'Check name' to execute the availability verification against prohibited words and existing companies."
+  - "Speak the availability check result clearly to the citizen."
+  - "Fill applicant identification details with DIN or PAN, full name, email, and mobile number."
+  - "Click 'Auto-check' to verify the structural completeness of the application."
+  - "Hand off to the citizen before 'Submit for name reservation' so the citizen can solve the captcha and enter the OTP."
+stop_before:
+  - "Submit for name reservation"
+  - "Confirm & Reserve Name"
+  - "Submit"
+  - "Pay Now"
+  - "नाम आरक्षण हेतु जमा करें"
+  - "पुष्टि करें"
+keywords:
+  - "spice"
+  - "spice plus"
+  - "mca"
+  - "company name"
+  - "name reservation"
+  - "company registration"
+  - "incorporation"
+  - "demo"
+  - "डेमो"
+  - "कंपनी"
+  - "नाम आरक्षण"

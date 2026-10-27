@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Income Tax e-Filing (Demo Replica)</title>
+  <link rel="stylesheet" href="/mock/_shared/demo.css">
+  <script src="/mock/_shared/demo.js"></script>
+  <link rel="stylesheet" href="itr.css">
+  <script src="itr.js"></script>
+</head>
+<body>
+  <!-- Top Utility Bar -->
+  <div class="top-nav">
+    <div>
+      <span>Government of India (Replica)</span> · 
+      <a href="#main-content">Skip to main content</a>
+      <a href="#">Screen Reader Access</a>
+    </div>
+    <div class="top-nav-right">
+      <a href="#">A-</a>
+      <a href="#">A</a>
+      <a href="#">A+</a>
+      <span>|</span>
+      <a href="#">English</a>
+      <a href="#">हिन्दी</a>
+    </div>
+  </div>
+
+  <!-- Main Header -->
+  <header class="main-header">
+    <div class="brand-area">
+      <div class="brand-icon">IT</div>
+      <div>
+        <h1 class="brand-title">Income Tax e-Filing (Demo Replica)</h1>
+        <p class="brand-subtitle">Central Board of Direct Taxes · Assistive AI Demo</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <a href="login.html" class="btn btn-primary" id="btn_header_login">Login</a>
+      <a href="login.html" class="btn btn-outline" id="btn_header_register">Register</a>
+    </div>
+  </header>
+
+  <!-- Navigation Menu Bar -->
+  <nav class="menu-bar" aria-label="Main Navigation">
+    <a href="index.html" class="active">Home</a>
+    <a href="#">Individual/HUF</a>
+    <a href="#">Company</a>
+    <a href="#">Non-Company</a>
+    <a href="#">Tax Professionals</a>
+    <a href="#">Downloads</a>
+    <a href="#">Help & FAQs</a>
+  </nav>
+
+  <!-- Main Content Container -->
+  <main id="main-content" class="wide-container">
+    <!-- Due Date Banner -->
+    <div class="due-banner" role="region" aria-label="Due Date Alerts">
+      <div class="due-banner-text">
+        <strong>📢 Tax Filing Reminder — AY 2026-27 (FY 2025-26):</strong>
+        The due date for filing Income Tax Return (ITR-1 / ITR-4) for individual salaried taxpayers is <strong>31st July 2026</strong>.
+        Please ensure PAN is linked with Aadhaar. File early to claim prompt tax refunds and avoid late fees u/s 234F.
+      </div>
+      <div>
+        <a href="login.html" class="btn btn-accent btn-sm">File Now</a>
+      </div>
+    </div>
+
+    <!-- 2-Column Dense Grid: Quick Links & News/Calendar -->
+    <div class="landing-grid">
+      <!-- Left Column: Quick Services -->
+      <div>
+        <div class="card">
+          <div class="card-header">
+            <h2>Quick Services</h2>
+            <span style="font-size: 11px; color: var(--itr-text-muted);">Self-service citizen tax tools</span>
+          </div>
+          <div class="card-body">
+            <div class="quick-links-grid">
+              <a href="login.html" class="quick-link-card" id="card_file_itr">
+                <span class="quick-link-icon">📄</span>
+                <span class="quick-link-title">File Income Tax Return</span>
+                <span class="quick-link-desc">ITR-1 (Sahaj), ITR-2, ITR-4 with prefilled Form 16 data</span>
+              </a>
+
+              <a href="#ao-modal" class="quick-link-card" id="card_know_ao" onclick="openAoModal(event)">
+                <span class="quick-link-icon">🏛️</span>
+                <span class="quick-link-title">Know your AO</span>
+                <span class="quick-link-desc">Find your Assessing Officer Ward/Circle and Jurisdiction</span>
+              </a>
+
+              <a href="#" class="quick-link-card" id="card_everify">
+                <span class="quick-link-icon">✓</span>
+                <span class="quick-link-title">e-Verify Return</span>
+                <span class="quick-link-desc">Verify submitted returns within 30 days via Aadhaar OTP</span>
+              </a>
+
+              <a href="#" class="quick-link-card" id="card_link_aadhaar">
+                <span class="quick-link-icon">🔗</span>
+                <span class="quick-link-title">Link Aadhaar</span>
+                <span class="quick-link-desc">Mandatory linking of PAN and Aadhaar identity</span>
+              </a>
+
+              <a href="#" class="quick-link-card" id="card_link_status">
+                <span class="quick-link-icon">🔍</span>
+                <span class="quick-link-title">Link Aadhaar Status</span>
+                <span class="quick-link-desc">Check if your PAN-Aadhaar linking is validated</span>
+              </a>
+
+              <a href="#" class="quick-link-card" id="card_epay">
+                <span class="quick-link-icon">💳</span>
+                <span class="quick-link-title">e-Pay Tax</span>
+                <span class="quick-link-desc">Pay Advance Tax, Self-Assessment Tax online</span>
+              </a>
+
+              <a href="#" class="quick-link-card" id="card_calculator">
+                <span class="quick-link-icon">🧮</span>
+                <span class="quick-link-title">Tax Calculator</span>
+                <span class="quick-link-desc">Compare New vs Old Tax Regime tax liabilities</span>
+              </a>
+
+              <a href="#" class="quick-link-card" id="card_refund_status">
+                <span class="quick-link-icon">₹</span>
+                <span class="quick-link-title">Refund / Demand Status</span>
+                <span class="quick-link-desc">Track status of income tax refunds sent by CPC</span>
+              </a>
+
+              <a href="#" class="quick-link-card" id="card_epan">
+                <span class="quick-link-icon">🆔</span>
+                <span class="quick-link-title">Instant e-PAN</span>
+                <span class="quick-link-desc">Paperless PAN allotment based on Aadhaar e-KYC</span>
+              </a>
+
+              <a href="#" class="quick-link-card" id="card_pan_verify">
+                <span class="quick-link-icon">📋</span>
+                <span class="quick-link-title">Verify Your PAN</span>
+                <span class="quick-link-desc">Validate PAN status, full name and date of birth</span>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Banner for Assistive AI Demo -->
+        <div class="card" style="border-left: 4px solid var(--itr-primary);">
+          <div class="card-body" style="display: flex; align-items: center; justify-content: space-between;">
+            <div>
+              <h3 style="margin: 0 0 6px 0; color: var(--itr-primary-dark);">Agastya Assist AI Integration</h3>
+              <p style="margin: 0; font-size: 13px; color: var(--itr-text-muted);">
+                Citizens can use voice instructions in Hindi, Tamil, Telugu, and English to fill Form 16 details automatically and review New vs Old regime tax computations.
+              </p>
+            </div>
+            <a href="login.html" class="btn btn-primary" style="white-space: nowrap; margin-left: 16px;">Try Demo Filing</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Tax Calendar & News Bulletins -->
+      <div>
+        <!-- Tax Calendar -->
+        <div class="card">
+          <div class="card-header">
+            <h3>Tax Calendar — AY 2026-27</h3>
+          </div>
+          <div class="card-body" style="padding-top: 8px;">
+            <ul class="calendar-list">
+              <li class="calendar-item">
+                <span class="calendar-date">15 Jun 2025</span>
+                <span class="calendar-text">1st instalment of Advance Tax (15%)</span>
+              </li>
+              <li class="calendar-item">
+                <span class="calendar-date">15 Sep 2025</span>
+                <span class="calendar-text">2nd instalment of Advance Tax (45%)</span>
+              </li>
+              <li class="calendar-item">
+                <span class="calendar-date">15 Dec 2025</span>
+                <span class="calendar-text">3rd instalment of Advance Tax (75%)</span>
+              </li>
+              <li class="calendar-item">
+                <span class="calendar-date">15 Mar 2026</span>
+                <span class="calendar-text">4th instalment of Advance Tax (100%)</span>
+              </li>
+              <li class="calendar-item" style="border-bottom: none; background: #fffbf0; border-radius: 4px; padding: 10px 8px;">
+                <span class="calendar-date" style="background: var(--itr-secondary); color: #fff;">31 Jul 2026</span>
+                <span class="calendar-text"><strong>Due Date for filing ITR-1 / ITR-4 (Non-Audit)</strong></span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Latest News & Updates -->
+        <div class="card">
+          <div class="card-header">
+            <h3>Latest Updates & Circulars</h3>
+          </div>
+          <div class="card-body">
+            <div class="news-item">
+              <span class="news-badge">New</span>
+              <strong>CBDT Notification:</strong> Default regime for AY 2026-27 is the New Tax Regime u/s 115BAC(1A). Standard deduction is ₹75,000.
+            </div>
+            <div class="news-item">
+              <span class="news-badge">Update</span>
+              <strong>Form 16 Pre-fill:</strong> Direct import of salary schedules from employer TDS returns now available for salaried employees.
+            </div>
+            <div class="news-item">
+              <span class="news-badge">Alert</span>
+              <strong>e-Verification Window:</strong> Ensure return is verified within 30 days of filing; unverified returns are treated as invalid.
+            </div>
+            <div class="news-item" style="border-bottom: none;">
+              <span class="news-badge">Notice</span>
+              <strong>Fictional Portal:</strong> All calculations, certificates, and numbers on this replica are for testing only.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Know your AO Modal -->
+  <div id="ao-modal" class="modal-backdrop" style="display: none;">
+    <div class="modal-content" role="dialog" aria-labelledby="ao-modal-title">
+      <div class="modal-header">
+        <h3 id="ao-modal-title">Know Your Assessing Officer (AO) Details</h3>
+        <button type="button" class="btn btn-sm btn-secondary" onclick="closeAoModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 13px; color: var(--itr-text-muted);">
+          Enter your Permanent Account Number (PAN) and mobile number to find your jurisdictional Assessing Officer.
+        </p>
+        <div class="form-group">
+          <label for="ao_pan">PAN Number <span class="req">*</span></label>
+          <input type="text" id="ao_pan" class="form-control" placeholder="e.g. ABCDE1234F" maxlength="10" value="ABCDE1234F">
+        </div>
+        <div class="form-group">
+          <label for="ao_mobile">Mobile Number <span class="req">*</span></label>
+          <input type="tel" id="ao_mobile" class="form-control" placeholder="10-digit mobile number" value="9876543210">
+        </div>
+        <div id="ao_result_card" class="alert alert-info" style="display: block; margin-top: 14px;">
+          <strong>Jurisdiction Details for ABCDE1234F:</strong><br>
+          Area Code: <strong>MUM</strong> · AO Type: <strong>W</strong> · Range Code: <strong>521</strong> · AO No: <strong>1</strong><br>
+          Jurisdiction: <strong>Ward 52(1), Mumbai</strong> · Building: <strong>Aayakar Bhavan, Maharshi Karve Road, Mumbai - 400020</strong>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeAoModal()">Close</button>
+        <button type="button" class="btn btn-primary" onclick="alert('AO Jurisdiction is Ward 52(1), Mumbai')">Search AO</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function openAoModal(e) {
+      if (e) e.preventDefault();
+      document.getElementById('ao-modal').style.display = 'flex';
+    }
+    function closeAoModal() {
+      document.getElementById('ao-modal').style.display = 'none';
+    }
+  </script>
+</body>
+</html>

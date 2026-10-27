@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Online PAN Application Registration (Demo Replica)</title>
+  <link rel="stylesheet" href="/mock/_shared/demo.css">
+  <link rel="stylesheet" href="pan.css">
+</head>
+<body>
+  <!-- Header -->
+  <header class="pan-header">
+    <div class="pan-header-inner">
+      <div class="pan-brand">
+        <div class="pan-logo-badge">PROTEAN</div>
+        <div class="pan-brand-text">
+          <h1>PAN Application Portal (Demo Replica)</h1>
+          <p>Online Application for Allotment of PAN · Agastya Assist Demo</p>
+        </div>
+      </div>
+      <div style="font-size: 12px; text-align: right; opacity: 0.9;">
+        <a href="index.html" style="color: #ffffff; text-decoration: underline;">Back to Home / मुख्य पृष्ठ</a>
+      </div>
+    </div>
+    <nav class="pan-nav">
+      <div class="pan-nav-inner">
+        <a href="index.html" class="pan-nav-link">Home / मुख्य पृष्ठ</a>
+        <a href="register.html" class="pan-nav-link active">Apply Online / ऑनलाइन आवेदन</a>
+        <a href="/mock/" class="pan-nav-link">All Demo Portals / सभी पोर्टल</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="pan-container" style="max-width: 900px;">
+    <!-- Step Bar -->
+    <div style="margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid var(--pan-border); padding-bottom: 12px;">
+      <h2 style="font-size: 18px; font-weight: 700; color: var(--pan-navy);">
+        Online PAN Application: Initial Registration
+      </h2>
+      <span style="font-size: 12px; color: var(--pan-muted); font-weight: 600;">Step 1 of 4: Registration</span>
+    </div>
+
+    <!-- Alert / Instructions -->
+    <div class="alert alert-info">
+      <strong>Important:</strong> Fields marked with an asterisk (<span class="required-star">*</span>) are mandatory.
+      A temporary <strong>Token Number</strong> will be issued upon registration to allow you to complete the application form.
+    </div>
+
+    <!-- Error Banner -->
+    <div id="error-banner" class="alert alert-danger" style="display: none;" role="alert"></div>
+
+    <!-- Registration Form Card -->
+    <div class="form-card">
+      <div class="form-card-header">
+        <h2>Applicant Registration Details / आवेदक पंजीकरण विवरण</h2>
+      </div>
+      <div class="form-card-body">
+        <form id="pan-registration-form" onsubmit="handleRegistrationSubmit(event)" novalidate>
+          <div class="form-grid">
+            <!-- Application Type -->
+            <div class="form-group">
+              <label for="application_type">Application Type / आवेदन प्रकार <span class="required-star">*</span></label>
+              <select id="application_type" name="application_type" class="form-control" required onchange="handleAppTypeChange()">
+                <option value="49A" selected>New PAN - Indian Citizen (Form 49A)</option>
+                <option value="49AA">New PAN - Foreign Citizen (Form 49AA)</option>
+                <option value="CR">Changes or Correction in existing PAN Data</option>
+              </select>
+            </div>
+
+            <!-- Category (Dependent Dropdown) -->
+            <div class="form-group">
+              <label for="category">Category of Applicant / आवेदक की श्रेणी <span class="required-star">*</span></label>
+              <select id="category" name="category" class="form-control" required>
+                <option value="INDIVIDUAL" selected>INDIVIDUAL / व्यक्तिगत</option>
+                <option value="ASSOCIATION OF PERSONS">ASSOCIATION OF PERSONS</option>
+                <option value="BODY OF INDIVIDUALS">BODY OF INDIVIDUALS</option>
+                <option value="COMPANY">COMPANY / कंपनी</option>
+                <option value="TRUST">TRUST / ट्रस्ट</option>
+                <option value="LIMITED LIABILITY PARTNERSHIP">LIMITED LIABILITY PARTNERSHIP</option>
+                <option value="FIRM">FIRM / फर्म</option>
+                <option value="GOVERNMENT">GOVERNMENT / सरकारी</option>
+                <option value="HINDU UNDIVIDED FAMILY">HINDU UNDIVIDED FAMILY (HUF)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="section-header">Applicant Information / आवेदक की जानकारी</div>
+
+          <div class="form-grid">
+            <!-- Title -->
+            <div class="form-group">
+              <label for="applicant_title">Applicant Title / शीर्षक <span class="required-star">*</span></label>
+              <select id="applicant_title" name="applicant_title" class="form-control" required>
+                <option value="Shri" selected>Shri / श्री</option>
+                <option value="Smt">Smt / श्रीमती</option>
+                <option value="Kumari">Kumari / कुमारी</option>
+              </select>
+            </div>
+
+            <!-- Last Name / Surname -->
+            <div class="form-group">
+              <label for="last_name">Last Name / Surname / उपनाम <span class="required-star">*</span></label>
+              <input type="text" id="last_name" name="last_name" class="form-control" placeholder="e.g. Sharma" required>
+              <span class="form-hint">Mandatory legal surname/last name as per Aadhaar</span>
+            </div>
+
+            <!-- First Name -->
+            <div class="form-group">
+              <label for="first_name">First Name / पहला नाम</label>
+              <input type="text" id="first_name" name="first_name" class="form-control" placeholder="e.g. Rajesh">
+            </div>
+
+            <!-- Middle Name -->
+            <div class="form-group">
+              <label for="middle_name">Middle Name / मध्य नाम</label>
+              <input type="text" id="middle_name" name="middle_name" class="form-control" placeholder="e.g. Kumar">
+            </div>
+
+            <!-- Date of Birth -->
+            <div class="form-group">
+              <label for="date_of_birth">Date of Birth / जन्म तिथि <span class="required-star">*</span></label>
+              <input type="date" id="date_of_birth" name="date_of_birth" class="form-control" required>
+              <span class="form-hint">Format: DD/MM/YYYY or YYYY-MM-DD</span>
+            </div>
+
+            <!-- Email -->
+            <div class="form-group">
+              <label for="email">Email Address / ईमेल आईडी <span class="required-star">*</span></label>
+              <input type="email" id="email" name="email" class="form-control" placeholder="e.g. rajesh.sharma@example.com" required>
+              <span class="form-hint">e-PAN card will be delivered to this email</span>
+            </div>
+
+            <!-- Mobile -->
+            <div class="form-group">
+              <label for="mobile">Mobile Number / मोबाइल नंबर <span class="required-star">*</span></label>
+              <input type="tel" id="mobile" name="mobile" class="form-control" placeholder="10-digit mobile number" maxlength="10" required>
+              <span class="form-hint">Indian 10-digit mobile number</span>
+            </div>
+
+            <!-- Citizen of India -->
+            <div class="form-group">
+              <label for="is_citizen">Whether citizen of India / क्या आप भारत के नागरिक हैं <span class="required-star">*</span></label>
+              <select id="is_citizen" name="is_citizen" class="form-control" required onchange="handleCitizenChange()">
+                <option value="Yes" selected>Yes / हाँ</option>
+                <option value="No">No / नहीं</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Consent Checkbox (Citizen only) -->
+          <div id="consent-container" class="form-group full-width" style="margin-top: 12px; background: #f8fafc; padding: 14px; border: 1px solid var(--pan-border); border-radius: 4px;">
+            <label class="form-check">
+              <input type="checkbox" id="consent" name="consent">
+              <span>
+                <strong>Declaration & Consent / घोषणा एवं सहमति <span class="required-star">*</span>:</strong>
+                I, the applicant, in the capacity of applicant, hereby agree that the details provided are correct and I consent to the terms of PAN processing under the Income Tax Act (Demo Replica).
+              </span>
+            </label>
+          </div>
+
+          <!-- Captcha Section -->
+          <div class="section-header" style="margin-top: 24px;">Security Verification / सुरक्षा सत्यापन</div>
+          <div style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 20px; margin-bottom: 24px;">
+            <div class="form-group">
+              <label>Captcha Image / कैप्चा छवि</label>
+              <div id="captcha-container"></div>
+            </div>
+            <div class="form-group" style="min-width: 220px;">
+              <label for="captcha_input">Enter Captcha / कैप्चा कोड दर्ज करें <span class="required-star">*</span></label>
+              <input type="text" id="captcha_input" name="captcha_input" class="form-control" placeholder="Enter 5-character code" maxlength="6" required autocomplete="off">
+            </div>
+          </div>
+
+          <!-- Form Buttons -->
+          <div style="display: flex; justify-content: flex-end; gap: 12px; border-top: 1px solid var(--pan-border); padding-top: 20px;">
+            <button type="reset" class="btn btn-secondary">Reset / रीसेट करें</button>
+            <button type="submit" id="btn-submit" class="btn btn-primary" style="min-width: 140px;">Submit / जमा करें</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <!-- Token Generated Modal Overlay -->
+  <div id="token-modal" class="modal-overlay">
+    <div class="modal-box" style="max-width: 580px;">
+      <div class="modal-header">
+        <h3>Application Registered Successfully / आवेदन सफलतापूर्वक पंजीकृत</h3>
+      </div>
+      <div class="modal-body" style="text-align: center; padding: 30px 20px;">
+        <div style="font-size: 40px; margin-bottom: 12px;">✅</div>
+        <h4 style="font-size: 16px; color: var(--pan-navy); margin-bottom: 10px;">
+          We thank you for using online PAN application service of Protean (Demo Replica).
+        </h4>
+        <p style="font-size: 13px; color: #475569; margin-bottom: 20px;">
+          Your registration request has been accepted. A temporary Token Number has been generated for your application:
+        </p>
+        <div class="ack-number-box" style="margin: 0 auto 20px; max-width: 380px;">
+          <div class="label">Temporary Token Number</div>
+          <div class="number" id="token-number">0000000000</div>
+        </div>
+        <p style="font-size: 12px; color: var(--pan-muted); margin-bottom: 24px;">
+          Token details have been saved to session storage. Please proceed to complete Form 49A details.
+        </p>
+        <div>
+          <a id="btn-continue-form" href="form49a.html" class="btn btn-primary" style="padding: 12px 28px; font-size: 14px;">
+            Continue with PAN Application Form →
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/mock/_shared/demo.js"></script>
+  <script src="pan.js"></script>
+  <script>
+    let captchaController = null;
+
+    document.addEventListener('DOMContentLoaded', function () {
+      // Initialize Demo Captcha
+      const container = document.getElementById('captcha-container');
+      if (window.DemoPortal && window.DemoPortal.captcha) {
+        captchaController = window.DemoPortal.captcha(container);
+      }
+
+      // Check URL params for application type preset
+      const params = new URLSearchParams(window.location.search);
+      const presetType = params.get('type');
+      if (presetType === '49aa') {
+        document.getElementById('application_type').value = '49AA';
+        handleAppTypeChange();
+      } else if (presetType === 'correction') {
+        document.getElementById('application_type').value = 'CR';
+        handleAppTypeChange();
+      }
+    });
+
+    function handleAppTypeChange() {
+      const type = document.getElementById('application_type').value;
+      const catSelect = document.getElementById('category');
+      const citizenSelect = document.getElementById('is_citizen');
+
+      if (type === '49AA') {
+        citizenSelect.value = 'No';
+      } else if (type === '49A') {
+        citizenSelect.value = 'Yes';
+      }
+      handleCitizenChange();
+    }
+
+    function handleCitizenChange() {
+      const isCitizen = document.getElementById('is_citizen').value === 'Yes';
+      const consentBox = document.getElementById('consent-container');
+      const consentInput = document.getElementById('consent');
+
+      if (isCitizen) {
+        consentBox.style.display = 'block';
+      } else {
+        consentBox.style.display = 'none';
+        consentInput.checked = false;
+      }
+    }
+
+    function showError(msg) {
+      const banner = document.getElementById('error-banner');
+      banner.textContent = msg;
+      banner.style.display = 'block';
+      banner.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    function hideError() {
+      const banner = document.getElementById('error-banner');
+      banner.style.display = 'none';
+      banner.textContent = '';
+    }
+
+    function handleRegistrationSubmit(event) {
+      event.preventDefault();
+      hideError();
+
+      const form = document.getElementById('pan-registration-form');
+      const appType = document.getElementById('application_type').value;
+      const category = document.getElementById('category').value;
+      const title = document.getElementById('applicant_title').value;
+      const lastName = document.getElementById('last_name').value.trim();
+      const firstName = document.getElementById('first_name').value.trim();
+      const middleName = document.getElementById('middle_name').value.trim();
+      const dob = document.getElementById('date_of_birth').value;
+      const email = document.getElementById('email').value.trim();
+      const mobile = document.getElementById('mobile').value.trim();
+      const isCitizen = document.getElementById('is_citizen').value;
+      const consentChecked = document.getElementById('consent').checked;
+      const captchaVal = document.getElementById('captcha_input').value.trim();
+
+      // Basic validations
+      if (!lastName) {
+        showError('Please enter Last Name / Surname.');
+        return;
+      }
+      if (!dob) {
+        showError('Please select Date of Birth.');
+        return;
+      }
+      if (!email || !email.includes('@')) {
+        showError('Please enter a valid Email Address.');
+        return;
+      }
+      if (!mobile || mobile.length < 10) {
+        showError('Please enter a valid 10-digit Indian Mobile Number.');
+        return;
+      }
+
+      // Citizen consent validation rule
+      if (isCitizen === 'Yes' && !consentChecked) {
+        showError('Consent checkbox is required for Indian citizens. Please review and check the declaration box.');
+        return;
+      }
+
+      // Captcha validation rule
+      if (!captchaVal) {
+        showError('Please enter the captcha characters shown in the image.');
+        return;
+      }
+      if (captchaController && !captchaController.check(captchaVal)) {
+        showError('Invalid captcha code entered. Please re-enter the code.');
+        if (captchaController.refresh) captchaController.refresh();
+        document.getElementById('captcha_input').value = '';
+        return;
+      }
+
+      // Generate 10-digit Token Number
+      const tokenNumber = window.DemoPortal ? window.DemoPortal.fakeNumber('00', 8) : '00' + Math.floor(10000000 + Math.random() * 90000000);
+
+      // Save registration state
+      const regData = {
+        tokenNumber,
+        applicationType: appType,
+        category,
+        title,
+        lastName,
+        firstName,
+        middleName,
+        fullName: [firstName, middleName, lastName].filter(Boolean).join(' '),
+        dateOfBirth: dob,
+        email,
+        mobile,
+        isCitizen,
+        registeredAt: new Date().toISOString()
+      };
+
+      if (window.PanStorage) {
+        window.PanStorage.set('reg', regData);
+        window.PanStorage.set('token', tokenNumber);
+      }
+
+      // Display token modal
+      document.getElementById('token-number').textContent = tokenNumber;
+      const continueLink = document.getElementById('btn-continue-form');
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('demo_test') === '1') {
+        continueLink.href = 'form49a.html?demo_test=1';
+      } else {
+        continueLink.href = 'form49a.html';
+      }
+      document.getElementById('token-modal').classList.add('active');
+    }
+  </script>
+</body>
+</html>
