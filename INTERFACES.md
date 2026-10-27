@@ -222,3 +222,25 @@ python -m agastya serve [--host 127.0.0.1] [--port 8000]
 --voice: push-to-talk: Enter starts recording via `arecord -q -f S16_LE -r 16000 -c 1 -t wav`, Enter stops;
 replies played with `paplay` (fallback `aplay`). Text mode prints assistant_text / ask_user / blocked / handoff
 nicely (rich-free, plain ANSI) and reads the next line from stdin.
+
+## Batch D changes
+### Grouped questions (ask_user)
+Tool `ask_user(question, fields: list[str] = [])` (the old single `field` arg stays accepted for compatibility and
+is treated as `fields=[field]`). Ask 2–3 RELATED missing fields per question (e.g. name + father's name + DOB;
+address block; mobile + email). After the answer the TOOL extracts values:
+  - 1 field: whole answer -> save (normalise/validate via ProfileStore.set).
+  - >1 fields: the tool returns the raw answer plus `{"fields": [...], "saved": {...}, "unparsed": [...]}`;
+    deterministic extraction for pattern fields (pan, aadhaar, mobile, email, pincode, ifsc, epic, dates);
+    the AGENT then calls save_profile_field for remaining fields it understood from the answer.
+`AgentSession.ask_user(question, fields: list[str] | None)` — keep accepting a str for the old `field` param.
+`ask_user` event data: `{"question_id", "question", "field": first-or-None, "fields": [...], "language_code"}`.
+
+### Faster speech (VoicePipeline)
+`assistant_text` / `ask_user` text is split into sentences (strip_markdown first; split on । . ? ! and newlines,
+merging pieces < 25 chars). Synthesize sentence 1 immediately and emit it as its own `tts` event, then the next.
+TTS of sentence N+1 may start while N is being emitted (prefetch 1), but emission order is strict.
+`tts` data gains `"seq": int` (per source event) and `"final": bool`.
+
+### Warm start
+`AgentSession.start()` must emit `status {"status":"ready"}` when the client is connected and the browser started.
+Server: session started on WS connect (already) — client shows "तैयार हो रहा है… / Warming up…" until `ready`.
