@@ -173,3 +173,52 @@ class Playbook:
 def load_playbooks(directory: Path | None = None) -> dict[str, Playbook]: ...   # *.yaml in agastya/portals/playbooks
 def match_playbook(query: str, playbooks: dict[str, Playbook]) -> list[Playbook]: ...  # keyword score, best first
 ```
+
+## agastya/voice/pipeline.py
+```python
+class VoicePipeline:
+    """Glue between audio and an AgentSession. Used by BOTH the web server and the CLI."""
+    def __init__(self, session: AgentSession, stt: SarvamSTT | None = None, tts: SarvamTTS | None = None): ...
+    async def handle_audio(self, audio: bytes, filename: str = "audio.wav") -> Transcript:
+        # STT (auto-detect) -> emits event "transcript" {"text","language_code"} on session.bus
+        # -> session.send_user_message(text, language_code). Empty transcript -> emit status {"status":"no_speech"} and do not send.
+    async def handle_text(self, text: str, language_code: str | None = None) -> None
+    async def speak(self, text: str, language_code: str) -> bytes   # TTS WAV; strips markdown (* # _ ` bullets) first
+```
+New EventType values (add to events.py Literal): "transcript", "tts".
+`tts` event data: `{"audio_b64": str, "mime": "audio/wav", "text": str, "language_code": str}`.
+`auto_speak`: pipeline subscribes to session.bus and for every `assistant_text` and `ask_user` event
+calls speak() and emits a `tts` event (in order, one at a time; TTS failure -> `error` event, never crash).
+
+## agastya/server/app.py  (FastAPI)
+```python
+def create_app(session_factory: Callable[[str], AgentSession] | None = None,
+               pipeline_factory: Callable[[AgentSession], VoicePipeline] | None = None) -> FastAPI
+app = create_app()        # for `uvicorn agastya.server.app:app`
+```
+- `GET /` -> static/index.html ; `/static/*` -> agastya/server/static
+- `GET /api/health` -> {"ok": true}
+- `GET /api/languages` -> SUPPORTED_LANGUAGES
+- `GET /api/playbooks` -> [{id, portal, title_en, title_hi, live_url, requires_login}]
+- `GET /api/profile?user_id=default` -> {field: {value (MASKED if sensitive), label_en, label_hi, source, updated_at}} for ALL FIELDS (value null if unset)
+- `PUT /api/profile/{field}?user_id=` body {"value": str} -> 200 saved (masked) | 422 {"detail": validator message}
+- `DELETE /api/profile/{field}?user_id=`
+- `WS /ws?user_id=default` — one AgentSession + VoicePipeline per connection, started on connect, stopped on disconnect.
+  client -> server JSON:
+    {"type":"text","text":str,"language_code":str|null}
+    {"type":"audio","audio_b64":str,"mime":"audio/wav"}         # 16 kHz mono WAV recorded in-browser
+    {"type":"answer","question_id":str,"answer":str}
+    {"type":"set_language","language_code":str}
+    {"type":"tts","enabled":bool}                                  # toggle auto_speak
+  server -> client: every AgentEvent.to_json() i.e. {"type","data","ts"}
+```
+
+## agastya/cli.py  (`python -m agastya`)
+```
+python -m agastya chat  [--user default] [--lang hi-IN] [--voice] [--headed]
+python -m agastya profile show|set <field> <value>|delete <field> [--user]
+python -m agastya serve [--host 127.0.0.1] [--port 8000]
+```
+--voice: push-to-talk: Enter starts recording via `arecord -q -f S16_LE -r 16000 -c 1 -t wav`, Enter stops;
+replies played with `paplay` (fallback `aplay`). Text mode prints assistant_text / ask_user / blocked / handoff
+nicely (rich-free, plain ANSI) and reads the next line from stdin.
