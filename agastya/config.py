@@ -26,6 +26,10 @@ class Settings(BaseSettings):
     AGY_MODEL: str = "gemini-3.8-flash-high"
     # agy cannot disable its built-in shell/file tools; it only runs unconfined if this is true
     AGY_ALLOW_UNSANDBOXED: bool = False
+    # Run agy inside bubblewrap (read-only system, private home)
+    AGY_SANDBOX: bool = True
+    # Base URL of the server hosting /mock demo replicas (used in demo playbooks)
+    DEMO_BASE_URL: str = "http://127.0.0.1:8000"
     LIVE_QUALITY: int = 60
     LIVE_MAX_WIDTH: int = 1280
     DEFAULT_LANGUAGE: str = "hi-IN"
