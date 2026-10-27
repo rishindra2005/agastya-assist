@@ -25,68 +25,151 @@ let isRecording = false;
 let recordTimerInterval = null;
 let recordStartTime = 0;
 let isTouchInteraction = false;
-let currentHighlightedField = null;
+const currentHighlightedFields = new Set();
+let profileMetadata = {};
 let activityCount = 0;
+let isReady = false;
+
+/* Standard profile field labels fallback */
+const FALLBACK_FIELD_LABELS = {
+  pan: { label_hi: 'पैन नंबर', label_en: 'PAN' },
+  aadhaar: { label_hi: 'आधार संख्या', label_en: 'Aadhaar' },
+  name: { label_hi: 'पूरा नाम', label_en: 'Full Name' },
+  father_name: { label_hi: 'पिता का नाम', label_en: "Father's Name" },
+  dob: { label_hi: 'जन्म तिथि', label_en: 'Date of Birth' },
+  mobile: { label_hi: 'मोबाइल नंबर', label_en: 'Mobile Number' },
+  email: { label_hi: 'ईमेल पता', label_en: 'Email Address' },
+  address: { label_hi: 'पता', label_en: 'Address' },
+  pincode: { label_hi: 'पिन कोड', label_en: 'PIN Code' },
+  state: { label_hi: 'राज्य', label_en: 'State' },
+  gender: { label_hi: 'लिंग', label_en: 'Gender' },
+  epic: { label_hi: 'मतदाता पहचान पत्र (EPIC)', label_en: 'Voter ID (EPIC)' },
+  bank_account: { label_hi: 'बैंक खाता संख्या', label_en: 'Bank Account Number' },
+  ifsc: { label_hi: 'IFSC कोड', label_en: 'IFSC Code' },
+  din: { label_hi: 'निदेशक पहचान संख्या (DIN)', label_en: 'Director Identification Number (DIN)' },
+};
+
+function getFieldLabels(fieldKey) {
+  if (profileMetadata && profileMetadata[fieldKey]) {
+    const meta = profileMetadata[fieldKey];
+    return {
+      label_hi: meta.label_hi || fieldKey,
+      label_en: meta.label_en || fieldKey,
+    };
+  }
+  if (FALLBACK_FIELD_LABELS[fieldKey]) {
+    return FALLBACK_FIELD_LABELS[fieldKey];
+  }
+  return {
+    label_hi: fieldKey,
+    label_en: fieldKey,
+  };
+}
 
 /* ==========================================================================
-   Audio Playback Queue (Sequential TTS playback)
+   Audio Playback Queue (Sequential TTS playback with gapless preloading)
    ========================================================================== */
 class AudioPlayerQueue {
-  constructor(onPlaybackStateChange) {
+  constructor(options = {}) {
     this.queue = [];
     this.isPlaying = false;
     this.currentAudio = null;
-    this.onPlaybackStateChange = onPlaybackStateChange;
+    this.onStateChange = options.onStateChange || null;
   }
 
-  enqueue(audioB64, mime = 'audio/wav') {
+  get isSpeaking() {
+    return this.isPlaying || this.queue.length > 0;
+  }
+
+  _notifyState() {
+    if (typeof this.onStateChange === 'function') {
+      this.onStateChange(this.isSpeaking);
+    }
+  }
+
+  enqueue(audioB64, mime = 'audio/wav', meta = {}) {
     if (!speakerEnabled) {
       return;
     }
-    this.queue.push({ audioB64, mime });
-    this.playNext();
+
+    const item = {
+      audioB64,
+      mime,
+      seq: meta.seq,
+      final: meta.final,
+      text: meta.text,
+      audioElement: null,
+    };
+
+    // Preload Audio element immediately so next sentence starts with zero gap
+    try {
+      const dataUri = `data:${item.mime};base64,${item.audioB64}`;
+      const audio = new Audio(dataUri);
+      audio.preload = 'auto';
+      audio.load();
+      item.audioElement = audio;
+    } catch (e) {
+      console.warn('Failed to preload Audio element:', e);
+    }
+
+    this.queue.push(item);
+    this._notifyState();
+
+    if (!this.isPlaying) {
+      this.playNext();
+    }
   }
 
   playNext() {
-    if (this.isPlaying || this.queue.length === 0) {
-      if (!this.isPlaying && typeof this.onPlaybackStateChange === 'function') {
-        this.onPlaybackStateChange(false);
-      }
+    if (this.isPlaying) {
+      return;
+    }
+
+    if (this.queue.length === 0) {
+      this.isPlaying = false;
+      this.currentAudio = null;
+      this._notifyState();
       return;
     }
 
     const item = this.queue.shift();
     this.isPlaying = true;
-    if (typeof this.onPlaybackStateChange === 'function') {
-      this.onPlaybackStateChange(true);
-    }
+    this._notifyState();
 
-    try {
-      const dataUri = `data:${item.mime};base64,${item.audioB64}`;
-      const audio = new Audio(dataUri);
-      this.currentAudio = audio;
-
-      const onFinish = () => {
+    let audio = item.audioElement;
+    if (!audio) {
+      try {
+        const dataUri = `data:${item.mime};base64,${item.audioB64}`;
+        audio = new Audio(dataUri);
+      } catch (err) {
+        console.warn('Failed to initialize Audio object:', err);
         this.isPlaying = false;
-        this.currentAudio = null;
         this.playNext();
-      };
-
-      audio.onended = onFinish;
-      audio.onerror = (err) => {
-        console.warn('Audio playback encountered an error:', err);
-        onFinish();
-      };
-
-      audio.play().catch((err) => {
-        console.warn('Audio play() was rejected or blocked by browser autoplay policy:', err);
-        onFinish();
-      });
-    } catch (err) {
-      console.warn('Failed to initialize Audio object:', err);
-      this.isPlaying = false;
-      this.playNext();
+        return;
+      }
     }
+
+    this.currentAudio = audio;
+
+    let endedHandled = false;
+    const onFinish = () => {
+      if (endedHandled) return;
+      endedHandled = true;
+      this.isPlaying = false;
+      this.currentAudio = null;
+      this.playNext();
+    };
+
+    audio.onended = onFinish;
+    audio.onerror = (err) => {
+      console.warn('Audio playback error:', err);
+      onFinish();
+    };
+
+    audio.play().catch((err) => {
+      console.warn('Audio play() was rejected or blocked by browser autoplay policy:', err);
+      onFinish();
+    });
   }
 
   stopAll() {
@@ -95,24 +178,47 @@ class AudioPlayerQueue {
       try {
         this.currentAudio.pause();
         this.currentAudio.currentTime = 0;
+        this.currentAudio.src = '';
       } catch {
         // ignore
       }
       this.currentAudio = null;
     }
     this.isPlaying = false;
-    if (typeof this.onPlaybackStateChange === 'function') {
-      this.onPlaybackStateChange(false);
-    }
+    this._notifyState();
   }
 }
 
-const audioQueue = new AudioPlayerQueue((isPlaying) => {
-  if (isPlaying) {
-    updateStatus('speaking', 'बोल रहे हैं... (Speaking...)');
-  } else if (!isRecording) {
-    updateStatus('idle', 'तैयार (Ready)');
-  }
+const audioQueue = new AudioPlayerQueue({
+  onStateChange: (isSpeaking) => {
+    if (isSpeaking) {
+      updateStatus('speaking', 'बोल रहा है / Speaking');
+      if (stopSpeakingBtn) {
+        stopSpeakingBtn.classList.remove('hidden');
+      }
+      if (ttsToggle) {
+        ttsToggle.classList.add('is-speaking');
+        ttsToggle.title = 'बोलना बंद करें / Stop speaking';
+      }
+    } else {
+      if (stopSpeakingBtn) {
+        stopSpeakingBtn.classList.add('hidden');
+      }
+      if (ttsToggle) {
+        ttsToggle.classList.remove('is-speaking');
+        ttsToggle.title = speakerEnabled
+          ? 'ध्वनि चालू/बंद (Toggle Voice Output)'
+          : 'ध्वनि चालू/बंद (Toggle Voice Output)';
+      }
+      if (!isRecording) {
+        if (isReady) {
+          updateStatus('idle', 'तैयार (Ready)');
+        } else if (ws && ws.readyState === WebSocket.OPEN) {
+          updateStatus('warming_up', 'तैयार हो रहा है… / Warming up…');
+        }
+      }
+    }
+  },
 });
 
 /* ==========================================================================
@@ -139,10 +245,12 @@ const statusText = document.getElementById('status-text');
 const langSelect = document.getElementById('lang-select');
 const ttsToggle = document.getElementById('tts-toggle');
 const ttsIcon = document.getElementById('tts-icon');
+const stopSpeakingBtn = document.getElementById('stop-speaking-btn');
 
 const amberBanner = document.getElementById('amber-banner');
 const amberBannerReason = document.getElementById('amber-banner-reason');
 const amberBannerClose = document.getElementById('amber-banner-close');
+const bannerViewBrowserBtn = document.getElementById('banner-view-browser-btn');
 const toastContainer = document.getElementById('toast-container');
 
 const profileFieldsList = document.getElementById('profile-fields-list');
@@ -181,11 +289,15 @@ function updateConnectionStatus(state) {
   if (state === 'connected') {
     connDot.classList.add('connected');
     connDot.title = 'जुड़े हुए हैं (Connected)';
-    updateStatus('idle', 'तैयार (Connected)');
+    if (!isReady) {
+      updateStatus('warming_up', 'तैयार हो रहा है… / Warming up…');
+    } else {
+      updateStatus('idle', 'तैयार (Ready)');
+    }
   } else if (state === 'connecting') {
     connDot.classList.add('connecting');
     connDot.title = 'जुड़ रहे हैं... (Connecting...)';
-    updateStatus('connecting', 'जुड़ रहे हैं... (Connecting...)');
+    updateStatus('warming_up', 'तैयार हो रहा है… / Warming up…');
   } else {
     connDot.title = 'संपर्क टूटा (Disconnected)';
     updateStatus('disconnected', 'संपर्क टूटा (Disconnected)');
@@ -204,10 +316,16 @@ function updateStatus(type, label) {
         statusText.textContent = 'सुन रहे हैं... (Listening...)';
         break;
       case 'speaking':
-        statusText.textContent = 'बोल रहे हैं... (Speaking...)';
+        statusText.textContent = 'बोल रहा है / Speaking';
+        break;
+      case 'warming_up':
+        statusText.textContent = 'तैयार हो रहा है… / Warming up…';
+        break;
+      case 'ready':
+        statusText.textContent = 'तैयार (Ready)';
         break;
       case 'idle':
-        statusText.textContent = 'तैयार (Ready)';
+        statusText.textContent = isReady ? 'तैयार (Ready)' : 'तैयार हो रहा है… / Warming up…';
         break;
       default:
         statusText.textContent = type;
@@ -277,11 +395,31 @@ function appendAskUserCard(data) {
   const card = document.createElement('div');
   card.className = 'ask-user-card';
   card.id = cardId;
+
+  // Extract all requested fields (support Batch D fields list or legacy single field)
+  let reqFields = [];
+  if (Array.isArray(data.fields) && data.fields.length > 0) {
+    reqFields = data.fields;
+  } else if (data.field) {
+    reqFields = [data.field];
+  }
+
+  // Generate chips for requested field labels (Hindi + English)
+  let chipsHtml = '';
+  if (reqFields.length > 0) {
+    const chips = reqFields.map((f) => {
+      const labels = getFieldLabels(f);
+      return `<span class="ask-field-chip">${escapeHtml(labels.label_hi)} (${escapeHtml(labels.label_en)})</span>`;
+    });
+    chipsHtml = `<div class="ask-field-chips" aria-label="पूछी गई जानकारी / Requested details">${chips.join('')}</div>`;
+  }
+
   card.innerHTML = `
     <div class="ask-header">
       <span>❓ प्रश्न / Question:</span>
     </div>
     <div class="ask-question-text">${escapeHtml(data.question)}</div>
+    ${chipsHtml}
     <form class="ask-form" id="form-${cardId}">
       <input
         type="text"
@@ -320,15 +458,13 @@ function appendAskUserCard(data) {
       })
     );
 
-    // Clear field highlight if this field was highlighted
-    if (data.field && currentHighlightedField === data.field) {
-      clearFieldHighlight();
-    }
+    // Clear highlights for the fields requested by this question
+    clearFieldHighlights(reqFields);
   });
 
-  // Highlight corresponding field in profile if given
-  if (data.field) {
-    highlightProfileField(data.field);
+  // Highlight ALL requested fields in the profile panel
+  if (reqFields.length > 0) {
+    highlightProfileFields(reqFields);
   }
 }
 
@@ -415,6 +551,7 @@ async function loadProfile() {
       throw new Error(`Profile fetch failed: ${res.status}`);
     }
     const profile = await res.json();
+    profileMetadata = profile;
     renderProfileFields(profile);
   } catch (err) {
     console.error('Error loading profile:', err);
@@ -446,11 +583,17 @@ function renderProfileFields(fieldsMap) {
     const value = info.value;
     const isUnset = value === null || value === undefined || value === '';
 
+    const isAsking = currentHighlightedFields.has(fieldKey);
+    if (isAsking) {
+      fieldCard.classList.add('highlighted-field');
+    }
+
     fieldCard.innerHTML = `
       <div class="field-header">
         <div class="field-labels">
           <span class="field-label-hi">${escapeHtml(labelHi)}</span>
           <span class="field-label-en">${escapeHtml(labelEn)}</span>
+          ${isAsking ? '<span class="field-badge-asking">अगस्त्य यह जानकारी पूछ रहे हैं (Requested)</span>' : ''}
         </div>
         <button type="button" class="btn-edit" aria-label="Edit ${escapeHtml(labelEn)}">✏️ बदलें (Edit)</button>
       </div>
@@ -539,40 +682,48 @@ function renderProfileFields(fieldsMap) {
 
     profileFieldsList.appendChild(fieldCard);
   });
-
-  // Re-apply highlight if a field was previously highlighted
-  if (currentHighlightedField) {
-    highlightProfileField(currentHighlightedField);
-  }
 }
 
-function highlightProfileField(fieldKey) {
-  clearFieldHighlight();
-  currentHighlightedField = fieldKey;
-  const target = document.getElementById(`profile-field-${fieldKey}`);
-  if (target) {
-    target.classList.add('highlighted-field');
-    const header = target.querySelector('.field-labels');
-    if (header && !target.querySelector('.field-badge-asking')) {
-      const badge = document.createElement('span');
-      badge.className = 'field-badge-asking';
-      badge.textContent = 'अगस्त्य यह जानकारी पूछ रहे हैं (Requested)';
-      header.appendChild(badge);
+function highlightProfileFields(fieldKeys) {
+  clearFieldHighlights();
+  if (!fieldKeys || fieldKeys.length === 0) return;
+
+  let firstElement = null;
+  fieldKeys.forEach((key) => {
+    if (!key) return;
+    currentHighlightedFields.add(key);
+    const target = document.getElementById(`profile-field-${key}`);
+    if (target) {
+      target.classList.add('highlighted-field');
+      const header = target.querySelector('.field-labels');
+      if (header && !target.querySelector('.field-badge-asking')) {
+        const badge = document.createElement('span');
+        badge.className = 'field-badge-asking';
+        badge.textContent = 'अगस्त्य यह जानकारी पूछ रहे हैं (Requested)';
+        header.appendChild(badge);
+      }
+      if (!firstElement) {
+        firstElement = target;
+      }
     }
-    target.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  });
+
+  if (firstElement) {
+    firstElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 }
 
-function clearFieldHighlight() {
-  if (currentHighlightedField) {
-    const prev = document.getElementById(`profile-field-${currentHighlightedField}`);
-    if (prev) {
-      prev.classList.remove('highlighted-field');
-      const badge = prev.querySelector('.field-badge-asking');
+function clearFieldHighlights(specificKeys = null) {
+  const keysToClear = specificKeys ? specificKeys : Array.from(currentHighlightedFields);
+  keysToClear.forEach((key) => {
+    currentHighlightedFields.delete(key);
+    const target = document.getElementById(`profile-field-${key}`);
+    if (target) {
+      target.classList.remove('highlighted-field');
+      const badge = target.querySelector('.field-badge-asking');
       if (badge) badge.remove();
     }
-    currentHighlightedField = null;
-  }
+  });
 }
 
 /* ==========================================================================
@@ -640,6 +791,7 @@ function connectWebSocket() {
   }
 
   ws.onopen = () => {
+    isReady = false;
     updateConnectionStatus('connected');
     reconnectDelay = MIN_RECONNECT_DELAY;
     if (reconnectTimer) {
@@ -664,6 +816,7 @@ function connectWebSocket() {
   };
 
   ws.onclose = () => {
+    isReady = false;
     updateConnectionStatus('disconnected');
     scheduleReconnect();
   };
@@ -701,11 +854,18 @@ function handleAgentEvent(event) {
 
   switch (type) {
     case 'status':
-      if (data.handoff) {
+      if (data.status === 'ready') {
+        isReady = true;
+        if (!audioQueue.isSpeaking && !isRecording) {
+          updateStatus('ready', 'तैयार (Ready)');
+        }
+      } else if (data.handoff || data.status === 'handoff') {
         showAmberBanner(data.reason);
         updateStatus('idle', 'आपकी बारी (Your Turn)');
       } else if (data.status) {
-        updateStatus(data.status);
+        if (!audioQueue.isSpeaking && !isRecording) {
+          updateStatus(data.status);
+        }
       }
       break;
 
@@ -751,7 +911,11 @@ function handleAgentEvent(event) {
 
     case 'tts':
       if (data.audio_b64) {
-        audioQueue.enqueue(data.audio_b64, data.mime || 'audio/wav');
+        audioQueue.enqueue(data.audio_b64, data.mime || 'audio/wav', {
+          seq: data.seq,
+          final: data.final,
+          text: data.text,
+        });
       }
       break;
 
@@ -762,7 +926,11 @@ function handleAgentEvent(event) {
 
     case 'done':
       if (!audioQueue.isPlaying) {
-        updateStatus('idle', 'तैयार (Ready)');
+        if (isReady) {
+          updateStatus('ready', 'तैयार (Ready)');
+        } else {
+          updateStatus('warming_up', 'तैयार हो रहा है… / Warming up…');
+        }
       }
       break;
 
@@ -942,8 +1110,14 @@ function initEventListeners() {
     }
   });
 
-  // 5. TTS Speaker Toggle
+  // 5. TTS Speaker Toggle & Stop Speaking
   ttsToggle.addEventListener('click', () => {
+    // Clicking the speaker icon while speaking clears the queue and stops playback
+    if (audioQueue.isSpeaking) {
+      audioQueue.stopAll();
+      return;
+    }
+
     speakerEnabled = !speakerEnabled;
     ttsToggle.setAttribute('aria-pressed', String(speakerEnabled));
     if (speakerEnabled) {
@@ -962,28 +1136,55 @@ function initEventListeners() {
     });
   });
 
-  // 6. Amber banner close button
+  // 6. Stop speaking button
+  if (stopSpeakingBtn) {
+    stopSpeakingBtn.addEventListener('click', () => {
+      audioQueue.stopAll();
+    });
+  }
+
+  // 7. Amber banner view browser button & close button
+  if (bannerViewBrowserBtn) {
+    bannerViewBrowserBtn.addEventListener('click', () => {
+      switchToTab('browser-panel');
+    });
+  }
   amberBannerClose.addEventListener('click', hideAmberBanner);
 
-  // 7. Profile refresh button
+  // 8. Profile refresh button
   profileRefreshBtn.addEventListener('click', loadProfile);
 
-  // 8. Mobile tab navigation
+  // 9. Mobile tab navigation
   const tabBtns = document.querySelectorAll('.tab-btn');
-  const panels = document.querySelectorAll('.panel');
-
   tabBtns.forEach((btn) => {
     btn.addEventListener('click', () => {
       const targetId = btn.dataset.target;
-      tabBtns.forEach((b) => b.classList.remove('active'));
-      panels.forEach((p) => p.classList.remove('active'));
-
-      btn.classList.add('active');
-      const targetPanel = document.getElementById(targetId);
-      if (targetPanel) {
-        targetPanel.classList.add('active');
+      if (targetId) {
+        switchToTab(targetId);
       }
     });
+  });
+}
+
+function switchToTab(panelId) {
+  const tabBtns = document.querySelectorAll('.tab-btn');
+  const panels = document.querySelectorAll('.panel');
+
+  tabBtns.forEach((b) => {
+    if (b.dataset.target === panelId) {
+      b.classList.add('active');
+    } else {
+      b.classList.remove('active');
+    }
+  });
+
+  panels.forEach((p) => {
+    if (p.id === panelId) {
+      p.classList.add('active');
+      p.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+      p.classList.remove('active');
+    }
   });
 }
 

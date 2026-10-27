@@ -127,6 +127,7 @@ class AgentSession:
             await self.client.connect()
 
         self._loop_task = asyncio.create_task(self._run_loop())
+        self.bus.emit("status", status="ready", message="ready")
 
     async def stop(self) -> None:
         """Cancel run loop, disconnect client, and close browser."""
@@ -183,8 +184,26 @@ class AgentSession:
         if fut is not None and not fut.done():
             fut.set_result(answer)
 
-    async def ask_user(self, question: str, field: str | None = None) -> str:
+    async def ask_user(
+        self,
+        question: str,
+        fields: list[str] | str | None = None,
+        field: str | None = None,
+    ) -> str:
         """Ask user for missing information, awaiting response up to ask_timeout seconds."""
+        if isinstance(fields, str):
+            fields_list = [fields]
+            field_first: str | None = fields
+        elif isinstance(fields, list):
+            fields_list = list(fields)
+            field_first = fields_list[0] if fields_list else None
+        elif fields is None and field is not None:
+            fields_list = [field]
+            field_first = field
+        else:
+            fields_list = []
+            field_first = None
+
         question_id = uuid.uuid4().hex[:8]
         loop = asyncio.get_running_loop()
         future: asyncio.Future[str] = loop.create_future()
@@ -195,7 +214,8 @@ class AgentSession:
             "ask_user",
             question_id=question_id,
             question=question,
-            field=field,
+            field=field_first,
+            fields=fields_list,
             language_code=self.language_code,
         )
 

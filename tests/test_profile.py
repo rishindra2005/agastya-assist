@@ -237,3 +237,11 @@ def test_set_normalises_spoken_input(tmp_path, field, raw, expected):
     store = ProfileStore(db_path=tmp_path / "p.db")
     store.set(field, raw)
     assert store.get(field) == expected
+
+
+@pytest.mark.parametrize("blank", ["", "   "])
+def test_set_rejects_blank_values(tmp_path, blank):
+    store = ProfileStore(db_path=tmp_path / "p.db")
+    with pytest.raises(ValueError):
+        store.set("gender", blank)
+    assert store.get("gender") is None

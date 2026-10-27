@@ -13,6 +13,8 @@ class Settings(BaseSettings):
     AGENT_MODEL: str = "claude-sonnet-5-5"
     DATA_DIR: Path = Path("./data")
     HEADLESS: bool = True
+    # "" = Playwright's bundled Chromium; "chrome" = the installed Google Chrome
+    BROWSER_CHANNEL: str = ""
     DEFAULT_LANGUAGE: str = "hi-IN"
 
     model_config = SettingsConfigDict(

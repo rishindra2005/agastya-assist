@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING, Any, Awaitable, Callable
 from claude_agent_sdk import create_sdk_mcp_server, tool
 
 from agastya.agent.events import EventBus
+from agastya.profile.extract import extract_values
 from agastya.profile.fields import FIELDS, masked
 from agastya.profile.store import ProfileStore
 
@@ -37,7 +38,7 @@ class ToolContext:
     profile: ProfileStore
     browser: BrowserDriver
     bus: EventBus
-    ask_user: Callable[[str, str | None], Awaitable[str]]  # (question, field) -> answer text
+    ask_user: Callable[..., Awaitable[str]]  # (question, fields) -> answer text
     playbooks: dict[str, Playbook]
 
 
@@ -100,9 +101,15 @@ ASK_USER_SCHEMA: dict[str, Any] = {
             "type": "string",
             "description": "The question to ask the user in their language.",
         },
+        "fields": {
+            "type": "array",
+            "items": {"type": "string"},
+            "maxItems": 4,
+            "description": "List of up to 4 profile field keys being asked for (e.g. ['full_name', 'father_name', 'date_of_birth']).",
+        },
         "field": {
             "type": "string",
-            "description": "Optional name of the profile field being asked for (e.g. 'father_name', 'pan'). If valid, it is automatically saved to the profile.",
+            "description": "Legacy parameter: single profile field name being asked for. If both provided, fields takes precedence.",
         },
     },
     "required": ["question"],
@@ -357,7 +364,7 @@ def build_handlers(
             }
 
         saved_val = ctx.profile.get(field)
-        ctx.bus.emit("profile_updated", field=field, value=saved_val)
+        ctx.bus.emit("profile_updated", field=field, value=masked(field, saved_val or ""))
         return {
             "content": [{"type": "text", "text": f"Saved field '{field}' successfully."}],
         }
@@ -365,27 +372,100 @@ def build_handlers(
     async def ask_user(args: dict[str, Any] | None = None) -> dict[str, Any]:
         args = args or {}
         question = args.get("question", "")
-        field = args.get("field")
+        raw_fields = args.get("fields")
+        raw_field = args.get("field")
+
+        if raw_fields is not None:
+            if isinstance(raw_fields, list):
+                fields_list = [str(f) for f in raw_fields]
+            else:
+                fields_list = [str(raw_fields)]
+        elif raw_field is not None:
+            fields_list = [str(raw_field)]
+        else:
+            fields_list = []
+
+        # Validate keys exist in FIELDS catalog
+        unknown_keys = [f for f in fields_list if f not in FIELDS]
+        if unknown_keys:
+            valid_keys = ", ".join(sorted(FIELDS.keys()))
+            return {
+                "content": [
+                    {
+                        "type": "text",
+                        "text": f"Unknown field key(s): {', '.join(unknown_keys)}. Valid keys are: {valid_keys}",
+                    }
+                ],
+                "is_error": True,
+            }
+
         try:
-            answer = await ctx.ask_user(question, field)
+            try:
+                answer = await ctx.ask_user(question, fields_list)
+            except TypeError:
+                legacy_arg = fields_list[0] if fields_list else None
+                try:
+                    answer = await ctx.ask_user(question, legacy_arg)
+                except TypeError:
+                    answer = await ctx.ask_user(question)
         except Exception as e:
             return {
                 "content": [{"type": "text", "text": f"Error asking user: {e}"}],
                 "is_error": True,
             }
 
-        if field:
-            try:
-                ctx.profile.set(field, answer)
-                saved_val = ctx.profile.get(field)
-                ctx.bus.emit("profile_updated", field=field, value=saved_val)
-            except Exception as e:
-                logger.info(
-                    f"Field '{field}' could not be validated/saved from user answer '{answer}': {e}"
-                )
+        saved: dict[str, str] = {}
+        errors: dict[str, str] = {}
+        unparsed: list[str] = []
 
+        if len(fields_list) == 1:
+            f = fields_list[0]
+            extracted = extract_values(answer, [f])
+            val_to_save = extracted.get(f)
+            if val_to_save is None and FIELDS.get(f, {}).get("validator"):
+                # Pattern fields: the validator rejects anything that isn't a real value.
+                val_to_save = str(answer).strip()
+            try:
+                if val_to_save is None:
+                    # Free-text field ("skip karo", "baad me"…): let the agent interpret the answer.
+                    raise ValueError("free-text answer; agent decides whether to save")
+                ctx.profile.set(f, val_to_save)
+                stored_val = ctx.profile.get(f)
+                saved[f] = masked(f, stored_val if stored_val is not None else val_to_save)
+                ctx.bus.emit("profile_updated", field=f, value=masked(f, stored_val or ""))
+            except ValueError as e:
+                errors[f] = str(e)
+                unparsed.append(f)
+            except Exception as e:
+                errors[f] = str(e)
+                unparsed.append(f)
+        elif len(fields_list) > 1:
+            extracted = extract_values(answer, fields_list)
+            for f, val in extracted.items():
+                try:
+                    ctx.profile.set(f, val)
+                    stored_val = ctx.profile.get(f)
+                    saved[f] = masked(f, stored_val if stored_val is not None else val)
+                    ctx.bus.emit("profile_updated", field=f, value=masked(f, stored_val or ""))
+                except ValueError as e:
+                    errors[f] = str(e)
+                except Exception as e:
+                    errors[f] = str(e)
+            unparsed = [f for f in fields_list if f not in saved]
+
+        response_payload = {
+            "answer": str(answer),
+            "saved": saved,
+            "unparsed": unparsed,
+            "errors": errors,
+        }
         return {
-            "content": [{"type": "text", "text": str(answer)}],
+            "content": [
+                {
+                    "type": "text",
+                    "text": json.dumps(response_payload, ensure_ascii=False),
+                }
+            ],
         }
 
     async def list_playbooks(args: dict[str, Any] | None = None) -> dict[str, Any]:
@@ -607,7 +687,7 @@ def build_mcp_server(ctx: ToolContext) -> AgastyaMcpServerConfig:
         )(handlers["save_profile_field"]),
         tool(
             "ask_user",
-            "Ask the user a question and block until they respond. If field is specified and answer is valid, saves it to profile.",
+            "Ask the user a question for 1–3 profile fields and block until they respond. Automatically extracts and validates known field patterns and saves them to the profile.",
             ASK_USER_SCHEMA,
         )(handlers["ask_user"]),
         tool(

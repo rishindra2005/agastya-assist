@@ -108,7 +108,8 @@ class BrowserDriver:
         if self._playwright is None:
             self._playwright = await async_playwright().start()
         if self._browser is None:
-            self._browser = await self._playwright.chromium.launch(headless=self.headless)
+            channel = get_settings().BROWSER_CHANNEL or None
+            self._browser = await self._playwright.chromium.launch(headless=self.headless, channel=channel)
         if self._context is None:
             self._context = await self._browser.new_context()
         if self._page is None or self._page.is_closed():

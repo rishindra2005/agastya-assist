@@ -187,6 +187,8 @@ async def test_events_order_status_assistant_text_done(fake_browser: FakeBrowser
         client_factory=factory,
     )
     await session.start()
+    ready = await asyncio.wait_for(q.get(), timeout=2.0)
+    assert (ready.type, ready.data["status"]) == ("status", "ready")
     try:
         await session.send_user_message("Apply for PAN")
 
@@ -239,6 +241,8 @@ async def test_tool_call_event_emitted(fake_browser: FakeBrowser) -> None:
 
     session = AgentSession(browser=fake_browser, bus=bus, client_factory=factory)
     await session.start()
+    ready = await asyncio.wait_for(q.get(), timeout=2.0)
+    assert (ready.type, ready.data["status"]) == ("status", "ready")
     try:
         await session.send_user_message("Check my name")
 
@@ -264,6 +268,8 @@ async def test_ask_user_round_trip_via_send_user_message(fake_browser: FakeBrows
 
     session = AgentSession(browser=fake_browser, bus=bus, client_factory=lambda opts: FakeClaudeClient(opts))
     await session.start()
+    ready = await asyncio.wait_for(q.get(), timeout=2.0)
+    assert (ready.type, ready.data["status"]) == ("status", "ready")
     try:
         ask_task = asyncio.create_task(
             session.ask_user("कृपया अपना पिता का नाम बताएं", field="father_name")
@@ -274,6 +280,7 @@ async def test_ask_user_round_trip_via_send_user_message(fake_browser: FakeBrows
         assert ev.type == "ask_user"
         assert ev.data["question"] == "कृपया अपना पिता का नाम बताएं"
         assert ev.data["field"] == "father_name"
+        assert ev.data["fields"] == ["father_name"]
         assert "question_id" in ev.data
         assert ev.data["language_code"] == session.language_code
 
@@ -295,6 +302,8 @@ async def test_answer_question_by_id(fake_browser: FakeBrowser) -> None:
 
     session = AgentSession(browser=fake_browser, bus=bus, client_factory=lambda opts: FakeClaudeClient(opts))
     await session.start()
+    ready = await asyncio.wait_for(q.get(), timeout=2.0)
+    assert (ready.type, ready.data["status"]) == ("status", "ready")
     try:
         ask_task = asyncio.create_task(session.ask_user("Enter your PAN", field="pan"))
 
@@ -324,6 +333,8 @@ async def test_ask_user_timeout(fake_browser: FakeBrowser) -> None:
         ask_timeout=0.05,
     )
     await session.start()
+    ready = await asyncio.wait_for(q.get(), timeout=2.0)
+    assert (ready.type, ready.data["status"]) == ("status", "ready")
     try:
         answer = await session.ask_user("Enter Aadhaar", field="aadhaar")
         assert answer == ""
@@ -354,6 +365,8 @@ async def test_exception_in_one_turn_survives_and_loop_continues(fake_browser: F
 
     session = AgentSession(browser=fake_browser, bus=bus, client_factory=factory)
     await session.start()
+    ready = await asyncio.wait_for(q.get(), timeout=2.0)
+    assert (ready.type, ready.data["status"]) == ("status", "ready")
     try:
         # Turn 1: Fails
         await session.send_user_message("Turn 1 text")
@@ -395,6 +408,8 @@ async def test_language_code_propagation(fake_browser: FakeBrowser) -> None:
 
     session = AgentSession(browser=fake_browser, bus=bus, client_factory=factory)
     await session.start()
+    ready = await asyncio.wait_for(q.get(), timeout=2.0)
+    assert (ready.type, ready.data["status"]) == ("status", "ready")
     try:
         # Send user message with language_code="ta-IN" (Tamil)
         await session.send_user_message("வணக்கம்", language_code="ta-IN")
@@ -451,3 +466,47 @@ def test_lazy_profile_initialization() -> None:
     assert session.profile is not None
     assert session.user_id == "citizen_42"
     assert session.browser is None
+
+
+@pytest.mark.asyncio
+async def test_ask_user_grouped_fields_and_legacy_signature(fake_browser: FakeBrowser) -> None:
+    bus = EventBus()
+    q = bus.subscribe()
+    session = AgentSession(browser=fake_browser, bus=bus, client_factory=lambda opts: FakeClaudeClient(opts))
+    await session.start()
+    ready = await asyncio.wait_for(q.get(), timeout=2.0)
+    assert (ready.type, ready.data["status"]) == ("status", "ready")
+    try:
+        # 1. Grouped fields list
+        task1 = asyncio.create_task(
+            session.ask_user("Enter name and DOB", fields=["full_name", "date_of_birth"])
+        )
+        ev1 = await asyncio.wait_for(q.get(), timeout=2.0)
+        assert ev1.type == "ask_user"
+        assert ev1.data["field"] == "full_name"
+        assert ev1.data["fields"] == ["full_name", "date_of_birth"]
+        await session.answer_question(ev1.data["question_id"], "Rahul Sharma, 5 March 2001")
+        ans1 = await asyncio.wait_for(task1, timeout=2.0)
+        assert ans1 == "Rahul Sharma, 5 March 2001"
+
+        # 2. Legacy positional string
+        task2 = asyncio.create_task(session.ask_user("Enter mobile", "mobile"))
+        ev2 = await asyncio.wait_for(q.get(), timeout=2.0)
+        assert ev2.type == "ask_user"
+        assert ev2.data["field"] == "mobile"
+        assert ev2.data["fields"] == ["mobile"]
+        await session.answer_question(ev2.data["question_id"], "9876543210")
+        ans2 = await asyncio.wait_for(task2, timeout=2.0)
+        assert ans2 == "9876543210"
+
+        # 3. No field specified
+        task3 = asyncio.create_task(session.ask_user("Do you confirm?"))
+        ev3 = await asyncio.wait_for(q.get(), timeout=2.0)
+        assert ev3.type == "ask_user"
+        assert ev3.data["field"] is None
+        assert ev3.data["fields"] == []
+        await session.answer_question(ev3.data["question_id"], "Yes")
+        ans3 = await asyncio.wait_for(task3, timeout=2.0)
+        assert ans3 == "Yes"
+    finally:
+        await session.stop()

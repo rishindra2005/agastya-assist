@@ -125,12 +125,17 @@ def test_ctx(tmp_path: Path):
     browser = FakeBrowser()
     bus = EventBus()
 
-    async def fake_ask_user(question: str, field: str | None = None) -> str:
+    async def fake_ask_user(question: str, field: Any = None) -> str:
         if "bad" in question:
             return "bad_pan"
-        if field == "full_name":
+        if isinstance(field, list) and set(field) == {"mobile", "email"}:
+            return "mera mobile 98765 43210 aur email a@b.in hai"
+        if isinstance(field, list) and "date_of_birth" in field:
+            return "नाम राहुल शर्मा और जन्म 5 मार्च 2001"
+        first = field[0] if isinstance(field, list) and field else field
+        if first == "full_name":
             return "Rishi Sharma"
-        if field == "pan":
+        if first == "pan":
             return "ABCDE1234F"
         return "I confirm"
 
@@ -308,29 +313,121 @@ async def test_ask_user_saving_field(test_ctx: ToolContext):
     handlers = build_handlers(test_ctx)
     q = test_ctx.bus.subscribe()
 
-    # ask_user with field="full_name" -> fake_ask_user returns "Rishi Sharma"
+    # ask_user with legacy field="full_name" -> fake_ask_user returns "Rishi Sharma"
     res = await handlers["ask_user"]({"question": "What is your name?", "field": "full_name"})
     assert not res.get("is_error")
-    assert res["content"][0]["text"] == "Rishi Sharma"
-
-    # Should be saved in profile
-    assert test_ctx.profile.get("full_name") == "Rishi Sharma"
-
-    # profile_updated event emitted
-    ev = await asyncio.wait_for(q.get(), timeout=1.0)
-    assert ev.type == "profile_updated"
-    assert ev.data["field"] == "full_name"
-    assert ev.data["value"] == "Rishi Sharma"
+    data = json.loads(res["content"][0]["text"])
+    assert data["answer"] == "Rishi Sharma"
+    # Free-text field: returned to the agent (it saves via save_profile_field), not auto-saved
+    assert data["saved"] == {}
+    assert data["unparsed"] == ["full_name"]
+    assert test_ctx.profile.get("full_name") is None
+    assert q.empty()
 
     # ask_user with field=None -> not saved
     res_no_field = await handlers["ask_user"]({"question": "Proceed?"})
-    assert res_no_field["content"][0]["text"] == "I confirm"
+    assert not res_no_field.get("is_error")
+    data_no_field = json.loads(res_no_field["content"][0]["text"])
+    assert data_no_field["answer"] == "I confirm"
+    assert data_no_field["saved"] == {}
+    assert data_no_field["unparsed"] == []
+    assert data_no_field["errors"] == {}
 
     # ask_user with field="pan" but invalid answer -> fake_ask_user returns "bad_pan" which fails validation
     res_bad = await handlers["ask_user"]({"question": "bad pan?", "field": "pan"})
-    assert res_bad["content"][0]["text"] == "bad_pan"
+    assert not res_bad.get("is_error")
+    data_bad = json.loads(res_bad["content"][0]["text"])
+    assert data_bad["answer"] == "bad_pan"
+    assert data_bad["saved"] == {}
+    assert data_bad["unparsed"] == ["pan"]
+    assert "pan" in data_bad["errors"]
+    assert "Invalid value for field 'pan'" in data_bad["errors"]["pan"]
     # Not saved in profile
     assert test_ctx.profile.get("pan") is None
+
+
+@pytest.mark.asyncio
+async def test_ask_user_grouped_flow(test_ctx: ToolContext):
+    handlers = build_handlers(test_ctx)
+    q = test_ctx.bus.subscribe()
+
+    # Ask 2 fields: mobile + email
+    res = await handlers["ask_user"]({
+        "question": "कृपया अपना मोबाइल नंबर और ईमेल बताएं",
+        "fields": ["mobile", "email"],
+    })
+    assert not res.get("is_error")
+    data = json.loads(res["content"][0]["text"])
+    assert data["answer"] == "mera mobile 98765 43210 aur email a@b.in hai"
+    assert data["saved"] == {"mobile": "9876543210", "email": "a@b.in"}
+    assert data["unparsed"] == []
+    assert data["errors"] == {}
+
+    # Check store
+    assert test_ctx.profile.get("mobile") == "9876543210"
+    assert test_ctx.profile.get("email") == "a@b.in"
+
+    # Two profile_updated events emitted
+    events = []
+    events.append(await asyncio.wait_for(q.get(), timeout=1.0))
+    events.append(await asyncio.wait_for(q.get(), timeout=1.0))
+    fields_emitted = {e.data["field"] for e in events}
+    assert fields_emitted == {"mobile", "email"}
+
+
+@pytest.mark.asyncio
+async def test_ask_user_grouped_partial_extraction(test_ctx: ToolContext):
+    handlers = build_handlers(test_ctx)
+
+    # Ask full_name and date_of_birth
+    res = await handlers["ask_user"]({
+        "question": "नाम और जन्म तिथि बताएं",
+        "fields": ["full_name", "date_of_birth"],
+    })
+    assert not res.get("is_error")
+    data = json.loads(res["content"][0]["text"])
+    # date_of_birth was extracted and saved, full_name remains unparsed
+    assert data["saved"] == {"date_of_birth": "05/03/2001"}
+    assert data["unparsed"] == ["full_name"]
+    assert data["errors"] == {}
+    assert test_ctx.profile.get("date_of_birth") == "05/03/2001"
+
+
+@pytest.mark.asyncio
+async def test_ask_user_unknown_field_error(test_ctx: ToolContext):
+    handlers = build_handlers(test_ctx)
+
+    # Unknown key in fields list
+    res_fields = await handlers["ask_user"]({
+        "question": "Tell me foo",
+        "fields": ["non_existent_key_123"],
+    })
+    assert res_fields.get("is_error") is True
+    err_text = res_fields["content"][0]["text"]
+    assert "Unknown field key(s): non_existent_key_123" in err_text
+    assert "Valid keys are:" in err_text
+    assert "full_name" in err_text
+
+    # Unknown key in legacy field param
+    res_field = await handlers["ask_user"]({
+        "question": "Tell me bar",
+        "field": "invalid_single_field",
+    })
+    assert res_field.get("is_error") is True
+    assert "Unknown field key(s): invalid_single_field" in res_field["content"][0]["text"]
+
+
+@pytest.mark.asyncio
+async def test_ask_user_sensitive_masking_in_saved(test_ctx: ToolContext):
+    handlers = build_handlers(test_ctx)
+
+    # PAN should be masked in saved dict
+    res = await handlers["ask_user"]({"question": "PAN number?", "fields": ["pan"]})
+    assert not res.get("is_error")
+    data = json.loads(res["content"][0]["text"])
+    assert data["saved"] == {"pan": "XXXXX1234X"}
+    # But unmasked in profile store
+    assert test_ctx.profile.get("pan") == "ABCDE1234F"
 
 
 @pytest.mark.asyncio
@@ -524,3 +621,22 @@ async def test_error_handling_in_handlers(test_ctx: ToolContext):
     assert res_ask.get("is_error") is True
     assert "Channel closed" in res_ask["content"][0]["text"]
 
+
+
+async def test_ask_user_single_free_text_field_is_not_auto_saved(test_ctx):
+    async def fake_ask(question, fields=None):
+        return "skip karo, baad me dungi"
+
+    test_ctx.ask_user = fake_ask
+    res = await build_handlers(test_ctx)["ask_user"]({"question": "ling?", "fields": ["gender"]})
+    data = json.loads(res["content"][0]["text"])
+    assert data["unparsed"] == ["gender"]
+    assert test_ctx.profile.get("gender") is None
+
+
+async def test_profile_updated_event_is_masked(test_ctx):
+    q = test_ctx.bus.subscribe()
+    await build_handlers(test_ctx)["save_profile_field"]({"field": "aadhaar", "value": "2345 6789 0123"})
+    ev = await asyncio.wait_for(q.get(), 1)
+    assert ev.type == "profile_updated"
+    assert "234567890123" not in json.dumps(ev.data)

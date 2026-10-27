@@ -29,8 +29,14 @@
       <!-- Status line with connection dot -->
       <div class="status-badge" id="status-badge" role="status" aria-live="polite">
         <span class="conn-dot" id="conn-dot" title="स्थिति / Status: Disconnected"></span>
-        <span class="status-text" id="status-text">Connecting...</span>
+        <span class="status-text" id="status-text">तैयार हो रहा है… / Warming up…</span>
       </div>
+
+      <!-- Stop speaking button (shown only when audio is playing or queue is non-empty) -->
+      <button id="stop-speaking-btn" class="stop-speaking-btn hidden" aria-label="बोलना बंद करें / Stop speaking" title="बोलना बंद करें (Stop speaking)">
+        <span class="stop-icon" aria-hidden="true">⏹️</span>
+        <span class="stop-text">बोलना बंद करें / Stop speaking</span>
+      </button>
 
       <!-- Language selector -->
       <div class="control-group">
@@ -71,7 +77,12 @@
         <strong>आपकी बारी — Your turn:</strong> <span id="amber-banner-reason"></span>
       </div>
     </div>
-    <button type="button" id="amber-banner-close" class="banner-close-btn" aria-label="Dismiss banner">✕</button>
+    <div class="amber-banner-actions">
+      <button type="button" id="banner-view-browser-btn" class="btn-view-browser" aria-label="ब्राउज़र देखें / View browser">
+        🌐 ब्राउज़र देखें / View browser
+      </button>
+      <button type="button" id="amber-banner-close" class="banner-close-btn" aria-label="Dismiss banner">✕</button>
+    </div>
   </div>
 
   <!-- Toast notification area for errors -->

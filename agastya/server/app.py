@@ -177,6 +177,10 @@ def create_app(
             await websocket.close(code=1011)
             return
 
+        sub_queue: asyncio.Queue[Any] | None = None
+        if hasattr(session, "bus") and hasattr(session.bus, "subscribe"):
+            sub_queue = session.bus.subscribe()
+
         try:
             if hasattr(session, "start") and callable(session.start):
                 await _maybe_await(session.start())
@@ -184,6 +188,8 @@ def create_app(
                 await _maybe_await(pipeline.start())
         except Exception as e:
             logger.exception("Failed to start session or pipeline: %s", e)
+            if sub_queue is not None and hasattr(session, "bus") and hasattr(session.bus, "unsubscribe"):
+                session.bus.unsubscribe(sub_queue)
             await websocket.send_json({
                 "type": "error",
                 "data": {"error": str(e)},
@@ -201,10 +207,6 @@ def create_app(
                 except Exception:
                     pass
             return
-
-        sub_queue: asyncio.Queue[Any] | None = None
-        if hasattr(session, "bus") and hasattr(session.bus, "subscribe"):
-            sub_queue = session.bus.subscribe()
 
         bg_tasks: set[asyncio.Task] = set()
 

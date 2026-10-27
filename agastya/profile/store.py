@@ -89,6 +89,8 @@ class ProfileStore:
             raise ValueError(f"Value for field '{field}' cannot be None.")
 
         val_str = normalize_field(field, value)
+        if not val_str:
+            raise ValueError(f"Value for field '{field}' cannot be empty.")
 
         # Validate against catalog if present
         validate_field(field, val_str)

@@ -245,6 +245,32 @@ body {
   background-color: var(--dot-connecting);
 }
 
+/* Stop Speaking Button */
+.stop-speaking-btn {
+  background-color: #dc2626;
+  color: #ffffff;
+  border: none;
+  padding: 6px 12px;
+  border-radius: var(--radius-full);
+  font-size: 0.82rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  animation: pulseStop 1.5s infinite;
+  transition: background-color 0.15s ease, transform 0.1s ease;
+  white-space: nowrap;
+}
+.stop-speaking-btn:hover {
+  background-color: #b91c1c;
+  transform: scale(1.02);
+}
+@keyframes pulseStop {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4); }
+  50% { box-shadow: 0 0 0 5px rgba(220, 38, 38, 0.15); }
+}
+
 /* Language selector */
 .lang-select {
   padding: 6px 10px;
@@ -277,6 +303,16 @@ body {
 .btn-icon.disabled {
   opacity: 0.5;
   filter: grayscale(1);
+}
+.btn-icon.is-speaking {
+  border-color: #dc2626;
+  background-color: #fee2e2;
+  color: #dc2626;
+  animation: pulseSpeaker 1.2s infinite ease-in-out;
+}
+@keyframes pulseSpeaker {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
 }
 
 .btn-icon-small {
@@ -349,6 +385,31 @@ body {
   gap: 10px;
   font-size: 0.98rem;
   font-weight: 500;
+}
+.amber-banner-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.btn-view-browser {
+  background-color: var(--navy-accent);
+  color: #ffffff;
+  border: none;
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: filter 0.15s ease, transform 0.1s ease;
+}
+.btn-view-browser:hover {
+  filter: brightness(1.15);
+  transform: translateY(-1px);
 }
 .amber-icon {
   font-size: 1.3rem;
@@ -772,6 +833,25 @@ body {
   font-weight: 600;
   color: var(--text-main);
 }
+.ask-field-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+  margin-bottom: 2px;
+}
+.ask-field-chip {
+  background-color: var(--saffron-border);
+  color: var(--text-main);
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  display: inline-flex;
+  align-items: center;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--saffron-main);
+}
 .ask-form {
   display: flex;
   gap: 8px;
@@ -1176,10 +1256,34 @@ body {
     font-size: 0.78rem;
   }
   .status-text {
-    max-width: 80px;
+    max-width: 130px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+  .stop-speaking-btn {
+    padding: 4px 8px;
+    font-size: 0.75rem;
+  }
+  .stop-speaking-btn .stop-text {
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .amber-banner {
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 6px 8px 0;
+    padding: 10px 12px;
+  }
+  .amber-banner-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+  .btn-view-browser {
+    padding: 6px 10px;
+    font-size: 0.82rem;
   }
   .chat-bubble {
     max-width: 90%;

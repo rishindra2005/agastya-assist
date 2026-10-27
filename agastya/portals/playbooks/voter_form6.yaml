@@ -4,7 +4,7 @@ title_en: "New Voter Registration (Form 6)"
 title_hi: "नए मतदाता का पंजीकरण (फॉर्म 6)"
 live_url: "https://voters.eci.gov.in/form6"
 fixture: "tests/fixtures/forms/voter_form6.html"
-requires_login: false
+requires_login: true
 required_fields:
   - "full_name"
   - "father_name"
@@ -63,7 +63,7 @@ field_hints:
   pincode:
     - "pincode"
 steps:
-  - "Navigate to the Election Commission Voters portal Form 6 page."
+  - "Open the Form 6 page. If the portal redirects to the login page (mobile/email + captcha + OTP), call handoff_to_user so the citizen logs in themselves, then continue filling after they say they are logged in."
   - "Select your State, District, and Parliamentary or Assembly Constituency."
   - "Enter applicant personal details including first name, surname, and gender."
   - "Fill in relative details selecting father or mother and entering their name."
