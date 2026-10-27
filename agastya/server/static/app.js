@@ -1043,9 +1043,7 @@ function handleAgentEvent(event) {
           updateStatus('ready', 'तैयार (Ready)');
         }
       } else if (data.status === 'user_control') {
-        if (liveBrowser) {
-          liveBrowser.triggerHandoffAttention(data.reason || 'User control requested');
-        }
+        // The citizen took control themselves: not a handoff, so no 'your turn' banner.
         updateStatus('user_control', 'आपका नियंत्रण (Citizen in control)');
       } else if (data.handoff || data.status === 'handoff') {
         showAmberBanner(data.reason);
