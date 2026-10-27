@@ -45,15 +45,27 @@ def default_pipeline_factory(session: AgentSession) -> VoicePipeline:
     return VoicePipeline(session)
 
 
+def default_live_view_factory(browser: Any) -> Any:
+    try:
+        from agastya.browser.live import LiveView
+        return LiveView(browser)
+    except ImportError as e:
+        raise RuntimeError(f"LiveView is not available: {e}") from e
+
+
 def create_app(
     session_factory: Callable[[str], AgentSession] | None = None,
     pipeline_factory: Callable[[AgentSession], VoicePipeline] | None = None,
+    live_view_factory: Callable[[Any], Any] | None = None,
 ) -> FastAPI:
     """Create and configure the Agastya Assist FastAPI application."""
     sess_factory = session_factory if session_factory is not None else default_session_factory
     pipe_factory = pipeline_factory if pipeline_factory is not None else default_pipeline_factory
+    live_factory = live_view_factory if live_view_factory is not None else default_live_view_factory
 
     app = FastAPI(title="Agastya Assist API")
+    app.state.sessions = {}
+    app.state.live_sockets = {}
 
     app.add_middleware(
         CORSMiddleware,
@@ -69,6 +81,16 @@ def create_app(
         StaticFiles(directory=str(static_dir), check_dir=False),
         name="static",
     )
+
+    async def broadcast_control(user_id: str, is_in_control: bool) -> None:
+        sockets = dict(app.state.live_sockets.get(user_id, {}))
+        payload = {"type": "control", "user_in_control": is_in_control}
+        for ws, lock in sockets.items():
+            try:
+                async with lock:
+                    await ws.send_json(payload)
+            except Exception:
+                pass
 
     @app.get("/")
     async def get_index():
@@ -164,6 +186,27 @@ def create_app(
     async def ws_endpoint(websocket: WebSocket, user_id: str = "default"):
         await websocket.accept()
 
+        old_entry = app.state.sessions.get(user_id)
+        if old_entry is not None:
+            old_session, old_pipeline = old_entry
+            # Live sockets are bound to the old session's browser: close them so clients
+            # reconnect to the new session (otherwise their input goes to a dead browser).
+            for live_ws in list(app.state.live_sockets.get(user_id, {})):
+                try:
+                    await live_ws.close(code=4409)
+                except Exception:
+                    pass
+            if hasattr(old_pipeline, "stop") and callable(old_pipeline.stop):
+                try:
+                    await _maybe_await(old_pipeline.stop())
+                except Exception:
+                    logger.exception("Error stopping replaced pipeline")
+            if hasattr(old_session, "stop") and callable(old_session.stop):
+                try:
+                    await _maybe_await(old_session.stop())
+                except Exception:
+                    logger.exception("Error stopping replaced session")
+
         try:
             session = sess_factory(user_id)
             pipeline = pipe_factory(session)
@@ -177,6 +220,8 @@ def create_app(
             await websocket.close(code=1011)
             return
 
+        app.state.sessions[user_id] = (session, pipeline)
+
         sub_queue: asyncio.Queue[Any] | None = None
         if hasattr(session, "bus") and hasattr(session.bus, "subscribe"):
             sub_queue = session.bus.subscribe()
@@ -188,6 +233,10 @@ def create_app(
                 await _maybe_await(pipeline.start())
         except Exception as e:
             logger.exception("Failed to start session or pipeline: %s", e)
+            current = app.state.sessions.get(user_id)
+            if current is not None and current[0] is session and current[1] is pipeline:
+                app.state.sessions.pop(user_id, None)
+
             if sub_queue is not None and hasattr(session, "bus") and hasattr(session.bus, "unsubscribe"):
                 session.bus.unsubscribe(sub_queue)
             await websocket.send_json({
@@ -329,6 +378,34 @@ def create_app(
                             elif hasattr(pipeline, "set_auto_speak") and callable(pipeline.set_auto_speak):
                                 await _maybe_await(pipeline.set_auto_speak(bool(enabled)))
 
+                        elif msg_type == "control":
+                            take = msg.get("take", True)
+                            if isinstance(take, str):
+                                take = take.lower() in ("true", "1", "take")
+                            else:
+                                take = bool(take)
+                            if take:
+                                if hasattr(session, "take_control") and callable(session.take_control):
+                                    await _maybe_await(session.take_control())
+                                else:
+                                    session.user_in_control = True
+                                    if hasattr(session, "bus") and hasattr(session.bus, "emit"):
+                                        session.bus.emit("status", status="user_control")
+                            else:
+                                note = msg.get("note", "")
+                                if hasattr(session, "release_control") and callable(session.release_control):
+                                    try:
+                                        await _maybe_await(session.release_control(note))
+                                    except TypeError:
+                                        await _maybe_await(session.release_control())
+                                else:
+                                    session.user_in_control = False
+                                    if hasattr(session, "bus") and hasattr(session.bus, "emit"):
+                                        session.bus.emit("status", status="agent_control")
+
+                            current_control = getattr(session, "user_in_control", take)
+                            await broadcast_control(user_id, current_control)
+
                         else:
                             await websocket.send_json({
                                 "type": "error",
@@ -360,6 +437,10 @@ def create_app(
                 except asyncio.CancelledError:
                     pass
         finally:
+            current = app.state.sessions.get(user_id)
+            if current is not None and current[0] is session and current[1] is pipeline:
+                app.state.sessions.pop(user_id, None)
+
             for t in list(bg_tasks):
                 t.cancel()
 
@@ -377,6 +458,244 @@ def create_app(
                     await _maybe_await(session.stop())
                 except Exception:
                     logger.exception("Error stopping session")
+
+    @app.websocket("/ws/live")
+    async def ws_live_endpoint(websocket: WebSocket, user_id: str = "default"):
+        sess_tuple = app.state.sessions.get(user_id)
+        if sess_tuple is None:
+            await websocket.close(code=4404)
+            return
+
+        session, pipeline = sess_tuple
+        await websocket.accept()
+
+        browser = getattr(session, "browser", None)
+        try:
+            live = live_factory(browser)
+        except Exception as e:
+            logger.exception("Error creating LiveView: %s", e)
+            await websocket.close(code=1011)
+            return
+
+        send_lock = asyncio.Lock()
+        if not hasattr(app.state, "live_sockets"):
+            app.state.live_sockets = {}
+        app.state.live_sockets.setdefault(user_id, {})[websocket] = send_lock
+
+        latest_frame: bytes | None = None
+        pending_meta: dict[str, Any] | None = None
+        last_meta: dict[str, Any] | None = None
+        frame_event = asyncio.Event()
+
+        async def on_frame(jpeg_bytes: bytes, meta: dict | None = None) -> None:
+            nonlocal latest_frame, pending_meta, last_meta
+            if meta is not None and meta != last_meta:
+                pending_meta = dict(meta)
+                last_meta = dict(meta)
+            latest_frame = jpeg_bytes
+            frame_event.set()
+
+        async def frame_sender_loop() -> None:
+            nonlocal latest_frame, pending_meta
+            last_sent: bytes | None = None
+            try:
+                while True:
+                    # Chrome only sends screencast frames when the page repaints; resend the last
+                    # frame every 2s on a static page so the client knows the stream is alive.
+                    try:
+                        await asyncio.wait_for(frame_event.wait(), timeout=2.0)
+                    except asyncio.TimeoutError:
+                        if last_sent is not None:
+                            async with send_lock:
+                                await websocket.send_bytes(last_sent)
+                        continue
+                    frame_event.clear()
+                    meta_to_send = pending_meta
+                    pending_meta = None
+                    frame_to_send = latest_frame
+                    latest_frame = None
+                    if frame_to_send is not None:
+                        last_sent = frame_to_send
+
+                    if meta_to_send is not None:
+                        async with send_lock:
+                            await websocket.send_json({"type": "meta", **meta_to_send})
+                    if frame_to_send is not None:
+                        async with send_lock:
+                            await websocket.send_bytes(frame_to_send)
+            except (asyncio.CancelledError, WebSocketDisconnect):
+                pass
+            except Exception as e:
+                logger.exception("Error in frame_sender_loop: %s", e)
+
+        async def read_client_messages() -> None:
+            try:
+                while True:
+                    raw_text = await websocket.receive_text()
+                    try:
+                        msg = json.loads(raw_text)
+                        if not isinstance(msg, dict):
+                            raise ValueError("Message must be a JSON object")
+                    except Exception as err:
+                        async with send_lock:
+                            await websocket.send_json({
+                                "type": "error",
+                                "message": f"Invalid JSON: {err}",
+                                "data": {"error": f"Invalid JSON: {err}"},
+                                "ts": time.time(),
+                            })
+                        continue
+
+                    msg_type = msg.get("type")
+                    if not msg_type:
+                        async with send_lock:
+                            await websocket.send_json({
+                                "type": "error",
+                                "message": "Missing message type",
+                                "data": {"error": "Missing message type"},
+                                "ts": time.time(),
+                            })
+                        continue
+
+                    if msg_type == "control":
+                        take = msg.get("take", True)
+                        if isinstance(take, str):
+                            take = take.lower() in ("true", "1", "take")
+                        else:
+                            take = bool(take)
+
+                        try:
+                            if take:
+                                if hasattr(session, "take_control") and callable(session.take_control):
+                                    await _maybe_await(session.take_control())
+                                else:
+                                    session.user_in_control = True
+                                    if hasattr(session, "bus") and hasattr(session.bus, "emit"):
+                                        session.bus.emit("status", status="user_control")
+                            else:
+                                note = msg.get("note", "")
+                                if hasattr(session, "release_control") and callable(session.release_control):
+                                    try:
+                                        await _maybe_await(session.release_control(note))
+                                    except TypeError:
+                                        await _maybe_await(session.release_control())
+                                else:
+                                    session.user_in_control = False
+                                    if hasattr(session, "bus") and hasattr(session.bus, "emit"):
+                                        session.bus.emit("status", status="agent_control")
+
+                            current_control = getattr(session, "user_in_control", take)
+                            await broadcast_control(user_id, current_control)
+                        except Exception as ctrl_err:
+                            logger.exception("Error handling control message: %s", ctrl_err)
+                            async with send_lock:
+                                await websocket.send_json({
+                                    "type": "error",
+                                    "message": str(ctrl_err),
+                                    "data": {"error": str(ctrl_err)},
+                                    "ts": time.time(),
+                                })
+                        continue
+
+                    # Input when not user_in_control -> {"type":"error","message":"take control first"}
+                    is_in_control = getattr(session, "user_in_control", False)
+                    if not is_in_control:
+                        async with send_lock:
+                            await websocket.send_json({
+                                "type": "error",
+                                "message": "take control first",
+                                "data": {"error": "take control first"},
+                                "ts": time.time(),
+                            })
+                        continue
+
+                    try:
+                        if msg_type == "mouse":
+                            kind = msg.get("kind", "click")
+                            x = float(msg.get("x", 0.0))
+                            y = float(msg.get("y", 0.0))
+                            button = msg.get("button", "left")
+                            delta_y = float(msg.get("delta_y", 0.0))
+                            click_count = int(msg.get("click_count", 1))
+                            if hasattr(live, "mouse") and callable(live.mouse):
+                                await _maybe_await(
+                                    live.mouse(kind, x, y, button=button, delta_y=delta_y, click_count=click_count)
+                                )
+
+                        elif msg_type == "key":
+                            kind = msg.get("kind", "press")
+                            key_val = msg.get("key", "")
+                            code = msg.get("code", "")
+                            text_val = msg.get("text", "")
+                            if hasattr(live, "key") and callable(live.key):
+                                await _maybe_await(
+                                    live.key(kind, key_val, code=code, text=text_val)
+                                )
+
+                        elif msg_type == "text":
+                            text_val = msg.get("text", "")
+                            if hasattr(live, "insert_text") and callable(live.insert_text):
+                                await _maybe_await(live.insert_text(text_val))
+                            elif hasattr(live, "text") and callable(live.text):
+                                await _maybe_await(live.text(text_val))
+
+                        elif msg_type == "nav":
+                            action = msg.get("action", "")
+                            if hasattr(live, "nav") and callable(live.nav):
+                                await _maybe_await(live.nav(action))
+
+                        else:
+                            async with send_lock:
+                                await websocket.send_json({
+                                    "type": "error",
+                                    "message": f"Unknown message type '{msg_type}'",
+                                    "data": {"error": f"Unknown message type '{msg_type}'"},
+                                    "ts": time.time(),
+                                })
+                    except Exception as action_err:
+                        logger.exception("Error executing %s action: %s", msg_type, action_err)
+                        async with send_lock:
+                            await websocket.send_json({
+                                "type": "error",
+                                "message": str(action_err),
+                                "data": {"error": str(action_err)},
+                                "ts": time.time(),
+                            })
+            except (asyncio.CancelledError, WebSocketDisconnect):
+                pass
+
+        sender_task = asyncio.create_task(frame_sender_loop())
+        reader_task = asyncio.create_task(read_client_messages())
+
+        try:
+            if hasattr(live, "start") and callable(live.start):
+                await _maybe_await(live.start(on_frame))
+
+            done, pending = await asyncio.wait(
+                [sender_task, reader_task],
+                return_when=asyncio.FIRST_COMPLETED,
+            )
+            for task in pending:
+                task.cancel()
+                try:
+                    await task
+                except asyncio.CancelledError:
+                    pass
+        finally:
+            sender_task.cancel()
+            reader_task.cancel()
+
+            if hasattr(app.state, "live_sockets") and user_id in app.state.live_sockets:
+                app.state.live_sockets[user_id].pop(websocket, None)
+                if not app.state.live_sockets[user_id]:
+                    app.state.live_sockets.pop(user_id, None)
+
+            # On disconnect: live.stop() only
+            if hasattr(live, "stop") and callable(live.stop):
+                try:
+                    await _maybe_await(live.stop())
+                except Exception:
+                    logger.exception("Error stopping LiveView")
 
     return app
 

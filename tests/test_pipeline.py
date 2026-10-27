@@ -1018,3 +1018,65 @@ async def test_speak_full_text_single_wav_for_cli() -> None:
     assert "पहला वाक्य" in tts.calls[0]["text"]
     assert "दूसरा वाक्य" in tts.calls[0]["text"]
 
+
+def test_split_sentences_first_chunk_splitting() -> None:
+    # 1. Comma in first sentence <= 60 chars splits the first clause into chunk 0
+    text = "नमस्ते, मैं आपका पैन कार्ड आवेदन भरने में मदद कर रहा हूँ। कृपया अपने विवरण की जाँच करें।"
+    chunks = split_sentences(text)
+    assert len(chunks) == 3
+    assert chunks[0] == "नमस्ते,"
+    assert chunks[1] == "मैं आपका पैन कार्ड आवेदन भरने में मदद कर रहा हूँ।"
+    assert chunks[2] == "कृपया अपने विवरण की जाँच करें।"
+
+    # 2. English greeting with comma
+    text_en = "Hello there, I am here to help you file your voter registration form. Please confirm your address."
+    chunks_en = split_sentences(text_en)
+    assert len(chunks_en) == 3
+    assert chunks_en[0] == "Hello there,"
+    assert "I am here to help" in chunks_en[1]
+
+    # 3. Comma occurring after 60 chars is not split
+    long_clause = "यह एक बहुत ही लंबा वाक्य है जिसमें साठ अक्षरों से अधिक होने के बाद ही, पहला कॉमा आता है।"
+    chunks_long = split_sentences(long_clause)
+    assert len(chunks_long) == 1
+    assert chunks_long[0] == long_clause
+
+
+@pytest.mark.asyncio
+async def test_pipeline_first_chunk_streaming_emission() -> None:
+    session = FakeSession()
+    tts = FakeTTS()
+    pipeline = VoicePipeline(session=session, stt=FakeSTT(), tts=tts, auto_speak=True)
+    queue = session.bus.subscribe()
+    await pipeline.start()
+
+    try:
+        text = "नमस्ते, मैं आपका पैन कार्ड आवेदन भरने में मदद कर रहा हूँ। कृपया अपने विवरण की जाँच करें।"
+        session.bus.emit("assistant_text", text=text, language_code="hi-IN")
+
+        while True:
+            ev = await asyncio.wait_for(queue.get(), timeout=2.0)
+            if ev.type == "tts":
+                break
+        # First emitted chunk should be the short leading clause
+        assert ev.data["seq"] == 0
+        assert ev.data["text"] == "नमस्ते,"
+        assert ev.data["final"] is False
+    finally:
+        await pipeline.stop()
+        session.bus.unsubscribe(queue)
+
+
+@pytest.mark.asyncio
+async def test_pipeline_use_streaming_flag_with_fallback() -> None:
+    session = FakeSession()
+    tts = FakeTTS(audio=b"FALLBACK_WAV")
+    # VoicePipeline with use_streaming=True
+    pipeline = VoicePipeline(session=session, stt=FakeSTT(), tts=tts, use_streaming=True)
+
+    # When websockets cannot connect to live WS in mock test, it falls back to HTTP tts.synthesize
+    wav = await pipeline.speak("नमस्ते, परीक्षण", "hi-IN")
+    assert wav == b"FALLBACK_WAV"
+    assert len(tts.calls) == 1
+
+

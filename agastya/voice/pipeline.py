@@ -57,6 +57,32 @@ def strip_markdown(text: str, keep_newlines: bool = False) -> str:
     return " ".join(text.split())
 
 
+def split_first_clause(sentences: list[str], max_clause_len: int = 60) -> list[str]:
+    """Split the first sentence on its first comma if the leading clause is up to max_clause_len chars.
+
+    This ensures the first audio chunk starts synthesizing and playing sooner,
+    reducing time-to-first-audio (TTFA).
+    """
+    if not sentences:
+        return []
+    first = sentences[0]
+    idx = first.find(",")
+    if idx == -1:
+        return sentences
+
+    clause = first[: idx + 1].strip()
+    remainder = first[idx + 1 :].strip()
+
+    if not remainder or len(clause) > max_clause_len or not clause.replace(",", "").strip():
+        return sentences
+
+    if len(remainder) < 15 and len(sentences) > 1:
+        merged_next = f"{remainder} {sentences[1]}"
+        return [clause, merged_next] + sentences[2:]
+
+    return [clause, remainder] + sentences[1:]
+
+
 def split_sentences(text: str) -> list[str]:
     """Split text into spoken sentences for streaming TTS synthesis.
 
@@ -64,6 +90,7 @@ def split_sentences(text: str) -> list[str]:
     keeping punctuation with its sentence. Never splits inside numbers (e.g. '1.5') or
     abbreviations (e.g. 'Mr.', 'Dr.', 'e.g.', 'i.e.'). Merges fragments shorter than
     25 characters into the next fragment (or previous if at the end).
+    The first sentence is split at the first comma if <= 60 characters to reduce TTFA.
     """
     if not text:
         return []
@@ -138,6 +165,7 @@ def split_sentences(text: str) -> list[str]:
         else:
             merged.append(carry)
 
+    merged = split_first_clause(merged, max_clause_len=60)
     return merged
 
 
@@ -151,12 +179,14 @@ class VoicePipeline:
         tts: SarvamTTS | None = None,
         auto_speak: bool = True,
         on_timing: Callable[..., Any] | None = None,
+        use_streaming: bool = False,
     ) -> None:
         self.session = session
         self.stt = stt if stt is not None else SarvamSTT()
         self.tts = tts if tts is not None else SarvamTTS()
         self.auto_speak: bool = auto_speak
         self.on_timing: Callable[..., Any] | None = on_timing
+        self.use_streaming: bool = use_streaming
         self._task: asyncio.Task | None = None
         self._queue: asyncio.Queue[AgentEvent] | None = None
 
@@ -229,12 +259,74 @@ class VoicePipeline:
             return
         await self.session.send_user_message(text, language_code=language_code)
 
+    async def synthesize_stream(self, text: str, language_code: str) -> bytes:
+        """Streaming synthesis via Sarvam WebSocket API, with fallback to HTTP TTS."""
+        if not self.use_streaming:
+            return await self.tts.synthesize(text, language_code)
+
+        from agastya.config import get_settings
+
+        api_key = getattr(self.tts, "api_key", None) or get_settings().SARVAM_API_KEY
+        if not api_key:
+            return await self.tts.synthesize(text, language_code)
+
+        try:
+            import json
+            import websockets
+
+            ws_url = "wss://api.sarvam.ai/text-to-speech/ws"
+            headers = {"api-subscription-key": api_key}
+            model = getattr(self.tts, "model", "bulbul:v3")
+            speaker = getattr(self.tts, "speaker", "shubh")
+
+            async with websockets.connect(ws_url, additional_headers=headers, timeout=10.0) as ws:
+                config_msg = {
+                    "type": "config",
+                    "model": model,
+                    "speaker": speaker,
+                    "target_language_code": language_code,
+                    "pace": 1.0,
+                    "speech_sample_rate": 22050,
+                }
+                await ws.send(json.dumps(config_msg))
+                text_msg = {"type": "text", "text": text}
+                await ws.send(json.dumps(text_msg))
+                flush_msg = {"type": "flush"}
+                await ws.send(json.dumps(flush_msg))
+
+                audio_chunks: list[bytes] = []
+                while True:
+                    msg = await asyncio.wait_for(ws.recv(), timeout=10.0)
+                    data = (
+                        json.loads(msg)
+                        if isinstance(msg, str)
+                        else json.loads(msg.decode("utf-8"))
+                    )
+                    if data.get("type") == "audio":
+                        audio_b64 = data.get("audio", "")
+                        if audio_b64:
+                            audio_chunks.append(base64.b64decode(audio_b64))
+                    if data.get("type") in ("completion", "done", "end"):
+                        break
+
+                if audio_chunks:
+                    return b"".join(audio_chunks)
+        except Exception as exc:
+            logger.warning("Streaming TTS WS failed, falling back to HTTP synthesis: %s", exc)
+
+        return await self.tts.synthesize(text, language_code)
+
+    async def _synthesize_chunk(self, text: str, language_code: str) -> bytes:
+        if self.use_streaming:
+            return await self.synthesize_stream(text, language_code)
+        return await self.tts.synthesize(text, language_code)
+
     async def speak(self, text: str, language_code: str) -> bytes:
         """Synthesize text to speech WAV bytes, stripping markdown first."""
         cleaned = strip_markdown(text)
         if not cleaned.strip():
             return b""
-        return await self.tts.synthesize(cleaned, language_code)
+        return await self._synthesize_chunk(cleaned, language_code)
 
     async def _process_events(self) -> None:
         """Sequentially process bus events and synthesize sentence-streamed speech."""
@@ -282,11 +374,11 @@ class VoicePipeline:
 
                 # Start synthesizing sentence 0; prefetch sentence 1 if exists
                 current_task = asyncio.create_task(
-                    self.tts.synthesize(sentences[0], lang)
+                    self._synthesize_chunk(sentences[0], lang)
                 )
                 if total > 1:
                     next_task = asyncio.create_task(
-                        self.tts.synthesize(sentences[1], lang)
+                        self._synthesize_chunk(sentences[1], lang)
                     )
 
                 for i in range(total):
@@ -308,7 +400,7 @@ class VoicePipeline:
                     current_task = next_task
                     if i + 2 < total:
                         next_task = asyncio.create_task(
-                            self.tts.synthesize(sentences[i + 2], lang)
+                            self._synthesize_chunk(sentences[i + 2], lang)
                         )
                     else:
                         next_task = None

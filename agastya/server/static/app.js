@@ -6,6 +6,7 @@
  */
 
 import { AudioRecorder } from './recorder.js';
+import { initLiveBrowser } from './live.js';
 
 /* ==========================================================================
    State & Constants
@@ -14,6 +15,7 @@ const urlParams = new URLSearchParams(window.location.search);
 const userId = urlParams.get('user_id') || 'default';
 
 let ws = null;
+let liveBrowser = null;
 let reconnectTimer = null;
 let reconnectDelay = 1000;
 const MIN_RECONNECT_DELAY = 1000;
@@ -476,42 +478,77 @@ function scrollChatToBottom() {
    Activity Log (Tool Calls)
    ========================================================================== */
 function logToolCall(data) {
-  // Strip mcp__agastya__ prefix
+  // Strip mcp__agastya__ and mcp__playwright__ prefixes; flag playwright tools with DOM tag
   const rawName = data.name || data.tool || 'tool_call';
-  const cleanName = rawName.replace(/^mcp__agastya__/, '');
+  const isPlaywright = rawName.startsWith('mcp__playwright__');
+  const cleanName = rawName.replace(/^(mcp__agastya__|mcp__playwright__)/, '');
 
-  // Format short arguments without revealing sensitive get_profile_value values
   let argsStr = '';
-  const input = data.input || {};
+  const input = data.input || data.args || data.arguments || {};
 
-  if (cleanName === 'get_profile_value') {
+  if (cleanName === 'browser_fill_many') {
+    // SECURITY: never show values — they may be sensitive!
+    const items = Array.isArray(input.items)
+      ? input.items
+      : Array.isArray(input)
+        ? input
+        : [];
+    const refs = items
+      .map((item) => (item && item.ref != null ? String(item.ref).trim() : ''))
+      .filter(Boolean);
+    argsStr = `${items.length} fields: ${refs.join(', ')}`;
+  } else if (cleanName === 'get_profile_value') {
     // SECURITY RULE: Never show values of get_profile_value results or requests
     argsStr = `field: ${input.field || '(unspecified)'}`;
   } else if (cleanName === 'save_profile_field') {
     argsStr = `field: ${input.field || ''}, value: ••••••`;
-  } else if (cleanName === 'browser_goto') {
+  } else if (cleanName === 'browser_goto' || cleanName === 'browser_navigate') {
     argsStr = `url: "${input.url || ''}"`;
-  } else if (cleanName === 'browser_fill') {
-    argsStr = `ref: "${input.ref || ''}", value: ••••••`;
+  } else if (cleanName === 'browser_fill' || cleanName === 'browser_type') {
+    const target = input.ref || input.element || '';
+    argsStr = `ref: "${target}", value: ••••••`;
   } else if (cleanName === 'browser_click') {
-    argsStr = `ref: "${input.ref || ''}"`;
-  } else if (cleanName === 'browser_select') {
-    argsStr = `ref: "${input.ref || ''}", option: "${input.option || ''}"`;
+    const target = input.ref || input.element || '';
+    argsStr = `ref: "${target}"`;
+  } else if (cleanName === 'browser_select' || cleanName === 'browser_select_option') {
+    const target = input.ref || input.element || '';
+    argsStr = `ref: "${target}", option: "${input.option || input.value || ''}"`;
   } else if (cleanName === 'ask_user') {
-    argsStr = `question: "${(input.question || '').slice(0, 40)}..."`;
+    const q = input.question || '';
+    argsStr = `question: "${q.length > 40 ? q.slice(0, 40) + '…' : q}"`;
   } else if (cleanName === 'handoff_to_user') {
     argsStr = `reason: "${input.reason || ''}"`;
   } else {
     try {
-      const keys = Object.keys(input);
-      if (keys.length === 0) {
-        argsStr = '';
+      if (typeof input === 'object' && input !== null) {
+        if (Array.isArray(input)) {
+          let s = JSON.stringify(input);
+          argsStr = s.length > 80 ? s.slice(0, 80) + '…' : s;
+        } else {
+          const keys = Object.keys(input);
+          if (keys.length === 0) {
+            argsStr = '';
+          } else {
+            const parts = keys.map((k) => {
+              const val = input[k];
+              let valStr;
+              if (typeof val === 'object' && val !== null) {
+                valStr = JSON.stringify(val);
+                if (valStr.length > 80) {
+                  valStr = valStr.slice(0, 80) + '…';
+                }
+              } else {
+                const s = String(val ?? '');
+                valStr = s.length > 80 ? s.slice(0, 80) + '…' : s;
+              }
+              return `${k}: ${valStr}`;
+            });
+            argsStr = parts.join(', ');
+          }
+        }
       } else {
-        const parts = keys.map((k) => {
-          const val = String(input[k]);
-          return `${k}: ${val.length > 30 ? val.slice(0, 30) + '...' : val}`;
-        });
-        argsStr = parts.join(', ');
+        const s = String(input ?? '');
+        argsStr = s.length > 80 ? s.slice(0, 80) + '…' : s;
       }
     } catch {
       argsStr = '';
@@ -532,7 +569,10 @@ function logToolCall(data) {
   item.className = 'activity-item';
   item.innerHTML = `
     <div class="activity-header">
-      <span class="activity-tool-name">${escapeHtml(cleanName)}</span>
+      <div class="activity-tool-wrap">
+        ${isPlaywright ? '<span class="activity-tag-dom">DOM</span>' : ''}
+        <span class="activity-tool-name">${escapeHtml(cleanName)}</span>
+      </div>
       <span class="activity-time">${timeStr}</span>
     </div>
     ${argsStr ? `<div class="activity-args">${escapeHtml(argsStr)}</div>` : ''}
@@ -799,6 +839,10 @@ function connectWebSocket() {
       reconnectTimer = null;
     }
 
+    if (liveBrowser) {
+      liveBrowser.onMainWsOpen();
+    }
+
     // Send initial configuration
     sendWsMessage({ type: 'tts', enabled: speakerEnabled });
     if (currentLanguage) {
@@ -818,6 +862,9 @@ function connectWebSocket() {
   ws.onclose = () => {
     isReady = false;
     updateConnectionStatus('disconnected');
+    if (liveBrowser) {
+      liveBrowser.onMainWsClose();
+    }
     scheduleReconnect();
   };
 
@@ -859,8 +906,16 @@ function handleAgentEvent(event) {
         if (!audioQueue.isSpeaking && !isRecording) {
           updateStatus('ready', 'तैयार (Ready)');
         }
+      } else if (data.status === 'user_control') {
+        if (liveBrowser) {
+          liveBrowser.triggerHandoffAttention(data.reason || 'User control requested');
+        }
+        updateStatus('user_control', 'आपका नियंत्रण (Citizen in control)');
       } else if (data.handoff || data.status === 'handoff') {
         showAmberBanner(data.reason);
+        if (liveBrowser) {
+          liveBrowser.triggerHandoffAttention(data.reason);
+        }
         updateStatus('idle', 'आपकी बारी (Your Turn)');
       } else if (data.status) {
         if (!audioQueue.isSpeaking && !isRecording) {
@@ -887,6 +942,9 @@ function handleAgentEvent(event) {
 
     case 'blocked':
       showAmberBanner(data.reason || 'सुरक्षा नीति के तहत यह अंतिम कार्रवाई अवरुद्ध है (Action blocked by safety policy).');
+      if (liveBrowser) {
+        liveBrowser.triggerHandoffAttention(data.reason);
+      }
       break;
 
     case 'tool_call':
@@ -896,12 +954,17 @@ function handleAgentEvent(event) {
     case 'screenshot':
       if (data.png_b64) {
         browserScreenshot.src = `data:image/png;base64,${data.png_b64}`;
-        browserScreenshot.classList.remove('hidden');
-        browserPlaceholder.classList.add('hidden');
+        if (!liveBrowser || !liveBrowser.hasReceivedLiveFrame) {
+          browserScreenshot.classList.remove('hidden');
+          browserPlaceholder.classList.add('hidden');
+        }
       }
       if (data.url) {
         browserUrlText.textContent = data.url;
         browserUrlLink.href = data.url;
+      }
+      if (liveBrowser) {
+        liveBrowser.updateScreenshotFallback(data.png_b64, data.url);
       }
       break;
 
@@ -1147,6 +1210,9 @@ function initEventListeners() {
   if (bannerViewBrowserBtn) {
     bannerViewBrowserBtn.addEventListener('click', () => {
       switchToTab('browser-panel');
+      if (liveBrowser && window.innerWidth > 900) {
+        liveBrowser.expandView();
+      }
     });
   }
   amberBannerClose.addEventListener('click', hideAmberBanner);
@@ -1193,6 +1259,10 @@ function switchToTab(panelId) {
    ========================================================================== */
 window.addEventListener('DOMContentLoaded', async () => {
   initEventListeners();
+  liveBrowser = initLiveBrowser({
+    userId,
+    onTabSwitch: (panelId) => switchToTab(panelId),
+  });
   await loadLanguages();
   await loadProfile();
   connectWebSocket();

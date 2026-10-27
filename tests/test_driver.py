@@ -411,3 +411,78 @@ async def test_unknown_ref_raises_value_error(driver: BrowserDriver):
 
     with pytest.raises(ValueError, match="Unknown ref"):
         await driver.click("a999")
+
+
+@pytest.mark.asyncio
+async def test_cdp_endpoint_reachable(driver: BrowserDriver):
+    """CDP endpoint is reachable and exposes http://127.0.0.1:<port>/json/version via urllib."""
+    import json
+    import urllib.request
+
+    assert driver.cdp_port > 0
+    assert driver.cdp_endpoint == f"http://127.0.0.1:{driver.cdp_port}"
+
+    version_url = f"{driver.cdp_endpoint}/json/version"
+    req = urllib.request.Request(version_url)
+    with urllib.request.urlopen(req, timeout=5) as response:
+        assert response.status == 200
+        payload = json.loads(response.read().decode("utf-8"))
+        assert "Browser" in payload
+        assert "webSocketDebuggerUrl" in payload
+
+
+@pytest.mark.asyncio
+async def test_active_page_tracking_and_popup(driver: BrowserDriver):
+    """Popup/new tab becomes the active page and listener fires; closes fall back to last open page."""
+    import asyncio
+
+    page_changes = []
+
+    async def on_change(page):
+        page_changes.append(page)
+
+    driver.add_page_change_listener(on_change)
+
+    initial_page = driver.page
+    assert initial_page is not None
+
+    count_before = len(page_changes)
+
+    # Open a new tab via window.open
+    await initial_page.evaluate("() => window.open('about:blank')")
+
+    # Wait for listener to fire
+    for _ in range(30):
+        if len(page_changes) > count_before:
+            break
+        await asyncio.sleep(0.05)
+
+    assert len(page_changes) > count_before
+    new_page = driver.page
+    assert new_page != initial_page
+    assert page_changes[-1] == new_page
+
+    count_after_open = len(page_changes)
+
+    # Now close the active new page
+    await new_page.close()
+
+    # Wait for fallback
+    for _ in range(30):
+        if len(page_changes) > count_after_open:
+            break
+        await asyncio.sleep(0.05)
+
+    assert len(page_changes) > count_after_open
+    assert driver.page == initial_page
+    assert page_changes[-1] == initial_page
+
+
+@pytest.mark.asyncio
+async def test_driver_custom_cdp_port():
+    """BrowserDriver respects custom cdp_port if provided."""
+    d = BrowserDriver(headless=True, cdp_port=9444)
+    assert d.cdp_port == 9444
+    assert d.cdp_endpoint == "http://127.0.0.1:9444"
+
+

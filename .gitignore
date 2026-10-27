@@ -8,3 +8,4 @@ data/
 screenshots/
 .agy/
 mcp/node_modules/
+.playwright-mcp/

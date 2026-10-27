@@ -88,6 +88,9 @@
   <!-- Toast notification area for errors -->
   <div id="toast-container" class="toast-container" aria-live="polite"></div>
 
+  <!-- Expanded Live View Backdrop Overlay -->
+  <div id="live-expanded-backdrop" class="live-expanded-backdrop hidden" aria-hidden="true"></div>
+
   <!-- Main 3-Column Layout -->
   <main class="app-layout">
     <!-- 1. LEFT: Profile Panel -->
@@ -186,18 +189,43 @@
     <!-- 3. RIGHT: Live Browser View & Tool Call Activity Log -->
     <section id="browser-panel" class="panel panel-browser" aria-labelledby="browser-heading">
       <div class="panel-header">
-        <h2 id="browser-heading" class="panel-title">लाइव ब्राउज़र दृश्य / Live Browser</h2>
-        <span class="badge-guard" title="Safety Guard Active: Submit/Pay/OTP protected">🛡️ Guard Active</span>
+        <div class="header-title-wrap">
+          <h2 id="browser-heading" class="panel-title">लाइव ब्राउज़र दृश्य / Live Browser</h2>
+          <span class="badge-guard" title="Safety Guard Active: Submit/Pay/OTP protected">🛡️ Guard Active</span>
+        </div>
+        <button type="button" id="live-expand-btn" class="btn-icon-small live-expand-btn" title="बड़ा दृश्य / Expand Live View" aria-label="Expand Live View" aria-expanded="false">⛶</button>
       </div>
 
-      <!-- Live Screenshot Box -->
+      <!-- Live Controllable Browser Card -->
       <div class="browser-preview-card">
-        <div class="browser-url-bar">
-          <span class="url-badge">URL</span>
-          <a id="browser-url-link" class="browser-url-link" href="#" target="_blank" rel="noopener noreferrer">
-            <span id="browser-url-text">about:blank</span>
-          </a>
+        <!-- Navigation bar: Back, Reload, Title, URL, Live FPS indicator -->
+        <div class="browser-nav-bar">
+          <div class="live-nav-buttons">
+            <button type="button" id="live-nav-back" class="live-nav-btn" title="पीछे जाएँ / Go Back" aria-label="Go Back">◀</button>
+            <button type="button" id="live-nav-reload" class="live-nav-btn" title="पुनः लोड करें / Reload" aria-label="Reload">🔄</button>
+          </div>
+          <div class="browser-address-wrap">
+            <div id="live-page-title" class="live-page-title" title="पृष्ठ शीर्षक / Page Title">पोर्टल (Portal)</div>
+            <div class="browser-url-bar">
+              <span class="url-badge">URL</span>
+              <a id="browser-url-link" class="browser-url-link" href="#" target="_blank" rel="noopener noreferrer">
+                <span id="browser-url-text">about:blank</span>
+              </a>
+            </div>
+          </div>
+          <div class="live-stream-badge" id="live-stream-badge" role="status" aria-live="polite">
+            <span class="live-dot" id="live-stream-dot" title="Stream status"></span>
+            <span class="live-fps" id="live-stream-fps">Live</span>
+          </div>
+          <button type="button" id="live-expanded-close-btn" class="live-nav-btn live-close-btn hidden" title="बंद करें / Close (Esc)" aria-label="Close expanded view">✕</button>
         </div>
+
+        <!-- One-line hint while citizen is in control -->
+        <div id="live-control-hint" class="live-control-hint hidden" role="status">
+          <span class="control-hint-text">पोर्टल पर क्लिक करें और टाइप करें — Click and type directly on the portal. Press Done when finished.</span>
+        </div>
+
+        <!-- Viewport Container: Placeholder, Fallback Screenshot, and Live Canvas -->
         <div class="browser-viewport" id="browser-viewport">
           <div id="browser-placeholder" class="browser-placeholder">
             <span class="browser-icon" aria-hidden="true">🌐</span>
@@ -210,6 +238,57 @@
             src=""
             alt="Current portal screenshot"
           />
+          <canvas
+            id="live-canvas"
+            class="live-canvas hidden"
+            tabindex="0"
+            role="application"
+            aria-label="सजीव पोर्टल दृश्य / Live portal view (Click to focus, type or navigate)"
+          ></canvas>
+          <div id="live-stream-paused" class="live-stream-paused hidden" role="status">
+            <span class="paused-icon" aria-hidden="true">⏸️</span>
+            <span>स्ट्रीम रुकी हुई है / Stream paused</span>
+          </div>
+        </div>
+
+        <!-- Attention Banner for Handoff / Blocked / OTP / Captcha -->
+        <div id="live-handoff-banner" class="live-handoff-banner hidden" role="alert">
+          <span class="live-handoff-icon" aria-hidden="true">⚠️</span>
+          <span id="live-handoff-text" class="live-handoff-text">कैप्चा / OTP आप भरें — Solve the captcha / OTP here</span>
+        </div>
+
+        <!-- Human Control Section -->
+        <div class="live-control-section">
+          <!-- Big Control Toggle Button -->
+          <button type="button" id="live-control-btn" class="live-control-btn" aria-live="polite">
+            <span id="live-control-btn-icon" class="control-btn-icon" aria-hidden="true">🎮</span>
+            <span id="live-control-btn-text" class="control-btn-text">नियंत्रण लें / Take control</span>
+          </button>
+
+          <!-- Optional Note Input for Handing Control Back -->
+          <div id="live-note-container" class="live-note-container hidden">
+            <label for="live-note-input" class="live-note-label">अगस्त्य के लिए नोट (वैकल्पिक) / Optional note for Agastya:</label>
+            <input
+              type="text"
+              id="live-note-input"
+              class="live-note-input"
+              placeholder="उदा. OTP 482910 भर दिया / e.g. Captcha entered..."
+            />
+          </div>
+
+          <!-- Mobile 'Type…' Input Box for OTP / Text Entry -->
+          <div id="live-mobile-type-container" class="live-mobile-type-container hidden">
+            <form id="live-mobile-type-form" class="live-mobile-type-form" autocomplete="off">
+              <input
+                type="text"
+                id="live-mobile-type-input"
+                class="live-mobile-type-input"
+                placeholder="Type… (यहाँ टाइप करें)"
+                aria-label="मोबाइल टेक्स्ट इनपुट / Type text or OTP"
+              />
+              <button type="submit" class="live-mobile-type-btn" title="भेजें / Send">भेजें (Send)</button>
+            </form>
+          </div>
         </div>
       </div>
 

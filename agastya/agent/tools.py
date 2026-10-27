@@ -4,9 +4,10 @@ from __future__ import annotations
 
 import base64
 import dataclasses
-from dataclasses import asdict, dataclass, is_dataclass
+from dataclasses import asdict, dataclass, field, is_dataclass
 import json
 import logging
+import time
 from typing import TYPE_CHECKING, Any, Awaitable, Callable
 
 from claude_agent_sdk import create_sdk_mcp_server, tool
@@ -33,6 +34,9 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
+PAUSED_MESSAGE = "PAUSED: the citizen is controlling the browser. Wait."
+
+
 @dataclass
 class ToolContext:
     profile: ProfileStore
@@ -40,6 +44,7 @@ class ToolContext:
     bus: EventBus
     ask_user: Callable[..., Awaitable[str]]  # (question, fields) -> answer text
     playbooks: dict[str, Playbook]
+    is_user_in_control: Callable[[], bool] = field(default_factory=lambda: (lambda: False))
 
 
 TOOL_NAMES: list[str] = [
@@ -52,6 +57,7 @@ TOOL_NAMES: list[str] = [
     "mcp__agastya__browser_goto",
     "mcp__agastya__browser_snapshot",
     "mcp__agastya__browser_fill",
+    "mcp__agastya__browser_fill_many",
     "mcp__agastya__browser_select",
     "mcp__agastya__browser_click",
     "mcp__agastya__browser_screenshot",
@@ -168,6 +174,38 @@ BROWSER_FILL_SCHEMA: dict[str, Any] = {
     "additionalProperties": False,
 }
 
+BROWSER_FILL_MANY_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "properties": {
+        "items": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "ref": {
+                        "type": "string",
+                        "description": "The stable element reference from the snapshot (e.g. 'f1', 'f3').",
+                    },
+                    "value": {
+                        "type": "string",
+                        "description": "The value to fill, option to select, or boolean string for checkbox ('true'/'false'/'yes'/'no').",
+                    },
+                    "kind": {
+                        "type": "string",
+                        "enum": ["fill", "select", "check"],
+                        "description": "Action kind: 'fill' (default), 'select', or 'check'.",
+                    },
+                },
+                "required": ["ref", "value"],
+                "additionalProperties": False,
+            },
+            "description": "List of form elements to fill or select sequentially in ONE tool call.",
+        }
+    },
+    "required": ["items"],
+    "additionalProperties": False,
+}
+
 BROWSER_SELECT_SCHEMA: dict[str, Any] = {
     "type": "object",
     "properties": {
@@ -241,6 +279,50 @@ def _get_blocked_reason(exc: BaseException) -> str:
         return str(getattr(exc, "reason"))
     msg = str(exc).strip()
     return msg if msg else "Final action blocked"
+
+
+def _is_user_in_control(ctx: ToolContext) -> bool:
+    """Return True if citizen is currently controlling the browser."""
+    fn = getattr(ctx, "is_user_in_control", None)
+    if fn is None:
+        return False
+    if callable(fn):
+        try:
+            return bool(fn())
+        except Exception:
+            return False
+    return bool(fn)
+
+
+async def _capture_screenshot(ctx: ToolContext) -> tuple[bytes, str]:
+    """Capture screenshot as JPEG quality 55 via page.screenshot if supported, else fallback to driver.screenshot() PNG."""
+    page = getattr(ctx.browser, "page", None)
+    if page is not None and hasattr(page, "screenshot") and callable(page.screenshot):
+        try:
+            jpeg_bytes = await page.screenshot(type="jpeg", quality=55)
+            return jpeg_bytes, "image/jpeg"
+        except Exception:
+            pass
+    if hasattr(ctx.browser, "screenshot") and callable(ctx.browser.screenshot):
+        png_bytes = await ctx.browser.screenshot()
+        return png_bytes, "image/png"
+    raise RuntimeError("Browser does not support screenshot capture.")
+
+
+async def _emit_screenshot_throttled(ctx: ToolContext, url: str) -> None:
+    """Emit screenshot event at most once every 2s, only after goto/click/fill_many."""
+    now = time.monotonic()
+    last = getattr(ctx, "_last_screenshot_time", 0.0)
+    if now - last < 2.0:
+        logger.debug("Screenshot skipped: throttled (%.2fs < 2.0s)", now - last)
+        return
+    ctx._last_screenshot_time = now
+    try:
+        img_bytes, mime = await _capture_screenshot(ctx)
+        b64 = base64.b64encode(img_bytes).decode("utf-8")
+        ctx.bus.emit("screenshot", png_b64=b64, image_b64=b64, mime=mime, url=str(url or ""))
+    except Exception as e:
+        logger.warning(f"Failed to capture throttled screenshot: {e}")
 
 
 def format_snapshot(snapshot: Any) -> str:
@@ -510,6 +592,8 @@ def build_handlers(
         }
 
     async def browser_goto(args: dict[str, Any] | None = None) -> dict[str, Any]:
+        if _is_user_in_control(ctx):
+            return {"content": [{"type": "text", "text": PAUSED_MESSAGE}]}
         args = args or {}
         url = args.get("url", "")
         try:
@@ -532,20 +616,17 @@ def build_handlers(
                 "is_error": True,
             }
 
-        # Page-changing browser action automatically emits screenshot event
-        try:
-            png_bytes = await ctx.browser.screenshot()
-            png_b64 = base64.b64encode(png_bytes).decode("utf-8")
-            current_url = getattr(snapshot, "url", url)
-            ctx.bus.emit("screenshot", png_b64=png_b64, url=str(current_url or ""))
-        except Exception as e:
-            logger.warning(f"Failed to capture screenshot after goto: {e}")
+        # Page-changing browser action automatically emits screenshot event (throttled)
+        current_url = getattr(snapshot, "url", url)
+        await _emit_screenshot_throttled(ctx, str(current_url or ""))
 
         return {
             "content": [{"type": "text", "text": format_snapshot(snapshot)}],
         }
 
     async def browser_snapshot(args: dict[str, Any] | None = None) -> dict[str, Any]:
+        if _is_user_in_control(ctx):
+            return {"content": [{"type": "text", "text": PAUSED_MESSAGE}]}
         try:
             snapshot = await ctx.browser.snapshot()
             return {
@@ -558,6 +639,8 @@ def build_handlers(
             }
 
     async def browser_fill(args: dict[str, Any] | None = None) -> dict[str, Any]:
+        if _is_user_in_control(ctx):
+            return {"content": [{"type": "text", "text": PAUSED_MESSAGE}]}
         args = args or {}
         ref = args.get("ref", "")
         value = args.get("value", "")
@@ -572,7 +655,66 @@ def build_handlers(
                 "is_error": True,
             }
 
+    async def browser_fill_many(args: dict[str, Any] | None = None) -> dict[str, Any]:
+        if _is_user_in_control(ctx):
+            return {"content": [{"type": "text", "text": PAUSED_MESSAGE}]}
+        args = args or {}
+        items = args.get("items", [])
+        if not isinstance(items, list):
+            return {
+                "content": [{"type": "text", "text": "Argument 'items' must be a list."}],
+                "is_error": True,
+            }
+
+        results: list[dict[str, Any]] = []
+        for item in items:
+            if not isinstance(item, dict):
+                results.append({"ref": "unknown", "ok": False, "error": "Item must be a dictionary"})
+                continue
+            ref = str(item.get("ref", "")).strip()
+            val = str(item.get("value", ""))
+            kind = str(item.get("kind", "fill")).lower().strip()
+
+            if not ref:
+                results.append({"ref": "", "ok": False, "error": "Missing 'ref'"})
+                continue
+
+            try:
+                if kind == "select":
+                    await ctx.browser.select(ref, val)
+                elif kind == "check":
+                    if hasattr(ctx.browser, "check") and callable(getattr(ctx.browser, "check")):
+                        await ctx.browser.check(ref, val)
+                    else:
+                        await ctx.browser.fill(ref, val)
+                else:  # "fill" (default)
+                    await ctx.browser.fill(ref, val)
+                results.append({"ref": ref, "ok": True, "value": val, "kind": kind})
+            except Exception as e:
+                results.append({"ref": ref, "ok": False, "error": str(e), "kind": kind})
+
+        url = getattr(ctx.browser, "url", "")
+        if callable(url):
+            url = url()
+        await _emit_screenshot_throttled(ctx, str(url or ""))
+
+        ok_count = sum(1 for r in results if r["ok"])
+        total_count = len(results)
+        summary = f"Processed {total_count} items: {ok_count} succeeded, {total_count - ok_count} failed."
+
+        payload = {
+            "summary": summary,
+            "results": results,
+            "ok_count": ok_count,
+            "error_count": total_count - ok_count,
+        }
+        return {
+            "content": [{"type": "text", "text": json.dumps(payload, indent=2, ensure_ascii=False)}],
+        }
+
     async def browser_select(args: dict[str, Any] | None = None) -> dict[str, Any]:
+        if _is_user_in_control(ctx):
+            return {"content": [{"type": "text", "text": PAUSED_MESSAGE}]}
         args = args or {}
         ref = args.get("ref", "")
         option = args.get("option", "")
@@ -588,6 +730,8 @@ def build_handlers(
             }
 
     async def browser_click(args: dict[str, Any] | None = None) -> dict[str, Any]:
+        if _is_user_in_control(ctx):
+            return {"content": [{"type": "text", "text": PAUSED_MESSAGE}]}
         args = args or {}
         ref = args.get("ref", "")
         try:
@@ -610,29 +754,27 @@ def build_handlers(
                 "is_error": True,
             }
 
-        # Page-changing browser action automatically emits screenshot event
-        try:
-            png_bytes = await ctx.browser.screenshot()
-            png_b64 = base64.b64encode(png_bytes).decode("utf-8")
-            current_url = getattr(snapshot, "url", "")
-            ctx.bus.emit("screenshot", png_b64=png_b64, url=str(current_url or ""))
-        except Exception as e:
-            logger.warning(f"Failed to capture screenshot after click: {e}")
+        # Page-changing browser action automatically emits screenshot event (throttled)
+        current_url = getattr(snapshot, "url", "")
+        await _emit_screenshot_throttled(ctx, str(current_url or ""))
 
         return {
             "content": [{"type": "text", "text": format_snapshot(snapshot)}],
         }
 
     async def browser_screenshot(args: dict[str, Any] | None = None) -> dict[str, Any]:
+        if _is_user_in_control(ctx):
+            return {"content": [{"type": "text", "text": PAUSED_MESSAGE}]}
         try:
-            png_bytes = await ctx.browser.screenshot()
-            png_b64 = base64.b64encode(png_bytes).decode("utf-8")
+            img_bytes, mime = await _capture_screenshot(ctx)
+            ctx._last_screenshot_time = time.monotonic()
+            b64 = base64.b64encode(img_bytes).decode("utf-8")
             url = getattr(ctx.browser, "url", "")
             if callable(url):
                 url = url()
-            ctx.bus.emit("screenshot", png_b64=png_b64, url=str(url or ""))
+            ctx.bus.emit("screenshot", png_b64=b64, image_b64=b64, mime=mime, url=str(url or ""))
             return {
-                "content": [{"type": "text", "text": f"Screenshot captured ({len(png_bytes)} bytes)."}],
+                "content": [{"type": "text", "text": f"Screenshot captured ({len(img_bytes)} bytes)."}],
             }
         except Exception as e:
             return {
@@ -658,6 +800,7 @@ def build_handlers(
         "browser_goto": browser_goto,
         "browser_snapshot": browser_snapshot,
         "browser_fill": browser_fill,
+        "browser_fill_many": browser_fill_many,
         "browser_select": browser_select,
         "browser_click": browser_click,
         "browser_screenshot": browser_screenshot,
@@ -715,6 +858,11 @@ def build_mcp_server(ctx: ToolContext) -> AgastyaMcpServerConfig:
             "Fill a form input or textarea identified by its ref ('fN') with a value.",
             BROWSER_FILL_SCHEMA,
         )(handlers["browser_fill"]),
+        tool(
+            "browser_fill_many",
+            "Fill or select multiple form fields in ONE tool call. Items: [{ref, value, kind?: 'fill'|'select'|'check'}]. Returns per-item ok/error status.",
+            BROWSER_FILL_MANY_SCHEMA,
+        )(handlers["browser_fill_many"]),
         tool(
             "browser_select",
             "Select an option in a dropdown or radio element identified by its ref ('fN').",

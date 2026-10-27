@@ -7,6 +7,7 @@ import base64
 from dataclasses import dataclass
 import json
 from pathlib import Path
+import time
 from typing import Any
 
 import pytest
@@ -99,12 +100,16 @@ class FakeBrowser:
         for f in self.fields:
             if f.ref == ref:
                 f.value = value
+                return
+        raise ValueError(f"Unknown ref: '{ref}'. No element matches data-agastya-ref='{ref}'.")
 
     async def select(self, ref: str, option: str) -> None:
         self.calls.append(("select", (ref, option)))
         for f in self.fields:
             if f.ref == ref:
                 f.value = option
+                return
+        raise ValueError(f"Unknown ref: '{ref}'. No element matches data-agastya-ref='{ref}'.")
 
     async def click(self, ref: str) -> PageSnapshot:
         self.calls.append(("click", ref))
@@ -169,10 +174,11 @@ def test_ctx(tmp_path: Path):
 
 
 def test_tool_names():
-    assert len(TOOL_NAMES) == 13
+    assert len(TOOL_NAMES) == 14
     for name in TOOL_NAMES:
         assert name.startswith("mcp__agastya__")
     assert "mcp__agastya__get_profile" in TOOL_NAMES
+    assert "mcp__agastya__browser_fill_many" in TOOL_NAMES
     assert "mcp__agastya__browser_click" in TOOL_NAMES
     assert "mcp__agastya__handoff_to_user" in TOOL_NAMES
 
@@ -186,8 +192,9 @@ def test_build_mcp_server(test_ctx: ToolContext):
     assert "handlers" not in server
     json.dumps({k: v for k, v in server.items() if k != "instance"})
     assert hasattr(server, "handlers")
-    assert len(server.handlers) == 13
+    assert len(server.handlers) == 14
     assert "get_profile" in server.handlers
+    assert "browser_fill_many" in server.handlers
     assert "browser_click" in server.handlers
 
 
@@ -640,3 +647,98 @@ async def test_profile_updated_event_is_masked(test_ctx):
     ev = await asyncio.wait_for(q.get(), 1)
     assert ev.type == "profile_updated"
     assert "234567890123" not in json.dumps(ev.data)
+
+
+@pytest.mark.asyncio
+async def test_browser_fill_many_success(test_ctx: ToolContext):
+    handlers = build_handlers(test_ctx)
+    items = [
+        {"ref": "f1", "value": "Jane", "kind": "fill"},
+        {"ref": "f2", "value": "MH", "kind": "select"},
+        {"ref": "f3", "value": "Doe", "kind": "fill"},
+    ]
+    res = await handlers["browser_fill_many"]({"items": items})
+    assert not res.get("is_error")
+    data = json.loads(res["content"][0]["text"])
+    assert data["ok_count"] == 3
+    assert data["error_count"] == 0
+    assert len(data["results"]) == 3
+    assert all(r["ok"] is True for r in data["results"])
+
+    # Verify browser fields state
+    field_map = {f.ref: f.value for f in test_ctx.browser.fields}
+    assert field_map["f1"] == "Jane"
+    assert field_map["f2"] == "MH"
+    assert field_map["f3"] == "Doe"
+
+
+@pytest.mark.asyncio
+async def test_browser_fill_many_partial_failure(test_ctx: ToolContext):
+    handlers = build_handlers(test_ctx)
+    items = [
+        {"ref": "f1", "value": "Alice", "kind": "fill"},
+        {"ref": "f_invalid", "value": "Bob", "kind": "fill"},
+    ]
+    res = await handlers["browser_fill_many"]({"items": items})
+    assert not res.get("is_error")
+    data = json.loads(res["content"][0]["text"])
+    assert data["ok_count"] == 1
+    assert data["error_count"] == 1
+    assert data["results"][0]["ref"] == "f1"
+    assert data["results"][0]["ok"] is True
+    assert data["results"][1]["ref"] == "f_invalid"
+    assert data["results"][1]["ok"] is False
+    assert "Unknown ref" in data["results"][1]["error"]
+
+
+@pytest.mark.asyncio
+async def test_browser_tools_paused_when_user_in_control(test_ctx: ToolContext):
+    test_ctx.is_user_in_control = lambda: True
+    handlers = build_handlers(test_ctx)
+
+    expected_pause = "PAUSED: the citizen is controlling the browser. Wait."
+
+    res_goto = await handlers["browser_goto"]({"url": "https://example.gov.in"})
+    assert res_goto["content"][0]["text"] == expected_pause
+
+    res_snap = await handlers["browser_snapshot"]()
+    assert res_snap["content"][0]["text"] == expected_pause
+
+    res_fill = await handlers["browser_fill"]({"ref": "f1", "value": "test"})
+    assert res_fill["content"][0]["text"] == expected_pause
+
+    res_fill_many = await handlers["browser_fill_many"]({"items": [{"ref": "f1", "value": "test"}]})
+    assert res_fill_many["content"][0]["text"] == expected_pause
+
+    res_select = await handlers["browser_select"]({"ref": "f2", "option": "MH"})
+    assert res_select["content"][0]["text"] == expected_pause
+
+    res_click = await handlers["browser_click"]({"ref": "a1"})
+    assert res_click["content"][0]["text"] == expected_pause
+
+    res_shot = await handlers["browser_screenshot"]()
+    assert res_shot["content"][0]["text"] == expected_pause
+
+
+@pytest.mark.asyncio
+async def test_screenshot_throttling(test_ctx: ToolContext):
+    handlers = build_handlers(test_ctx)
+    q = test_ctx.bus.subscribe()
+
+    # Initial goto emits screenshot
+    await handlers["browser_goto"]({"url": "https://example.gov.in/start"})
+    ev1 = await asyncio.wait_for(q.get(), timeout=1.0)
+    assert ev1.type == "screenshot"
+
+    # Immediate fill_many (<2s) should be throttled and NOT emit a new screenshot
+    await handlers["browser_fill_many"]({"items": [{"ref": "f1", "value": "test"}]})
+    with pytest.raises(asyncio.TimeoutError):
+        await asyncio.wait_for(q.get(), timeout=0.1)
+
+    # Advance the throttle timestamp by simulating elapsed time (>2s)
+    test_ctx._last_screenshot_time = time.monotonic() - 3.0
+
+    # Next action (click a1) should now emit screenshot
+    await handlers["browser_click"]({"ref": "a1"})
+    ev2 = await asyncio.wait_for(q.get(), timeout=1.0)
+    assert ev2.type == "screenshot"

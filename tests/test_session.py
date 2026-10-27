@@ -17,23 +17,33 @@ from claude_agent_sdk import (
 )
 
 from agastya.agent.events import EventBus
+from agastya.agent.hooks import (
+    PLAYWRIGHT_ALLOWED_TOOLS,
+    PLAYWRIGHT_DISALLOWED_TOOLS,
+)
 from agastya.agent.prompts import SYSTEM_PROMPT
 from agastya.agent.session import AgentSession
 from agastya.config import get_settings
 
 
 class FakeBrowser:
-    """Mock browser driver implementing start and close."""
+    """Mock browser driver implementing start, close, and CDP/agent active tracking."""
 
     def __init__(self) -> None:
         self.started = False
         self.closed = False
+        self.cdp_endpoint = "http://127.0.0.1:9222"
+        self.cdp_port = 9222
+        self.agent_active_history: list[bool] = []
 
     async def start(self) -> None:
         self.started = True
 
     async def close(self) -> None:
         self.closed = True
+
+    async def set_agent_active(self, active: bool) -> None:
+        self.agent_active_history.append(active)
 
 
 class FakeClaudeClient:
@@ -136,6 +146,10 @@ async def test_session_mcp_servers_and_allowed_tools(
 
     monkeypatch.setitem(sys.modules, "agastya.agent.tools", fake_tools_mod)
 
+    # When PLAYWRIGHT_MCP is disabled, only agastya MCP is registered
+    settings = get_settings()
+    monkeypatch.setattr(settings, "PLAYWRIGHT_MCP", False)
+
     session = AgentSession(
         user_id="user123",
         browser=fake_browser,
@@ -147,6 +161,175 @@ async def test_session_mcp_servers_and_allowed_tools(
         opts = captured_options[0]
         assert opts.mcp_servers == {"agastya": "fake_mcp_server"}
         assert opts.allowed_tools == ["mcp__agastya__ask_user", "mcp__agastya__get_profile"]
+    finally:
+        await session.stop()
+
+
+@pytest.mark.asyncio
+async def test_session_playwright_mcp_enabled_options(
+    fake_browser: FakeBrowser, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    captured_options: list[ClaudeAgentOptions] = []
+
+    def factory(opts: ClaudeAgentOptions) -> FakeClaudeClient:
+        captured_options.append(opts)
+        return FakeClaudeClient(opts)
+
+    fake_browser.cdp_endpoint = "http://127.0.0.1:9444"
+
+    settings = get_settings()
+    monkeypatch.setattr(settings, "PLAYWRIGHT_MCP", True)
+    monkeypatch.setattr(settings, "AGENT_EFFORT", "low")
+
+    session = AgentSession(
+        user_id="user_pw",
+        browser=fake_browser,
+        client_factory=factory,
+    )
+    await session.start()
+    try:
+        assert len(captured_options) == 1
+        opts = captured_options[0]
+        assert "agastya" in opts.mcp_servers
+        assert "playwright" in opts.mcp_servers
+        pw_cfg = opts.mcp_servers["playwright"]
+        assert pw_cfg["type"] == "stdio"
+        assert pw_cfg["command"].endswith("playwright-mcp")
+        assert pw_cfg["args"] == ["--cdp-endpoint", "http://127.0.0.1:9444"]
+
+        for tool in PLAYWRIGHT_ALLOWED_TOOLS:
+            assert tool in opts.allowed_tools
+
+        for tool in PLAYWRIGHT_DISALLOWED_TOOLS:
+            assert tool in opts.disallowed_tools
+
+        assert opts.effort == "low"
+        assert opts.hooks is not None
+        assert "PreToolUse" in opts.hooks
+        assert any(m.matcher == "mcp__playwright__.*" for m in opts.hooks["PreToolUse"])
+    finally:
+        await session.stop()
+
+
+@pytest.mark.asyncio
+async def test_human_control_take_and_release(fake_browser: FakeBrowser) -> None:
+    bus = EventBus()
+    q = bus.subscribe()
+
+    session = AgentSession(
+        user_id="user_ctrl",
+        browser=fake_browser,
+        bus=bus,
+        client_factory=lambda opts: FakeClaudeClient(opts),
+    )
+    await session.start()
+    ready = await asyncio.wait_for(q.get(), timeout=2.0)
+    assert ready.type == "status" and ready.data["status"] == "ready"
+
+    try:
+        # Take control
+        res_take = await session.take_control()
+        assert res_take is True
+        assert session.user_in_control is True
+        ev_ctrl = await asyncio.wait_for(q.get(), timeout=2.0)
+        assert ev_ctrl.type == "status"
+        assert ev_ctrl.data["status"] == "user_control"
+        assert fake_browser.agent_active_history[-1] is False
+
+        # Release control with note
+        res_rel1 = await session.release_control("Captcha completed")
+        assert res_rel1 is False
+        assert session.user_in_control is False
+        msg1 = await asyncio.wait_for(session._inbox.get(), timeout=2.0)
+        assert msg1 == "[user finished on the page: Captcha completed] Continue from the current page."
+
+        # Release control with empty note
+        res_rel2 = await session.release_control("")
+        assert res_rel2 is False
+        msg2 = await asyncio.wait_for(session._inbox.get(), timeout=2.0)
+        assert msg2 == "[user finished on the page] Continue from the current page."
+    finally:
+        await session.stop()
+
+
+@pytest.mark.asyncio
+async def test_timing_metrics_emitted(fake_browser: FakeBrowser) -> None:
+    def factory(opts: ClaudeAgentOptions) -> FakeClaudeClient:
+        client = FakeClaudeClient(opts)
+        client.responses = [
+            [
+                AssistantMessage(
+                    content=[
+                        ToolUseBlock(
+                            id="tu_1",
+                            name="mcp__agastya__browser_snapshot",
+                            input={},
+                        ),
+                        TextBlock(text="Snapshot captured"),
+                    ],
+                    model="claude-sonnet-5-5",
+                ),
+                ResultMessage(
+                    subtype="success",
+                    duration_ms=10,
+                    duration_api_ms=10,
+                    is_error=False,
+                    num_turns=1,
+                    session_id="default",
+                ),
+            ]
+        ]
+        return client
+
+    bus = EventBus()
+    q = bus.subscribe()
+
+    session = AgentSession(browser=fake_browser, bus=bus, client_factory=factory)
+    await session.start()
+    ready = await asyncio.wait_for(q.get(), timeout=2.0)
+    assert ready.type == "status" and ready.data["status"] == "ready"
+
+    try:
+        await session.send_user_message("Take snapshot", "en-IN")
+
+        ev_thinking = await asyncio.wait_for(q.get(), timeout=2.0)
+        assert ev_thinking.type == "status" and ev_thinking.data["status"] == "thinking"
+
+        ev_tool = await asyncio.wait_for(q.get(), timeout=2.0)
+        assert ev_tool.type == "tool_call"
+
+        ev_text = await asyncio.wait_for(q.get(), timeout=2.0)
+        assert ev_text.type == "assistant_text"
+
+        ev_done = await asyncio.wait_for(q.get(), timeout=2.0)
+        assert ev_done.type == "done"
+
+        ev_metrics = await asyncio.wait_for(q.get(), timeout=2.0)
+        assert ev_metrics.type == "status"
+        assert ev_metrics.data["status"] == "metrics"
+        assert "first_text_s" in ev_metrics.data
+        assert isinstance(ev_metrics.data["first_text_s"], float)
+        assert "turn_s" in ev_metrics.data
+        assert isinstance(ev_metrics.data["turn_s"], float)
+        assert ev_metrics.data["tools"] == 1
+    finally:
+        await session.stop()
+
+
+@pytest.mark.asyncio
+async def test_turn_wrapper_set_agent_active(fake_browser: FakeBrowser) -> None:
+    session = AgentSession(
+        browser=fake_browser,
+        client_factory=lambda opts: FakeClaudeClient(opts),
+    )
+    await session.start()
+    try:
+        await session.send_user_message("Hello")
+        # Give run loop time to execute turn
+        await asyncio.sleep(0.05)
+        # Verify set_agent_active was called with True then False
+        assert True in fake_browser.agent_active_history
+        assert fake_browser.agent_active_history[-1] is False
     finally:
         await session.stop()
 
@@ -510,3 +693,59 @@ async def test_ask_user_grouped_fields_and_legacy_signature(fake_browser: FakeBr
         assert ans3 == "Yes"
     finally:
         await session.stop()
+
+
+@pytest.mark.asyncio
+async def test_set_agent_active_integration_with_page_guard(monkeypatch: pytest.MonkeyPatch) -> None:
+    calls: list[tuple[Any, bool]] = []
+
+    async def mock_set_agent_active(ctx: Any, active: bool) -> None:
+        calls.append((ctx, active))
+
+    try:
+        import agastya.browser.page_guard as pg
+        monkeypatch.setattr(pg, "set_agent_active", mock_set_agent_active)
+    except Exception:
+        pass
+
+    class BrowserWithContext:
+        def __init__(self):
+            self.context = "fake_browser_context"
+        async def start(self): pass
+        async def close(self): pass
+
+    browser = BrowserWithContext()
+    session = AgentSession(
+        browser=browser,
+        client_factory=lambda opts: FakeClaudeClient(opts),
+    )
+    await session.start()
+    try:
+        await session.take_control()
+        assert ("fake_browser_context", False) in calls
+
+        calls.clear()
+        await session.send_user_message("Hello")
+        await asyncio.sleep(0.05)
+        assert ("fake_browser_context", True) in calls
+        assert ("fake_browser_context", False) in calls
+    finally:
+        await session.stop()
+
+
+
+@pytest.mark.parametrize(
+    "text,lang,expected",
+    [
+        ("Only Aadhaar is missing for the 49A form.", "hi-IN", True),
+        ("आपका आधार नंबर बताइए।", "hi-IN", False),
+        ("PAN 49A फॉर्म भर दिया है।", "hi-IN", False),
+        ("உங்கள் பெயர் என்ன?", "ta-IN", False),
+        ("Filling the form now.", "en-IN", False),
+        ("OK", "hi-IN", False),
+    ],
+)
+def test_is_wrong_script(text, lang, expected):
+    from agastya.agent.session import is_wrong_script
+
+    assert is_wrong_script(text, lang) is expected

@@ -7,17 +7,32 @@ Safety guard checks block irreversible actions (submit, payment, OTP, login) bef
 
 from __future__ import annotations
 
+import asyncio
 from dataclasses import dataclass
+import inspect
+import logging
 from pathlib import Path
 import re
-from typing import Any
+import socket
+from typing import Any, Awaitable, Callable
 
 from playwright.async_api import Browser, BrowserContext, Page, Playwright, async_playwright
 
 from agastya.browser.guard import GuardDecision, check_click, check_navigation
+from agastya.browser.page_guard import install_page_guard
 from agastya.config import get_settings
 
+logger = logging.getLogger(__name__)
+
 SNAPSHOT_JS_PATH = Path(__file__).parent / "snapshot.js"
+
+
+def _find_free_port() -> int:
+    """Find a free ephemeral TCP port on localhost."""
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        s.bind(("127.0.0.1", 0))
+        return int(s.getsockname()[1])
 
 
 @dataclass
@@ -78,6 +93,7 @@ class BrowserDriver:
         self,
         headless: bool | None = None,
         screenshot_dir: str | Path | None = None,
+        cdp_port: int | None = None,
     ) -> None:
         settings = get_settings()
         self.headless = settings.HEADLESS if headless is None else headless
@@ -85,15 +101,45 @@ class BrowserDriver:
         if self.screenshot_dir:
             self.screenshot_dir.mkdir(parents=True, exist_ok=True)
 
+        self._configured_cdp_port: int = (
+            cdp_port if cdp_port is not None else settings.CDP_PORT
+        )
+        self._cdp_port: int = self._configured_cdp_port
+        self._cdp_endpoint: str = ""
+        if self._cdp_port != 0:
+            self._cdp_endpoint = f"http://127.0.0.1:{self._cdp_port}"
+
         self._playwright: Playwright | None = None
         self._browser: Browser | None = None
         self._context: BrowserContext | None = None
         self._page: Page | None = None
         self._snapshot_js: str = SNAPSHOT_JS_PATH.read_text(encoding="utf-8")
+        self._page_change_listeners: list[Callable[[Page], Awaitable[None] | None]] = []
+        self._closing: bool = False
+
+    @property
+    def cdp_port(self) -> int:
+        """Remote debugging CDP port allocated for the browser session."""
+        if self._cdp_port == 0:
+            self._cdp_port = _find_free_port()
+            self._cdp_endpoint = f"http://127.0.0.1:{self._cdp_port}"
+        return self._cdp_port
+
+    @property
+    def cdp_endpoint(self) -> str:
+        """HTTP endpoint URL for Chrome remote debugging."""
+        if not self._cdp_endpoint:
+            self._cdp_endpoint = f"http://127.0.0.1:{self.cdp_port}"
+        return self._cdp_endpoint
+
+    @property
+    def context(self) -> BrowserContext | None:
+        """Access underlying Playwright BrowserContext instance."""
+        return self._context
 
     @property
     def page(self) -> Page | None:
-        """Access underlying Playwright Page instance."""
+        """Access underlying Playwright Page instance (always the active tab)."""
         return self._page
 
     @property
@@ -101,22 +147,93 @@ class BrowserDriver:
         """Current page URL, or '' before the first navigation."""
         return self._page.url if self._page is not None and not self._page.is_closed() else ""
 
+    def add_page_change_listener(self, cb: Callable[[Page], Awaitable[None] | None]) -> None:
+        """Register a callback invoked when the active page changes."""
+        if cb not in self._page_change_listeners:
+            self._page_change_listeners.append(cb)
+
+    def remove_page_change_listener(self, cb: Callable[[Page], Awaitable[None] | None]) -> None:
+        """Unregister a page change callback."""
+        if cb in self._page_change_listeners:
+            self._page_change_listeners.remove(cb)
+
+    async def _notify_page_change(self, page: Page) -> None:
+        """Notify all registered listeners about an active page change."""
+        for cb in list(self._page_change_listeners):
+            try:
+                res = cb(page)
+                if asyncio.iscoroutine(res) or inspect.isawaitable(res):
+                    await res
+            except Exception as e:
+                logger.exception("Error in page change listener: %s", e)
+
+    def _on_context_page(self, new_page: Page) -> None:
+        """Handler for context 'page' event."""
+        if self._closing:
+            return
+        asyncio.create_task(self._handle_new_page(new_page))
+
+    async def _handle_new_page(self, new_page: Page) -> None:
+        """Bring newly opened page to front and notify listeners."""
+        if self._closing:
+            return
+        self._page = new_page
+        new_page.on("close", lambda: asyncio.create_task(self._handle_page_closed(new_page)))
+        try:
+            await new_page.bring_to_front()
+        except Exception:
+            pass
+        await self._notify_page_change(new_page)
+
+    async def _handle_page_closed(self, closed_page: Page) -> None:
+        """When active page closes, fall back to the last open page in context."""
+        if self._closing:
+            return
+        if self._page == closed_page:
+            remaining = [
+                p
+                for p in (self._context.pages if self._context else [])
+                if not p.is_closed() and p != closed_page
+            ]
+            if remaining:
+                self._page = remaining[-1]
+                try:
+                    await self._page.bring_to_front()
+                except Exception:
+                    pass
+                await self._notify_page_change(self._page)
+            else:
+                self._page = None
+
     async def start(self) -> None:
         """Launch Playwright browser, context, and new page."""
         if self._page is not None and not self._page.is_closed():
             return
+        self._closing = False
         if self._playwright is None:
             self._playwright = await async_playwright().start()
         if self._browser is None:
             channel = get_settings().BROWSER_CHANNEL or None
-            self._browser = await self._playwright.chromium.launch(headless=self.headless, channel=channel)
+            port = self.cdp_port
+            args = [f"--remote-debugging-port={port}"]
+            self._browser = await self._playwright.chromium.launch(
+                headless=self.headless,
+                channel=channel,
+                args=args,
+            )
         if self._context is None:
             self._context = await self._browser.new_context()
+            self._context.on("page", self._on_context_page)
+            await install_page_guard(self._context)
         if self._page is None or self._page.is_closed():
-            self._page = await self._context.new_page()
+            p = await self._context.new_page()
+            if self._page is None:
+                self._page = p
+            await asyncio.sleep(0.05)
 
     async def close(self) -> None:
         """Close page, context, browser, and stop Playwright."""
+        self._closing = True
         if self._page is not None:
             try:
                 await self._page.close()
@@ -141,6 +258,9 @@ class BrowserDriver:
             except Exception:
                 pass
             self._playwright = None
+        if self._configured_cdp_port == 0:
+            self._cdp_port = 0
+            self._cdp_endpoint = ""
 
     async def __aenter__(self) -> BrowserDriver:
         await self.start()

@@ -3,8 +3,12 @@
 from __future__ import annotations
 
 import asyncio
+import re
+import dataclasses
 import logging
+import time
 import uuid
+from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable
 
 from claude_agent_sdk import (
@@ -17,6 +21,11 @@ from claude_agent_sdk import (
 )
 
 from agastya.agent.events import EventBus
+from agastya.agent.hooks import (
+    PLAYWRIGHT_ALLOWED_TOOLS,
+    PLAYWRIGHT_DISALLOWED_TOOLS,
+    build_hooks,
+)
 from agastya.agent.prompts import SYSTEM_PROMPT
 from agastya.config import get_settings
 from agastya.profile.store import ProfileStore
@@ -26,6 +35,28 @@ if TYPE_CHECKING:
     from agastya.portals import Playbook
 
 logger = logging.getLogger(__name__)
+
+BUILTIN_DISALLOWED_TOOLS = [
+    "Bash",
+    "Read",
+    "Write",
+    "Edit",
+    "WebFetch",
+    "WebSearch",
+    "Glob",
+    "Grep",
+    "Task",
+]
+
+
+_INDIC_SCRIPT = re.compile(r"[\u0900-\u0DFF]")
+
+
+def is_wrong_script(text: str, language_code: str) -> bool:
+    """True for Latin-only text in a non-English session (agent working notes the TTS can't read)."""
+    if not language_code or language_code.startswith("en"):
+        return False
+    return bool(re.search(r"[A-Za-z]{3}", text)) and not _INDIC_SCRIPT.search(text)
 
 
 class AgentSession:
@@ -49,6 +80,7 @@ class AgentSession:
         self.client_factory = client_factory
         self.language_code = settings.DEFAULT_LANGUAGE
         self.ask_timeout = ask_timeout
+        self.user_in_control = False
 
         if playbooks is not None:
             self.playbooks = playbooks
@@ -66,6 +98,37 @@ class AgentSession:
         self._pending_questions: dict[str, asyncio.Future[str]] = {}
         self._current_question_id: str | None = None
         self._stopped = False
+
+    async def _set_agent_active(self, active: bool) -> None:
+        """Toggle in-page agent active flag via page_guard."""
+        try:
+            from agastya.browser.page_guard import set_agent_active
+
+            context = getattr(self.browser, "context", None)
+            if context is not None:
+                await set_agent_active(context, active)
+            elif hasattr(self.browser, "set_agent_active") and callable(self.browser.set_agent_active):
+                await self.browser.set_agent_active(active)
+        except Exception as exc:
+            logger.debug("set_agent_active fallback/noop: %s", exc)
+
+    async def take_control(self) -> bool:
+        """Citizen takes control of the browser. Sets agent inactive and pauses agent actions."""
+        self.user_in_control = True
+        await self._set_agent_active(False)
+        self.bus.emit("status", status="user_control")
+        return True
+
+    async def release_control(self, note: str = "") -> bool:
+        """Citizen releases control of the browser. Notifies agent to continue."""
+        self.user_in_control = False
+        clean_note = note.strip()
+        if clean_note:
+            msg = f"[user finished on the page: {clean_note}] Continue from the current page."
+        else:
+            msg = "[user finished on the page] Continue from the current page."
+        await self._inbox.put(msg)
+        return False
 
     async def start(self) -> None:
         """Start browser, Claude SDK client, and the background run loop."""
@@ -89,33 +152,64 @@ class AgentSession:
 
         from agastya.agent.tools import TOOL_NAMES, ToolContext, build_mcp_server
 
-        ctx = ToolContext(
-            profile=self.profile,
-            browser=self.browser,
-            bus=self.bus,
-            ask_user=self.ask_user,
-            playbooks=self.playbooks or {},
-        )
-        mcp_servers: dict[str, Any] = {"agastya": build_mcp_server(ctx)}
-        allowed_tools: list[str] = list(TOOL_NAMES)
+        ctx_kwargs: dict[str, Any] = {
+            "profile": self.profile,
+            "browser": self.browser,
+            "bus": self.bus,
+            "ask_user": self.ask_user,
+            "playbooks": self.playbooks or {},
+        }
+        if dataclasses.is_dataclass(ToolContext):
+            field_names = {f.name for f in dataclasses.fields(ToolContext)}
+            if "is_user_in_control" in field_names:
+                ctx_kwargs["is_user_in_control"] = lambda: self.user_in_control
 
+        ctx = ToolContext(**ctx_kwargs)
+        if not hasattr(ctx, "is_user_in_control"):
+            try:
+                setattr(ctx, "is_user_in_control", lambda: self.user_in_control)
+            except Exception:
+                pass
+
+        mcp_servers: dict[str, Any] = {"agastya": build_mcp_server(ctx)}
+
+        playwright_enabled = bool(getattr(settings, "PLAYWRIGHT_MCP", False))
+        if playwright_enabled:
+            repo_root = Path(__file__).resolve().parent.parent.parent
+            playwright_bin = repo_root / "mcp" / "node_modules" / ".bin" / "playwright-mcp"
+            cdp_endpoint = getattr(self.browser, "cdp_endpoint", None)
+            if not cdp_endpoint:
+                cdp_port = getattr(self.browser, "cdp_port", 0) or getattr(settings, "CDP_PORT", 0) or 9222
+                cdp_endpoint = f"http://127.0.0.1:{cdp_port}"
+            mcp_servers["playwright"] = {
+                "type": "stdio",
+                "command": str(playwright_bin),
+                "args": ["--cdp-endpoint", cdp_endpoint],
+            }
+            allowed_tools = list(TOOL_NAMES) + list(PLAYWRIGHT_ALLOWED_TOOLS)
+            disallowed_tools = list(BUILTIN_DISALLOWED_TOOLS) + list(PLAYWRIGHT_DISALLOWED_TOOLS)
+        else:
+            allowed_tools = list(TOOL_NAMES)
+            disallowed_tools = list(BUILTIN_DISALLOWED_TOOLS)
+
+        hooks = build_hooks(self)
+
+        # Isolated agent: no CLAUDE.md/AGENTS.md, user settings or skills from this machine, and a
+        # neutral working directory so repo/user context never reaches the citizen-facing agent.
+        agent_cwd = Path(settings.DATA_DIR).resolve() / "agent_home"
+        agent_cwd.mkdir(parents=True, exist_ok=True)
         options = ClaudeAgentOptions(
             model=settings.AGENT_MODEL,
+            setting_sources=[],
+            skills=[],
+            cwd=str(agent_cwd),
             system_prompt=SYSTEM_PROMPT,
             mcp_servers=mcp_servers,
             allowed_tools=allowed_tools,
             tools=[],
-            disallowed_tools=[
-                "Bash",
-                "Read",
-                "Write",
-                "Edit",
-                "WebFetch",
-                "WebSearch",
-                "Glob",
-                "Grep",
-                "Task",
-            ],
+            disallowed_tools=disallowed_tools,
+            hooks=hooks,
+            effort=getattr(settings, "AGENT_EFFORT", "low"),
         )
 
         if self.client_factory is not None:
@@ -243,36 +337,60 @@ class AgentSession:
                 prefix = f"[user_language={self.language_code}] "
                 query_text = text if text.startswith("[user_language=") else f"{prefix}{text}"
 
-                await self.client.query(query_text)
+                turn_start = time.time()
+                first_text_s: float | None = None
+                tools_count = 0
 
-                done_emitted = False
-                async for msg in self.client.receive_response():
-                    if isinstance(msg, AssistantMessage):
-                        for block in getattr(msg, "content", []):
-                            if isinstance(block, TextBlock):
-                                self.bus.emit(
-                                    "assistant_text",
-                                    text=block.text,
-                                    language_code=self.language_code,
-                                )
-                            elif isinstance(block, ToolUseBlock):
-                                self.bus.emit(
-                                    "tool_call",
-                                    id=block.id,
-                                    name=block.name,
-                                    input=block.input,
-                                )
-                    elif isinstance(msg, ResultMessage):
-                        self.bus.emit(
-                            "done",
-                            subtype=getattr(msg, "subtype", "success"),
-                            result=getattr(msg, "result", None),
-                            is_error=getattr(msg, "is_error", False),
-                        )
-                        done_emitted = True
+                await self._set_agent_active(True)
+                try:
+                    await self.client.query(query_text)
 
-                if not done_emitted:
-                    self.bus.emit("done", result=None)
+                    done_emitted = False
+                    async for msg in self.client.receive_response():
+                        if isinstance(msg, AssistantMessage):
+                            for block in getattr(msg, "content", []):
+                                if isinstance(block, TextBlock):
+                                    if first_text_s is None:
+                                        first_text_s = round(time.time() - turn_start, 3)
+                                    if is_wrong_script(block.text, self.language_code):
+                                        # English working notes in a non-English session: show, don't speak
+                                        self.bus.emit("status", status="note", message=block.text)
+                                    else:
+                                        self.bus.emit(
+                                            "assistant_text",
+                                            text=block.text,
+                                            language_code=self.language_code,
+                                        )
+                                elif isinstance(block, ToolUseBlock):
+                                    tools_count += 1
+                                    self.bus.emit(
+                                        "tool_call",
+                                        id=block.id,
+                                        name=block.name,
+                                        input=block.input,
+                                    )
+                        elif isinstance(msg, ResultMessage):
+                            self.bus.emit(
+                                "done",
+                                subtype=getattr(msg, "subtype", "success"),
+                                result=getattr(msg, "result", None),
+                                is_error=getattr(msg, "is_error", False),
+                            )
+                            done_emitted = True
+
+                    if not done_emitted:
+                        self.bus.emit("done", result=None)
+
+                    turn_s = round(time.time() - turn_start, 3)
+                    self.bus.emit(
+                        "status",
+                        status="metrics",
+                        first_text_s=first_text_s,
+                        turn_s=turn_s,
+                        tools=tools_count,
+                    )
+                finally:
+                    await self._set_agent_active(False)
 
             except asyncio.CancelledError:
                 break
