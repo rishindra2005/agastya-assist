@@ -1,0 +1,30 @@
+/* Shared chrome for DEMO REPLICA portals. Every page MUST include demo.css + demo.js. */
+.demo-warning-bar {
+  position: sticky; top: 0; z-index: 99999;
+  background: repeating-linear-gradient(45deg, #b00020, #b00020 14px, #8a0019 14px, #8a0019 28px);
+  color: #fff; font: 700 14px/1.35 system-ui, sans-serif; text-align: center;
+  padding: 8px 12px; letter-spacing: .2px; box-shadow: 0 2px 6px rgba(0,0,0,.35);
+}
+.demo-warning-bar small { display: block; font-weight: 500; opacity: .95; }
+.demo-warning-footer {
+  background: #fff3cd; color: #5c4400; border-top: 3px solid #b00020;
+  font: 600 13px/1.4 system-ui, sans-serif; text-align: center; padding: 10px 12px; margin-top: 32px;
+}
+.demo-watermark {
+  position: fixed; inset: 0; pointer-events: none; z-index: 99990;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='360' height='220'><text x='10' y='120' transform='rotate(-20 180 110)' font-family='sans-serif' font-size='30' font-weight='700' fill='rgba(176,0,32,0.07)'>DEMO REPLICA</text></svg>");
+}
+/* Mock captcha */
+.demo-captcha { display: inline-flex; align-items: center; gap: 8px; }
+.demo-captcha canvas { border: 1px solid #999; background: #f4f4f4; border-radius: 3px; }
+.demo-captcha button { font-size: 12px; }
+/* Mock SMS phone (so the citizen can read the demo OTP and type it via the live view) */
+.demo-sms {
+  position: fixed; right: 16px; bottom: 16px; z-index: 99995; width: 260px;
+  background: #111; color: #eee; border-radius: 18px; padding: 12px 14px 14px;
+  font: 13px/1.4 system-ui, sans-serif; box-shadow: 0 8px 28px rgba(0,0,0,.45);
+}
+.demo-sms b { color: #7fd17f; }
+.demo-sms .demo-sms-title { font-size: 11px; opacity: .7; margin-bottom: 6px; }
+.demo-sms .demo-sms-otp { font: 700 22px/1.2 ui-monospace, monospace; letter-spacing: 4px; color: #fff; }
+.demo-sms button { float: right; background: none; border: 0; color: #aaa; cursor: pointer; }

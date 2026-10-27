@@ -309,3 +309,48 @@ client -> server JSON: {"type":"mouse", kind, x, y, button?, delta_y?, click_cou
 {"type":"control", "take": bool, "note"?: str}. Input is ignored (error message) unless user_in_control is true.
 The server keeps `app.state.sessions: dict[user_id, (AgentSession, VoicePipeline)]` created by /ws; /ws/live attaches
 to it (4404 close if none). Frames dropped (not queued) if the socket is slow — keep only the latest.
+
+## Batch F — demo replica portals, Form 16, installable mobile app
+### Demo replica portals (demo_portals/, served by FastAPI at /mock/)
+Purpose: realistic, information-dense, deliberately COMPLEX replicas of government flows so the demo shows how Agastya
+turns a confusing portal into a conversation. They are fictional and must be unmistakably labelled:
+- EVERY html page includes `<link rel="stylesheet" href="/mock/_shared/demo.css">` and `<script src="/mock/_shared/demo.js"></script>`
+  (supervisor-owned: red "DEMO REPLICA — NOT A GOVERNMENT WEBSITE" bar, watermark, footer disclaimer, `[DEMO]` title prefix).
+- NO real emblems, logos, seals, real department URLs in links, or real helpline numbers. Portal names end with "(Demo Replica)".
+- Use `DemoPortal.captcha(el)` for captchas, `DemoPortal.sendOtp(label)` for OTPs (shown on an on-screen demo phone),
+  `DemoPortal.fakeNumber(prefix, digits)` for acknowledgement numbers, `DemoPortal.save/load` to carry data between pages.
+- Final submit / pay / e-verify only works after captcha + OTP are entered (by the CITIZEN via the live view); it leads to an
+  acknowledgement page that echoes the entered data with a fake ack number. Mock payment page says "Demo payment — no money moves".
+- Realism: dense instructions, info icons with long help text, notes in small print, "Important" boxes, tabs, accordions, required
+  markers, inline validation messages in English + Hindi, session-timeout countdown banner, dependent dropdowns.
+- Accessibility: real <label for>, ids/names, keyboard operable (the agent and the citizen both drive it).
+Directory: demo_portals/{pan,itr,voter,mca}/index.html (+ more pages), demo_portals/index.html (list of replicas).
+Playbooks: agastya/portals/playbooks/demo_*.yaml with live_url "http://127.0.0.1:8000/mock/<portal>/...", keywords
+include the word "demo"/"डेमो" so real and demo playbooks are distinguishable; `portal` ends with "(Demo Replica)".
+
+### Documents / Form 16 (agastya/documents/)
+```python
+@dataclass
+class Document: id: str; user_id: str; filename: str; kind: str; path: str; uploaded_at: str; extracted: dict
+class DocumentStore:  # files under DATA_DIR/documents/<user_id>/, index in SQLite table 'documents' (same profile.db file is fine)
+    def __init__(self, user_id: str = "default", data_dir: Path | None = None)
+    def add(self, filename: str, data: bytes) -> Document          # detects kind, runs extraction
+    def get(self, doc_id: str) -> Document | None
+    def list(self) -> list[Document]
+def extract_form16(pdf_bytes: bytes) -> dict
+# -> {"kind":"form16","assessment_year","employer_name","employer_tan","employee_pan","employee_name",
+#     "period_from","period_to","gross_salary","salary_17_1","perquisites_17_2","profits_17_3",
+#     "hra_exempt_10_13a","standard_deduction_16ia","professional_tax_16iii","income_chargeable_salaries",
+#     "deduction_80c","deduction_80d","total_taxable_income","tds_total","quarters":[{"q","amount_paid","tds"}]}
+# amounts as int rupees; missing -> None.
+```
+Agent tools (tools.py): `list_documents()`, `read_document(doc_id)` -> extracted JSON (PAN masked).
+Server: `POST /api/documents?user_id=` multipart `file` -> {id, filename, kind, summary}; emits event
+`document_uploaded {id, filename, kind}` on that user's session bus if connected, and sends the agent
+"[user uploaded document <filename> id=<id> kind=<kind>]". `GET /api/documents?user_id=` -> list.
+EventType gains "document_uploaded".
+
+### Installable mobile app (PWA)
+`/manifest.webmanifest`, `/sw.js` (cache app shell only, never API/WS), icons `static/icons/icon-192.png`,
+`icon-512.png`, `maskable-512.png` (generated), `<meta name="theme-color">`, apple-touch-icon. Install prompt button
+"📲 Install app / ऐप इंस्टॉल करें" when `beforeinstallprompt` fires.
