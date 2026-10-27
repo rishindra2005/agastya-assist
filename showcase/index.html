@@ -1,0 +1,322 @@
+<title>Agastya Assist</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Mukta:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a citizen's paperwork desk — ruled form paper on the left of each band, the conversation that replaces it on the right. */
+:root {
+  --paper: #f6f7f2;
+  --sheet: #ffffff;
+  --ink: #15203b;
+  --muted: #56607a;
+  --rule: #d5dbcf;
+  --saffron: #d9661a;
+  --green: #2e7d4f;
+  --stamp: #b3261e;
+  --wash: #eef2e8;
+  --display: "Bricolage Grotesque", "Mukta", system-ui, sans-serif;
+  --body: "Mukta", "Noto Sans", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --paper: #10141f; --sheet: #171d2c; --ink: #e7ebf3; --muted: #a2abc0; --rule: #2b3347;
+  --saffron: #f08a3c; --green: #5cbf86; --stamp: #ef6b61; --wash: #1b2232; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --paper: #10141f; --sheet: #171d2c; --ink: #e7ebf3; --muted: #a2abc0; --rule: #2b3347;
+  --saffron: #f08a3c; --green: #5cbf86; --stamp: #ef6b61; --wash: #1b2232; color-scheme: dark; }
+
+* { box-sizing: border-box; }
+body { background: var(--paper); color: var(--ink); font: 400 17px/1.6 var(--body); }
+.wrap { max-width: 1120px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+section { padding-block: 56px; border-top: 1px solid var(--rule); }
+h1, h2, h3 { font-family: var(--display); line-height: 1.1; text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(2.2rem, 5.2vw, 3.9rem); font-weight: 800; letter-spacing: -0.02em; }
+h2 { font-size: clamp(1.6rem, 3.2vw, 2.3rem); font-weight: 700; margin-bottom: 12px; }
+h3 { font-size: 1.15rem; font-weight: 700; }
+p { margin: 0; max-width: 64ch; }
+.eyebrow { font: 500 0.78rem/1 var(--mono); text-transform: uppercase; letter-spacing: 0.12em; color: var(--saffron); margin-bottom: 14px; }
+.muted { color: var(--muted); }
+a { color: var(--green); }
+:focus-visible { outline: 3px solid var(--saffron); outline-offset: 2px; }
+
+/* Hero */
+.hero { display: grid; grid-template-columns: 1.05fr 1fr; gap: 40px; padding-block: 56px 48px; align-items: start; }
+.hero > * { min-width: 0; }
+.motto { margin-top: 20px; font-size: 1.2rem; color: var(--muted); }
+.motto strong { color: var(--ink); font-weight: 700; }
+.hero-facts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 24px; }
+.chip { font: 500 0.8rem/1 var(--mono); border: 1px solid var(--rule); background: var(--sheet); border-radius: 999px; padding: 8px 12px; }
+
+/* The one interactive moment: portal vs Agastya */
+.desk { background: var(--sheet); border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; }
+.desk-tabs { display: flex; border-bottom: 1px solid var(--rule); }
+.desk-tabs button { flex: 1; font: 600 0.95rem var(--body); padding: 12px; background: none; border: 0; color: var(--muted); cursor: pointer; border-bottom: 3px solid transparent; }
+.desk-tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--saffron); }
+.desk-body { padding: 18px; min-height: 360px; }
+.formview { font-size: 0.82rem; line-height: 1.35; }
+.formview .note { background: var(--wash); border-left: 3px solid var(--stamp); padding: 8px 10px; margin-bottom: 10px; color: var(--muted); }
+.frow { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; margin-bottom: 8px; }
+.f label { display: block; font-size: 0.74rem; color: var(--muted); }
+.f span { display: block; height: 26px; border: 1px solid var(--rule); border-radius: 3px; background: var(--paper); }
+.f span.filled { background: var(--wash); border-color: var(--green); font: 500 0.78rem/26px var(--mono); padding-left: 6px; color: var(--ink); }
+.chat { display: flex; flex-direction: column; gap: 10px; }
+.msg { max-width: 88%; padding: 10px 14px; border-radius: 14px; font-size: 0.98rem; }
+.msg.me { align-self: flex-end; background: var(--ink); color: var(--paper); border-bottom-right-radius: 4px; }
+.msg.ag { align-self: flex-start; background: var(--wash); border-bottom-left-radius: 4px; }
+.msg .tag { display: block; font: 500 0.7rem/1.4 var(--mono); opacity: 0.7; }
+.msg.turn { background: color-mix(in srgb, var(--saffron) 14%, var(--sheet)); border: 1px solid var(--saffron); }
+
+/* Languages */
+.langs { display: grid; grid-template-columns: 280px 1fr; gap: 28px; align-items: start; margin-top: 18px; }
+.langs > * { min-width: 0; }
+.lang-list { display: flex; flex-wrap: wrap; gap: 8px; }
+.lang-list button { font: 500 0.92rem var(--body); border: 1px solid var(--rule); background: var(--sheet); color: var(--ink); border-radius: 8px; padding: 8px 12px; cursor: pointer; }
+.lang-list button[aria-pressed="true"] { border-color: var(--saffron); background: color-mix(in srgb, var(--saffron) 12%, var(--sheet)); }
+.greeting { background: var(--sheet); border: 1px solid var(--rule); border-radius: 10px; padding: 26px; }
+.greeting .line { font-size: clamp(1.4rem, 3vw, 2rem); line-height: 1.4; font-weight: 500; }
+.greeting .code { font: 500 0.8rem var(--mono); color: var(--muted); margin-top: 10px; }
+
+/* Problem table */
+.tablewrap { overflow-x: auto; margin-top: 20px; }
+table { border-collapse: collapse; width: 100%; min-width: 560px; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--rule); }
+th { font: 500 0.75rem var(--mono); text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+td.n { text-align: right; font-family: var(--mono); }
+
+/* Flow */
+.flow { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; margin-top: 22px; counter-reset: s; }
+.flow li { list-style: none; background: var(--sheet); border: 1px solid var(--rule); border-radius: 10px; padding: 16px; min-width: 0; }
+.flow li::before { counter-increment: s; content: counter(s); font: 700 1.6rem var(--display); color: var(--saffron); display: block; }
+.flow li.you { border-color: var(--saffron); }
+.flow p { font-size: 0.93rem; color: var(--muted); }
+ol.flow { padding: 0; margin-block: 22px 0; }
+
+/* Scenes */
+.scenes { display: grid; grid-template-columns: repeat(2, 1fr); gap: 22px; margin-top: 22px; }
+.scene { background: var(--sheet); border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; min-width: 0; display: flex; flex-direction: column; }
+.scene figure { margin: 0; background: #0b0e16; aspect-ratio: 16 / 10; display: flex; align-items: center; justify-content: center; }
+.scene figure img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.scene .body { padding: 16px 18px 18px; display: flex; flex-direction: column; gap: 8px; }
+.scene .say { font-size: 1.05rem; font-weight: 500; }
+.stats { display: flex; flex-wrap: wrap; gap: 6px 14px; font: 400 0.8rem var(--mono); color: var(--muted); }
+.stats b { color: var(--ink); font-weight: 500; }
+
+/* Devices */
+.devices { display: grid; grid-template-columns: 1.6fr 1fr; gap: 28px; align-items: end; margin-top: 22px; }
+.devices > * { min-width: 0; }
+.laptop img { border: 1px solid var(--rule); border-radius: 8px; display: block; }
+.phone { justify-self: center; width: min(280px, 100%); border: 10px solid var(--ink); border-radius: 36px; overflow: hidden; background: var(--ink); }
+.phone img { display: block; width: 100%; }
+.cap { font-size: 0.88rem; color: var(--muted); margin-top: 8px; }
+
+/* Safety */
+.layers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 22px; }
+.layer { border-top: 4px solid var(--green); background: var(--sheet); padding: 16px; border-radius: 0 0 10px 10px; min-width: 0; }
+.layer p { font-size: 0.93rem; color: var(--muted); }
+.yours { margin-top: 18px; padding: 16px 18px; border: 1px dashed var(--stamp); border-radius: 10px; }
+.yours strong { color: var(--stamp); }
+
+.stack { columns: 2; column-gap: 32px; margin-top: 16px; padding-left: 18px; }
+.stack li { margin-bottom: 6px; break-inside: avoid; }
+.stack code { font-family: var(--mono); font-size: 0.85em; }
+footer { padding-block: 32px 48px; border-top: 1px solid var(--rule); font-size: 0.88rem; color: var(--muted); }
+
+@media (max-width: 860px) {
+  .hero, .langs, .devices { grid-template-columns: 1fr; }
+  .flow { grid-template-columns: 1fr 1fr; }
+  .scenes, .layers { grid-template-columns: 1fr; }
+  .stack { columns: 1; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .f span.filled { animation: ink 0.5s ease both; }
+  @keyframes ink { from { background: var(--paper); } }
+}
+</style>
+
+<div class="wrap">
+  <header class="hero">
+    <div>
+      <div class="eyebrow">Agastya Assist · अगस्त्य सहायक</div>
+      <h1>Speak what you need. Agastya fills the government form.</h1>
+      <p class="motto">Government portals have to be complete and informative, so they will never be simple. <strong>Agastya makes them simple to use</strong>: you talk in your own language, it reads the portal, asks only what it doesn't know, fills the page, and hands control back to you for the captcha, OTP, consent and final submit.</p>
+      <div class="hero-facts">
+        <span class="chip">11 Indian languages</span>
+        <span class="chip">Voice in, voice out</span>
+        <span class="chip">Live view you can control</span>
+        <span class="chip">Never submits for you</span>
+        <span class="chip">Web + installable phone app</span>
+      </div>
+    </div>
+    <div class="desk" id="desk">
+      <div class="desk-tabs" role="tablist">
+        <button role="tab" id="tab-portal" aria-selected="false" aria-controls="view-portal">The portal</button>
+        <button role="tab" id="tab-agastya" aria-selected="true" aria-controls="view-agastya">With Agastya</button>
+      </div>
+      <div class="desk-body">
+        <div id="view-portal" class="formview" role="tabpanel" hidden>
+          <div class="note">Form 49A · Contact &amp; Other Details. Enter AO code (Area code / AO type / Range code / AO number) as per your residential address. Incorrect AO code may lead to rejection of application. Refer to the AO code search for applicable jurisdiction.</div>
+          <div class="frow"><div class="f"><label>Last name / surname*</label><span></span></div><div class="f"><label>First name</label><span></span></div></div>
+          <div class="frow"><div class="f"><label>Name to be printed on card*</label><span></span></div><div class="f"><label>Single parent (mother only)?</label><span></span></div></div>
+          <div class="frow"><div class="f"><label>Source of income* (tick all)</label><span></span></div><div class="f"><label>Address for communication*</label><span></span></div></div>
+          <div class="frow"><div class="f"><label>Area code*</label><span></span></div><div class="f"><label>AO type*</label><span></span></div></div>
+          <div class="frow"><div class="f"><label>Range code*</label><span></span></div><div class="f"><label>AO number*</label><span></span></div></div>
+          <div class="frow"><div class="f"><label>Proof of identity*</label><span></span></div><div class="f"><label>Proof of date of birth*</label><span></span></div></div>
+          <div class="frow"><div class="f"><label>ISD code</label><span></span></div><div class="f"><label>STD code</label><span></span></div></div>
+        </div>
+        <div id="view-agastya" role="tabpanel">
+          <div class="chat" aria-live="polite">
+            <div class="msg me"><span class="tag">you · spoken · hi-IN</span>मुझे नया पैन कार्ड बनवाना है।</div>
+            <div class="msg ag"><span class="tag">Agastya · spoken</span>ज़रूर। आपकी ज़्यादातर जानकारी मेरे पास है। आधार नंबर आप पोर्टल पर खुद डालेंगे या मुझे बताएँगे?</div>
+            <div class="msg me"><span class="tag">you</span>मैं खुद डालूँगा।</div>
+            <div class="msg ag"><span class="tag">Agastya · filling the page</span>नाम, जन्मतिथि, पता, आय का स्रोत और आपके शहर का AO कोड भर दिया है।</div>
+            <div class="msg ag turn"><span class="tag">your turn</span>अब कैप्चा भरें, सहमति वाले बॉक्स पर टिक करें और Submit खुद दबाएँ। मैं Submit नहीं दबाऊँगा।</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <section aria-labelledby="h-lang">
+    <div class="eyebrow">Your language</div>
+    <h2 id="h-lang">It listens and answers in 11 Indian languages</h2>
+    <p class="muted">Speech is recognised and spoken with Sarvam AI. Agastya detects the language you speak and replies in it, in its own script, so the voice sounds natural.</p>
+    <div class="langs">
+      <div class="lang-list" id="lang-list" role="group" aria-label="Choose a language"></div>
+      <div class="greeting"><div class="line" id="greet-line"></div><div class="code" id="greet-code"></div></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-problem">
+    <div class="eyebrow">The problem</div>
+    <h2 id="h-problem">Portals must explain everything, so they are hard to use</h2>
+    <p class="muted">A portal has to carry every rule, exception and legal note, which is why simplifying the page itself rarely works. Here is how much a citizen meets in the demo replicas we built to mirror four common flows.</p>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Flow (demo replica)</th><th>Pages</th><th>Form fields</th><th>Words of instructions</th><th>What Agastya asks you</th></tr></thead>
+        <tbody>
+          <tr><td>New PAN · Form 49A</td><td class="n">6</td><td class="n">67</td><td class="n">5,154</td><td>Only what's not in your profile</td></tr>
+          <tr><td>Income tax return · ITR-1 with Form 16</td><td class="n">6</td><td class="n">77</td><td class="n">4,650</td><td>Upload Form 16, pick a tax regime</td></tr>
+          <tr><td>New voter · Form 6</td><td class="n">4</td><td class="n">49</td><td class="n">2,047</td><td>Your constituency, if not saved</td></tr>
+          <tr><td>Company name · SPICe+ Part A</td><td class="n">3</td><td class="n">18</td><td class="n">1,728</td><td>Two names and your business</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-flow">
+    <div class="eyebrow">How it works</div>
+    <h2 id="h-flow">One request, five steps</h2>
+    <ol class="flow">
+      <li><h3>You speak</h3><p>Tap the mic and say what you need, in any of the 11 languages.</p></li>
+      <li><h3>It understands</h3><p>Picks the right service and checks your saved profile and documents.</p></li>
+      <li><h3>It asks less</h3><p>Only missing details, two or three related ones per question.</p></li>
+      <li><h3>It fills the page</h3><p>Works on the real portal page while you watch it live.</p></li>
+      <li class="you"><h3>You finish</h3><p>Captcha, OTP, consent and Submit stay with you, inside the same screen.</p></li>
+    </ol>
+  </section>
+
+  <section aria-labelledby="h-scenes">
+    <div class="eyebrow">Recorded demos</div>
+    <h2 id="h-scenes">Four flows, recorded end to end</h2>
+    <p class="muted">Real voice, real agent, on clearly labelled demo replicas of the portals. The citizen's steps are done through Agastya's live view.</p>
+    <div class="scenes" id="scenes"></div>
+  </section>
+
+  <section aria-labelledby="h-devices">
+    <div class="eyebrow">Desktop and phone</div>
+    <h2 id="h-devices">The same assistant on a laptop or a phone</h2>
+    <p class="muted">The web app installs to the home screen as a phone app. Voice, questions, the live view and taking control all work by touch, with a type box for OTPs.</p>
+    <div class="devices">
+      <figure class="laptop" style="margin:0"><img id="img-desktop" alt="Agastya on desktop: conversation, profile and live portal view"><figcaption class="cap">Desktop: profile, conversation and the live portal side by side.</figcaption></figure>
+      <figure style="margin:0"><div class="phone"><img id="img-phone" alt="Agastya installed as a phone app"></div><figcaption class="cap" style="text-align:center">Installable phone app.</figcaption></figure>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-safety">
+    <div class="eyebrow">You stay in charge</div>
+    <h2 id="h-safety">Three locks between the agent and the Submit button</h2>
+    <div class="layers">
+      <div class="layer"><h3>Action guard</h3><p>Every click is checked against final actions in English and Hindi: submit, pay, e-verify, OTP, login, captcha. Payment gateways are off limits.</p></div>
+      <div class="layer"><h3>Tool gate</h3><p>Every browser tool call passes an allow-list. Anything not explicitly approved, such as running page scripts, is refused.</p></div>
+      <div class="layer"><h3>In-page lock</h3><p>While the agent works, final buttons and form submits are disabled inside the page itself. When you take control, the lock lifts.</p></div>
+    </div>
+    <p class="yours"><strong>Always yours:</strong> passwords, OTPs, captchas, consent and declaration boxes, payment and the final submit. Sensitive numbers like Aadhaar and PAN are masked on screen and in speech, and your profile stays on your own device.</p>
+  </section>
+
+  <section aria-labelledby="h-stack">
+    <div class="eyebrow">Under the hood</div>
+    <h2 id="h-stack">Built with</h2>
+    <ul class="stack">
+      <li>Sarvam AI speech recognition and speech synthesis (<code>saaras:v4</code>, <code>bulbul:v3</code>)</li>
+      <li>Claude agent with portal playbooks and tool use</li>
+      <li>Playwright browser with a live screencast over Chrome DevTools</li>
+      <li>Browser MCP for reading complex page structure</li>
+      <li>FastAPI with WebSockets for voice and live control</li>
+      <li>Form 16 reader that fills the income-tax schedules</li>
+      <li>Local SQLite profile with validation and masking</li>
+      <li>Installable web app (PWA) for phones</li>
+    </ul>
+  </section>
+
+  <footer>
+    The portal screens in the demos are fictional replicas built for this hackathon. Each one carries a "DEMO REPLICA — NOT A GOVERNMENT WEBSITE" banner, and nothing was submitted to any government service. Agastya Assist is a prototype for the Vikas hackathon.
+  </footer>
+</div>
+
+<script>
+(function () {
+  // Portal vs Agastya toggle
+  const tabs = { portal: document.getElementById('tab-portal'), agastya: document.getElementById('tab-agastya') };
+  const views = { portal: document.getElementById('view-portal'), agastya: document.getElementById('view-agastya') };
+  function show(which) {
+    for (const k of Object.keys(tabs)) { tabs[k].setAttribute('aria-selected', String(k === which)); views[k].hidden = k !== which; }
+  }
+  tabs.portal.addEventListener('click', () => show('portal'));
+  tabs.agastya.addEventListener('click', () => show('agastya'));
+
+  // Languages
+  const LANGS = [
+    ['hi-IN', 'हिन्दी', 'नमस्ते, मैं अगस्त्य हूँ। आज कौन सा फ़ॉर्म भरना है?'],
+    ['en-IN', 'English', "Hello, I'm Agastya. Which form shall we fill today?"],
+    ['bn-IN', 'বাংলা', 'নমস্কার, আমি অগস্ত্য। আজ কোন ফর্মটি পূরণ করবেন?'],
+    ['ta-IN', 'தமிழ்', 'வணக்கம், நான் அகஸ்தியா. இன்று எந்தப் படிவத்தை நிரப்ப வேண்டும்?'],
+    ['te-IN', 'తెలుగు', 'నమస్కారం, నేను అగస్త్య. ఈ రోజు ఏ ఫారం నింపాలి?'],
+    ['kn-IN', 'ಕನ್ನಡ', 'ನಮಸ್ಕಾರ, ನಾನು ಅಗಸ್ತ್ಯ. ಇಂದು ಯಾವ ಫಾರ್ಮ್ ಭರ್ತಿ ಮಾಡಬೇಕು?'],
+    ['ml-IN', 'മലയാളം', 'നമസ്കാരം, ഞാൻ അഗസ്ത്യ. ഇന്ന് ഏത് ഫോം പൂരിപ്പിക്കണം?'],
+    ['mr-IN', 'मराठी', 'नमस्कार, मी अगस्त्य. आज कोणता फॉर्म भरायचा आहे?'],
+    ['gu-IN', 'ગુજરાતી', 'નમસ્તે, હું અગસ્ત્ય છું. આજે કયું ફોર્મ ભરવું છે?'],
+    ['pa-IN', 'ਪੰਜਾਬੀ', 'ਸਤ ਸ੍ਰੀ ਅਕਾਲ, ਮੈਂ ਅਗਸਤਯ ਹਾਂ। ਅੱਜ ਕਿਹੜਾ ਫ਼ਾਰਮ ਭਰਨਾ ਹੈ?'],
+    ['od-IN', 'ଓଡ଼ିଆ', 'ନମସ୍କାର, ମୁଁ ଅଗସ୍ତ୍ୟ। ଆଜି କେଉଁ ଫର୍ମ ପୂରଣ କରିବେ?'],
+  ];
+  const list = document.getElementById('lang-list');
+  const line = document.getElementById('greet-line');
+  const code = document.getElementById('greet-code');
+  function pick(i) {
+    const [c, name, text] = LANGS[i];
+    line.textContent = text; line.lang = c.slice(0, 2); code.textContent = c + ' · ' + name;
+    [...list.children].forEach((b, j) => b.setAttribute('aria-pressed', String(i === j)));
+  }
+  LANGS.forEach(([c, name], i) => {
+    const b = document.createElement('button'); b.type = 'button'; b.textContent = name; b.lang = c.slice(0, 2);
+    b.addEventListener('click', () => pick(i)); list.append(b);
+  });
+  pick(0);
+
+  // Recorded scenes (filled from the demo run)
+  const SCENES = window.AGASTYA_SCENES || [];
+  const host = document.getElementById('scenes');
+  SCENES.forEach((s) => {
+    const el = document.createElement('article'); el.className = 'scene';
+    el.innerHTML = `<figure><img loading="lazy" alt=""></figure><div class="body"><h3></h3><p class="say"></p><p class="muted"></p><div class="stats"></div></div>`;
+    el.querySelector('img').src = s.media; el.querySelector('img').alt = s.alt;
+    el.querySelector('h3').textContent = s.title;
+    const say = el.querySelector('.say'); say.textContent = s.say; say.lang = s.lang;
+    el.querySelector('.muted').textContent = s.what;
+    el.querySelector('.stats').innerHTML = s.stats.map(([k, v]) => `<span>${k} <b>${v}</b></span>`).join('');
+    host.append(el);
+  });
+  const d = document.getElementById('img-desktop'), p = document.getElementById('img-phone');
+  if (window.AGASTYA_DESKTOP) d.src = window.AGASTYA_DESKTOP;
+  if (window.AGASTYA_PHONE) p.src = window.AGASTYA_PHONE;
+})();
+</script>
